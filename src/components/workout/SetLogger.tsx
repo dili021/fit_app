@@ -20,6 +20,7 @@ interface SetLoggerProps {
   onTimerStart?: () => void
   onTimerStop?: () => void
   onTimerUpdate?: (seconds: number) => void
+  onTimerReset?: () => void
   onRestTimerStart?: (seconds: number) => void
   onRestTimerUpdate?: (seconds: number) => void
   onRestTimerComplete?: () => void
@@ -37,6 +38,7 @@ export function SetLogger({
   onTimerStart,
   onTimerStop,
   onTimerUpdate,
+  onTimerReset,
   onRestTimerStart,
   onRestTimerUpdate,
   onRestTimerComplete,
@@ -145,6 +147,12 @@ export function SetLogger({
         clearInterval(restIntervalRef.current)
         restIntervalRef.current = null
       }
+      // Ensure timer is reset when rest completes
+      if (restSecondsRemaining === null) {
+        setIsTimerRunning(false)
+        setElapsedSeconds(0)
+        startTimeRef.current = null
+      }
     }
 
     return () => {
@@ -200,13 +208,16 @@ export function SetLogger({
         duration,
       })
 
+      // Reset timer state FIRST (before starting rest)
+      setIsTimerRunning(false)
+      setElapsedSeconds(0)
+      startTimeRef.current = null
+      onTimerReset?.()
+
       // Start rest timer
       const restSeconds = restTimeMinutes * 60
       setRestSecondsRemaining(restSeconds)
       onRestTimerStart?.(restSeconds)
-      setIsTimerRunning(false)
-      setElapsedSeconds(0)
-      startTimeRef.current = null
 
       // Call completion callback
       onSetComplete()

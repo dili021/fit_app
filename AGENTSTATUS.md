@@ -3,7 +3,7 @@
 ## Overview
 Tracking progress on the training tracker app implementation based on the plan.
 
-**Last Updated**: 2026-01-25 (Updated Phase 3 details - 6-step wizard with improved volume logic)
+**Last Updated**: 2026-01-25 (Updated Phase 5 - Workout execution enhancements, timer overlays, workout overview, bug fixes)
 
 ---
 
@@ -111,12 +111,13 @@ Tracking progress on the training tracker app implementation based on the plan.
 ### Status: ✅ Complete
 
 - [x] **Dashboard Components**
-  - Active mesocycle card with week progress indicator
+  - Active mesocycle card with progress indicator (based on total sets logged)
   - Primary patterns volume tracking display
   - Quick start workout button
   - Recent workout history (last 3 workouts)
   - Deload notification for final week
   - Empty state when no mesocycle exists
+  - Progress calculation: `(completedSets / (targetSetsPerWeek * durationWeeks)) * 100`
 
 ---
 
@@ -134,26 +135,59 @@ Tracking progress on the training tracker app implementation based on the plan.
   - Pattern-by-pattern full-screen view
   - Locked primary patterns sequence
   - Pattern navigation (Previous/Next buttons)
-  - "Conclude Session" button on final pattern
+  - "Conclude Session" button (red until all sets done, then green)
+  - Auto-navigation logic (prim→prim, sec→sec, prim→sec when all prims done)
+  - Navigation deferred until rest timer completes/dismissed
+  - Set counter shows pattern-level sets (not exercise-level)
 
 - [x] **Exercise Carousel**
   - Navigable exercise selector (left/right arrows)
   - Shows exercises from pattern's pool
   - Dot indicators for exercise selection
+  - Auto-selects first exercise on load
   - Remembers selected exercise
+  - Removed exercise count display ("n of m")
 
 - [x] **Set Logging**
   - Weight input (shows last weight for exercise)
-  - Large start/stop timer button
+  - Compact "Start Timer" button (opens global timer overlay)
   - Reps input (shows last reps for exercise)
   - Set completion tracking
+  - Timer button resets immediately after set completion
+  - Weight/reps persist for same exercise, reset on exercise change
   - Auto-progression ready (8-12 rep range logic can be added)
 
+- [x] **Timer System**
+  - Global timer overlay (TimerOverlay component)
+  - Dismissable timer overlay
+  - Timer state synced between SetLogger and parent
+  - Timer resets when set completes
+  - Timer button disabled during rest timer
+
 - [x] **Rest Timer**
+  - Global rest timer overlay (RestTimerOverlay component)
+  - Dismissable rest timer overlay
   - Automatic rest timer after set completion
   - Countdown display (minutes:seconds format)
   - Browser notification when rest completes
-  - Timer blocks next set until rest completes
+  - Timer blocks next set until rest completes/dismissed
+  - Navigation triggers after rest timer closes (if auto-navigate condition met)
+
+- [x] **Workout Overview**
+  - Comprehensive workout summary when all sets completed
+  - Groups exercises by pattern with pattern headers
+  - Shows total sets, total volume, total time, sets timed
+  - Displays individual set details (weight, reps, duration)
+  - "Back to Workout" and "Complete Workout" buttons
+
+- [x] **Bug Fixes**
+  - Fixed React Hooks order violation (all hooks called unconditionally)
+  - Fixed "update during render" errors (deferred callbacks with setTimeout)
+  - Fixed ReferenceError when accessing currentPattern before initialization
+  - Fixed double login issue (simplified ActiveWorkout component)
+  - Fixed mesocycle progress bar (calculates from total sets logged, not week number)
+  - Fixed auto-navigation bug (exact set completion check)
+  - Fixed set counter to show pattern sets, not workout sets
 
 ---
 
@@ -194,8 +228,8 @@ See `NOTES.md` for details on:
 ## Next Steps
 
 1. **Build Progress Tracking** - Create history page with charts and progress visualization (Phase 6)
-2. **Test Workout Flow** - Verify workout execution flow works end-to-end
-3. **Add Auto-Progression Logic** - Implement weight increase/decrease suggestions based on rep ranges
+2. **Add Auto-Progression Logic** - Implement weight increase/decrease suggestions based on rep ranges
+3. **Test & Polish** - End-to-end testing of workout flow, UI/UX refinements
 
 ---
 
@@ -212,9 +246,12 @@ See `NOTES.md` for details on:
 - `src/routes/mesocycle/setup.tsx` - Mesocycle setup wizard (6-step flow with dynamic volume options)
 - `src/routes/index.tsx` - Dashboard with mesocycle overview and recent workouts
 - `src/routes/workout/index.tsx` - Workout entry page with template preview
-- `src/routes/workout/active.tsx` - Full-screen active workout flow
-- `src/components/workout/ExerciseCarousel.tsx` - Exercise selector component
+- `src/routes/workout/active.tsx` - Full-screen active workout flow with navigation logic
+- `src/components/workout/ExerciseCarousel.tsx` - Exercise selector component with auto-selection
 - `src/components/workout/SetLogger.tsx` - Set logging with timer and rest countdown
+- `src/components/workout/TimerOverlay.tsx` - Global timer overlay component
+- `src/components/workout/RestTimerOverlay.tsx` - Global rest timer overlay component
+- `src/components/workout/WorkoutOverview.tsx` - Workout completion summary with pattern grouping
 - `src/routes/history/index.tsx` - History route (protected)
 - `src/routes/exercises/index.tsx` - Exercises route (protected)
 - `src/routes/sign-in.tsx` - Sign-in/sign-up page
@@ -230,10 +267,13 @@ See `NOTES.md` for details on:
 
 ### Modified
 - `src/routes/__root.tsx` - Updated title
-- `src/routes/index.tsx` - Converted to protected dashboard route
+- `src/routes/index.tsx` - Converted to protected dashboard route, mesocycle progress based on sets logged
+- `src/routes/workout/active.tsx` - Fixed hooks order, added timer/rest overlays, workout overview, navigation logic
+- `src/components/workout/SetLogger.tsx` - Timer button reset, global overlays integration, deferred callbacks
 - `src/components/Header.tsx` - Added fitness app navigation, updated sign-in link
 - `src/integrations/better-auth/header-user.tsx` - Updated sign-in redirect
 - `src/lib/auth.ts` - Better Auth configuration
+- `convex/sets.ts` - Added getSetsForMesocycle query for progress tracking
 - `.env.local` - Added Better Auth secret
 - `package.json` - Added @radix-ui/react-progress and @radix-ui/react-radio-group dependencies
 

@@ -12,6 +12,7 @@ import { ExerciseCarousel } from '@/components/workout/ExerciseCarousel'
 import { SetLogger } from '@/components/workout/SetLogger'
 import { TimerOverlay } from '@/components/workout/TimerOverlay'
 import { RestTimerOverlay } from '@/components/workout/RestTimerOverlay'
+import { WorkoutOverview } from '@/components/workout/WorkoutOverview'
 
 const workoutActiveSearchSchema = z.object({
   workoutId: z.string().optional(),
@@ -69,6 +70,8 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
     api.workouts.generateWorkoutTemplate,
     mesocycle ? { mesocycleId: mesocycle._id } : "skip"
   )
+  const exercises = useQuery(api.exercises.getAll, {})
+  const patterns = useQuery(api.patterns.getAll, {})
 
   const [currentPatternIndex, setCurrentPatternIndex] = useState(0)
   const [selectedExerciseId, setSelectedExerciseId] = useState<Id<"exercises"> | null>(null)
@@ -80,6 +83,7 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
   const [restSecondsRemaining, setRestSecondsRemaining] = useState<number | null>(null)
   const [showRestTimerOverlay, setShowRestTimerOverlay] = useState(false)
   const [pendingPatternNavigation, setPendingPatternNavigation] = useState(false)
+  const [showWorkoutOverview, setShowWorkoutOverview] = useState(false)
 
   // Get sets for this workout to track progress
   const workoutSets = useQuery(
@@ -114,6 +118,28 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
     setShowRestTimerOverlay(false)
     setPendingPatternNavigation(false)
   }, [currentPatternIndex, selectedExerciseId])
+
+  // Calculate if all sets are completed for the workout (must be before early returns)
+  const allSetsCompleted = workoutSets && workoutTemplate ? (() => {
+    for (const pattern of workoutTemplate.template) {
+      const patternSets = workoutSets.filter((s) => s.patternId === pattern.patternId)
+      if (patternSets.length < pattern.sets) {
+        return false
+      }
+    }
+    return true
+  })() : false
+
+  // Show overview when all sets are completed (only once) - MUST be before early returns
+  useEffect(() => {
+    if (allSetsCompleted && workoutSets && workoutSets.length > 0 && !showWorkoutOverview) {
+      // Small delay to ensure all data is loaded
+      const timer = setTimeout(() => {
+        setShowWorkoutOverview(true)
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [allSetsCompleted, workoutSets, showWorkoutOverview])
 
   // Loading state - check if queries are still loading
   if (activeWorkout === undefined || (workoutId && workout === undefined)) {
@@ -177,17 +203,6 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
         (s) => s.patternId === currentPattern.patternId && s.exerciseId === selectedExerciseId
       ).length
     : 0
-
-  // Calculate if all sets are completed for the workout
-  const allSetsCompleted = workoutSets && workoutTemplate ? (() => {
-    for (const pattern of workoutTemplate.template) {
-      const patternSets = workoutSets.filter((s) => s.patternId === pattern.patternId)
-      if (patternSets.length < pattern.sets) {
-        return false
-      }
-    }
-    return true
-  })() : false
 
   // Check if all primary pattern sets are completed
   const allPrimarySetsCompleted = workoutSets && workoutTemplate ? (() => {
@@ -257,6 +272,12 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
 
   const handleTimerDismiss = () => {
     setShowTimerOverlay(false) // Just hide overlay, timer keeps running
+  }
+
+  const handleTimerReset = () => {
+    setIsTimerRunning(false)
+    setTimerSeconds(0)
+    setShowTimerOverlay(false)
   }
 
   const handleRestTimerStart = (seconds: number) => {
@@ -340,6 +361,33 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
     }
   }
 
+  const handleCompleteWorkoutFromOverview = async () => {
+    try {
+      await completeWorkout({ workoutId: currentWorkout._id })
+      navigate({ to: '/' })
+    } catch (error) {
+      console.error('Failed to complete workout:', error)
+      alert('Failed to complete workout. Please try again.')
+    }
+  }
+
+  const handleBackFromOverview = () => {
+    setShowWorkoutOverview(false)
+  }
+
+  // Show workout overview if all sets are completed
+  if (showWorkoutOverview && workoutSets && exercises && patterns) {
+    return (
+      <WorkoutOverview
+        sets={workoutSets}
+        exercises={exercises}
+        patterns={patterns}
+        onComplete={handleCompleteWorkoutFromOverview}
+        onBack={handleBackFromOverview}
+      />
+    )
+  }
+
   return (
     <>
       {/* Timer Overlay - Shows when timer is running or overlay is visible */}
@@ -413,6 +461,7 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
                 onTimerStart={handleTimerStart}
                 onTimerStop={handleTimerStop}
                 onTimerUpdate={setTimerSeconds}
+                onTimerReset={handleTimerReset}
                 onRestTimerStart={handleRestTimerStart}
                 onRestTimerUpdate={handleRestTimerUpdate}
                 onRestTimerComplete={handleRestTimerComplete}
