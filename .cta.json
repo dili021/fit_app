@@ -1,0 +1,22 @@
+{
+  "projectName": "fit_app",
+  "mode": "file-router",
+  "typescript": true,
+  "packageManager": "npm",
+  "tailwind": true,
+  "addOnOptions": {},
+  "git": true,
+  "version": 1,
+  "framework": "react-cra",
+  "chosenAddOns": [
+    "eslint",
+    "nitro",
+    "start",
+    "convex",
+    "form",
+    "shadcn",
+    "strapi",
+    "better-auth",
+    "tanstack-query"
+  ]
+}
