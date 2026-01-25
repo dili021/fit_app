@@ -70,8 +70,63 @@ export default function Header() {
             }}
           >
             <Home size={20} />
-            <span className="font-medium">Home</span>
+            <span className="font-medium">Dashboard</span>
           </Link>
+
+          {/* Fitness App Routes */}
+          <div className="border-t border-gray-700 my-4 pt-4">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase mb-2 px-3">
+              Fitness App
+            </h3>
+            <Link
+              to="/mesocycle/setup"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
+              activeProps={{
+                className:
+                  'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
+              }}
+            >
+              <SquareFunction size={20} />
+              <span className="font-medium">Setup Mesocycle</span>
+            </Link>
+            <Link
+              to="/workout"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
+              activeProps={{
+                className:
+                  'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
+              }}
+            >
+              <Network size={20} />
+              <span className="font-medium">Workout</span>
+            </Link>
+            <Link
+              to="/history"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
+              activeProps={{
+                className:
+                  'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
+              }}
+            >
+              <StickyNote size={20} />
+              <span className="font-medium">History</span>
+            </Link>
+            <Link
+              to="/exercises"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
+              activeProps={{
+                className:
+                  'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
+              }}
+            >
+              <ClipboardType size={20} />
+              <span className="font-medium">Exercises</span>
+            </Link>
+          </div>
 
           {/* Demo Links Start */}
 
@@ -173,18 +228,6 @@ export default function Header() {
             </div>
           )}
 
-          <Link
-            to="/demo/convex"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-            activeProps={{
-              className:
-                'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-            }}
-          >
-            <Globe size={20} />
-            <span className="font-medium">Convex</span>
-          </Link>
 
           <Link
             to="/demo/form/simple"
@@ -238,18 +281,6 @@ export default function Header() {
             <span className="font-medium">Better Auth</span>
           </Link>
 
-          <Link
-            to="/demo/tanstack-query"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-            activeProps={{
-              className:
-                'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-            }}
-          >
-            <Network size={20} />
-            <span className="font-medium">TanStack Query</span>
-          </Link>
 
           {/* Demo Links End */}
         </nav>
