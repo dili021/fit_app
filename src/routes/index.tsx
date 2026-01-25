@@ -43,6 +43,10 @@ function DashboardContent({ userId }: { userId: string }) {
   const activeMesocycle = useQuery(api.mesocycles.getActiveMesocycle, { userId })
   const recentWorkouts = useQuery(api.workouts.getRecentWorkouts, { userId, limit: 3 })
   const patterns = useQuery(api.patterns.getAll)
+  const mesocycleSets = useQuery(
+    api.sets.getSetsForMesocycle,
+    activeMesocycle ? { mesocycleId: activeMesocycle._id } : "skip"
+  )
 
   // Calculate current week if mesocycle exists
   const currentWeek = activeMesocycle
@@ -50,9 +54,20 @@ function DashboardContent({ userId }: { userId: string }) {
     : 0
 
   const isFinalWeek = activeMesocycle && currentWeek === activeMesocycle.durationWeeks
-  const weekProgress = activeMesocycle
-    ? (currentWeek / activeMesocycle.durationWeeks) * 100
-    : 0
+
+  // Calculate progress based on completed sets, not week number
+  const mesocycleProgress = activeMesocycle && mesocycleSets ? (() => {
+    // Calculate total expected sets for the entire mesocycle
+    // This is: targetSetsPerWeek * durationWeeks * sessionsPerWeek / sessionsPerWeek
+    // Simplified: targetSetsPerWeek * durationWeeks
+    const totalExpectedSets = activeMesocycle.targetSetsPerWeek * activeMesocycle.durationWeeks
+    
+    // Count completed sets
+    const completedSets = mesocycleSets.length
+    
+    // Calculate percentage
+    return totalExpectedSets > 0 ? (completedSets / totalExpectedSets) * 100 : 0
+  })() : 0
 
   // Get primary pattern names
   const primaryPatternNames = activeMesocycle && patterns
@@ -122,13 +137,13 @@ function DashboardContent({ userId }: { userId: string }) {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Week Progress */}
+              {/* Mesocycle Progress */}
               <div>
                 <div className="flex justify-between text-sm mb-2">
                   <span className="text-muted-foreground">Progress</span>
-                  <span className="font-medium">{Math.round(weekProgress)}%</span>
+                  <span className="font-medium">{Math.round(mesocycleProgress)}%</span>
                 </div>
-                <Progress value={weekProgress} className="h-2" />
+                <Progress value={mesocycleProgress} className="h-2" />
               </div>
 
               {/* Primary Patterns */}

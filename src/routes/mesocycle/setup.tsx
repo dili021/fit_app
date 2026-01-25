@@ -216,30 +216,29 @@ function MesocycleSetupContent({ userId }: { userId: string }) {
 
           {/* Step 2: Primary Patterns */}
           {currentStep === 2 && (
-            <div className="space-y-3">
-              {patterns?.map((pattern) => {
-                const isSelected = formData.primaryPatterns.includes(pattern._id)
-                return (
-                  <Card
-                    key={pattern._id}
-                    className={`cursor-pointer transition-colors ${
-                      isSelected ? 'border-primary bg-primary/5' : ''
-                    }`}
-                    onClick={() => togglePattern(pattern._id)}
-                  >
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <div>
-                        <div className="font-medium">{pattern.displayName}</div>
-                        {pattern.description && (
-                          <div className="text-sm text-muted-foreground">{pattern.description}</div>
-                        )}
-                      </div>
-                      {isSelected && <Check className="h-5 w-5 text-primary" />}
-                    </CardContent>
-                  </Card>
-                )
-              })}
-              <p className="text-sm text-muted-foreground mt-4">
+            <div>
+              <div className="grid grid-cols-2 gap-2">
+                {patterns?.map((pattern) => {
+                  const isSelected = formData.primaryPatterns.includes(pattern._id)
+                  return (
+                    <Card
+                      key={pattern._id}
+                      className={`cursor-pointer transition-colors ${
+                        isSelected ? 'border-primary bg-primary/5' : ''
+                      }`}
+                      onClick={() => togglePattern(pattern._id)}
+                    >
+                      <CardContent className="p-2 flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm truncate">{pattern.displayName}</div>
+                        </div>
+                        {isSelected && <Check className="h-4 w-4 text-primary shrink-0 ml-2" />}
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+              <p className="text-sm text-muted-foreground mt-3">
                 Selected: {formData.primaryPatterns.length} of 2
               </p>
             </div>

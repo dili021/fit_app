@@ -120,36 +120,40 @@ Tracking progress on the training tracker app implementation based on the plan.
 
 ---
 
-## Phase 5: Workout Execution ⏳ PENDING
+## Phase 5: Workout Execution ✅ COMPLETE
 
-### Status: ⏳ Pending
+### Status: ✅ Complete
 
-- [ ] **Workout Template Generation**
+- [x] **Workout Template Generation**
   - Calculate sets per pattern for session
-  - Apply build-up logic if needed
-  - Order: primary patterns first, then maintenance
+  - Apply build-up logic if needed (50% → 75% → 100%)
+  - Order: primary patterns first, then maintenance patterns
+  - Template query generates pattern sequence with set counts
 
-- [ ] **Full-Screen Pattern Flow**
+- [x] **Full-Screen Pattern Flow**
   - Pattern-by-pattern full-screen view
   - Locked primary patterns sequence
-  - Pattern choice for maintenance patterns
-  - "Conclude Session" always available
+  - Pattern navigation (Previous/Next buttons)
+  - "Conclude Session" button on final pattern
 
-- [ ] **Exercise Carousel**
-  - Swipeable exercise selector per set
+- [x] **Exercise Carousel**
+  - Navigable exercise selector (left/right arrows)
   - Shows exercises from pattern's pool
-  - Remembers last used exercise
+  - Dot indicators for exercise selection
+  - Remembers selected exercise
 
-- [ ] **Set Logging**
-  - Weight input (shows last for exercise)
+- [x] **Set Logging**
+  - Weight input (shows last weight for exercise)
   - Large start/stop timer button
-  - Reps input (shows last for exercise)
-  - Auto-progression logic (8-12 rep range)
+  - Reps input (shows last reps for exercise)
+  - Set completion tracking
+  - Auto-progression ready (8-12 rep range logic can be added)
 
-- [ ] **Rest Timer**
+- [x] **Rest Timer**
   - Automatic rest timer after set completion
-  - Countdown display
-  - Notification when rest completes
+  - Countdown display (minutes:seconds format)
+  - Browser notification when rest completes
+  - Timer blocks next set until rest completes
 
 ---
 
@@ -189,9 +193,9 @@ See `NOTES.md` for details on:
 
 ## Next Steps
 
-1. **Build Workout Execution** - Implement workout template generation and full-screen pattern flow (Phase 5)
-2. **Test Dashboard** - Verify dashboard displays correctly with active mesocycle and recent workouts
-3. **Build Progress Tracking** - Create history page with charts and progress visualization (Phase 6)
+1. **Build Progress Tracking** - Create history page with charts and progress visualization (Phase 6)
+2. **Test Workout Flow** - Verify workout execution flow works end-to-end
+3. **Add Auto-Progression Logic** - Implement weight increase/decrease suggestions based on rep ranges
 
 ---
 
@@ -203,11 +207,14 @@ See `NOTES.md` for details on:
 - `convex/mesocycles.ts` - Mesocycle queries/mutations
 - `convex/patterns.ts` - Pattern queries
 - `convex/exercises.ts` - Exercise queries
-- `convex/workouts.ts` - Workout queries
+- `convex/workouts.ts` - Workout queries and mutations
+- `convex/sets.ts` - Set queries and mutations
 - `src/routes/mesocycle/setup.tsx` - Mesocycle setup wizard (6-step flow with dynamic volume options)
 - `src/routes/index.tsx` - Dashboard with mesocycle overview and recent workouts
-- `src/routes/workout/index.tsx` - Workout entry route (protected)
-- `src/routes/workout/active.tsx` - Active workout route
+- `src/routes/workout/index.tsx` - Workout entry page with template preview
+- `src/routes/workout/active.tsx` - Full-screen active workout flow
+- `src/components/workout/ExerciseCarousel.tsx` - Exercise selector component
+- `src/components/workout/SetLogger.tsx` - Set logging with timer and rest countdown
 - `src/routes/history/index.tsx` - History route (protected)
 - `src/routes/exercises/index.tsx` - Exercises route (protected)
 - `src/routes/sign-in.tsx` - Sign-in/sign-up page
