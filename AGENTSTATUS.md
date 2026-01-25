@@ -3,7 +3,7 @@
 ## Overview
 Tracking progress on the training tracker app implementation based on the plan.
 
-**Last Updated**: 2026-01-25
+**Last Updated**: 2026-01-25 (Updated Phase 3 details - 6-step wizard with improved volume logic)
 
 ---
 
@@ -82,35 +82,41 @@ Tracking progress on the training tracker app implementation based on the plan.
 
 ---
 
-## Phase 3: Mesocycle Setup ⏳ PENDING
+## Phase 3: Mesocycle Setup ✅ COMPLETE
 
-### Status: ⏳ Pending
+### Status: ✅ Complete
 
-- [ ] **4-Step Setup Wizard**
-  - Step 1: Duration selection
-  - Step 2: Primary pattern selection (1-2 patterns)
-  - Step 3: Volume & training history (reactive session duration)
-  - Step 4: Rest time configuration
-  - Final summary & confirmation
+- [x] **6-Step Setup Wizard**
+  - Step 1: Duration selection (4, 6, or 8 weeks) - Radio buttons
+  - Step 2: Primary pattern selection (1-2 patterns from 6 available) - Clickable cards
+  - Step 3: Training frequency (2-5 sessions per week) - Compact button group [2|3|4|5]
+  - Step 4: Volume & training history
+    - Sets per primary pattern per week (10-20 range, filtered by sessions/week)
+    - Options dynamically show only values divisible by sessions per week
+    - Previously training question with build-up logic explanation
+  - Step 5: Rest time configuration
+  - Step 6: Summary & confirmation
 
-- [ ] **Set Distribution Logic**
-  - Divisibility check (sets/week must divide evenly by sessions/week)
-  - Reactive session duration calculation
+- [x] **Set Distribution Logic**
+  - Sessions per week selected first (prerequisite for volume)
+  - Volume options dynamically filtered: only 10-20 range values where `n % sessionsPerWeek === 0`
+  - Sets per primary pattern per session calculated reactively
   - Build-up logic display (if not previously training)
+  - All options are valid (no invalid states shown)
 
 ---
 
-## Phase 4: Dashboard ⏳ PENDING
+## Phase 4: Dashboard ✅ COMPLETE
 
-### Status: ⏳ Pending
+### Status: ✅ Complete
 
-- [ ] **Dashboard Components**
-  - Active mesocycle card
-  - Week progress indicator
-  - Primary patterns volume tracking
+- [x] **Dashboard Components**
+  - Active mesocycle card with week progress indicator
+  - Primary patterns volume tracking display
   - Quick start workout button
-  - Recent workout history (last 3)
-  - Deload notification (if on final week)
+  - Recent workout history (last 3 workouts)
+  - Deload notification for final week
+  - Empty state when no mesocycle exists
 
 ---
 
@@ -183,9 +189,9 @@ See `NOTES.md` for details on:
 
 ## Next Steps
 
-1. **Build Dashboard** - Create the main dashboard with mesocycle card and Convex integration
-2. **Build Mesocycle Wizard** - Implement the 4-step setup flow with reactive calculations
-3. **Test Auth Flow** - Verify user sign-in/sign-up works and userId is properly extracted
+1. **Build Workout Execution** - Implement workout template generation and full-screen pattern flow (Phase 5)
+2. **Test Dashboard** - Verify dashboard displays correctly with active mesocycle and recent workouts
+3. **Build Progress Tracking** - Create history page with charts and progress visualization (Phase 6)
 
 ---
 
@@ -197,7 +203,9 @@ See `NOTES.md` for details on:
 - `convex/mesocycles.ts` - Mesocycle queries/mutations
 - `convex/patterns.ts` - Pattern queries
 - `convex/exercises.ts` - Exercise queries
-- `src/routes/mesocycle/setup.tsx` - Mesocycle setup route (protected)
+- `convex/workouts.ts` - Workout queries
+- `src/routes/mesocycle/setup.tsx` - Mesocycle setup wizard (6-step flow with dynamic volume options)
+- `src/routes/index.tsx` - Dashboard with mesocycle overview and recent workouts
 - `src/routes/workout/index.tsx` - Workout entry route (protected)
 - `src/routes/workout/active.tsx` - Active workout route
 - `src/routes/history/index.tsx` - History route (protected)
@@ -205,6 +213,10 @@ See `NOTES.md` for details on:
 - `src/routes/sign-in.tsx` - Sign-in/sign-up page
 - `src/components/auth/ProtectedRoute.tsx` - Route protection wrapper
 - `src/hooks/useAuth.ts` - Auth hook for session/userId access
+- `src/components/ui/card.tsx` - Card component (shadcn)
+- `src/components/ui/radio-group.tsx` - Radio group component (shadcn)
+- `src/components/ui/progress.tsx` - Progress bar component (shadcn)
+- `src/components/ui/badge.tsx` - Badge component (shadcn)
 - `NOTES.md` - Technical debt tracking
 - `AGENTSTATUS.md` - This file
 - `SETUP.md` - Setup instructions
@@ -216,6 +228,7 @@ See `NOTES.md` for details on:
 - `src/integrations/better-auth/header-user.tsx` - Updated sign-in redirect
 - `src/lib/auth.ts` - Better Auth configuration
 - `.env.local` - Added Better Auth secret
+- `package.json` - Added @radix-ui/react-progress and @radix-ui/react-radio-group dependencies
 
 ### Deleted
 - `convex/todos.ts` - Demo file
