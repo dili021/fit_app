@@ -53,9 +53,9 @@ Tracking progress on the training tracker app implementation based on the plan.
 
 ---
 
-## Phase 2: Routing & Auth Flow 🔄 IN PROGRESS
+## Phase 2: Routing & Auth Flow ✅ COMPLETE
 
-### Status: 🔄 In Progress
+### Status: ✅ Complete
 
 - [x] **Routing Structure**
   - `/` - Dashboard route created
@@ -72,10 +72,13 @@ Tracking progress on the training tracker app implementation based on the plan.
   - `convex/patterns.ts` - Pattern queries
   - `convex/exercises.ts` - Exercise queries
 
-- [ ] **Auth Flow Integration** ⏳ PENDING
-  - Route protection (require auth for fitness routes)
-  - User ID extraction from Better Auth session
-  - Integration with Convex queries (pass userId)
+- [x] **Auth Flow Integration** ✅ COMPLETE
+  - Route protection (require auth for fitness routes) ✅
+  - User ID extraction from Better Auth session ✅
+  - Integration with Convex queries (pass userId) ✅
+  - Sign-in page created (`/sign-in`) ✅
+  - Protected route wrapper component ✅
+  - `useAuth` hook for easy session access ✅
 
 ---
 
@@ -180,9 +183,9 @@ See `NOTES.md` for details on:
 
 ## Next Steps
 
-1. **Complete Auth Flow Integration** - Protect routes and integrate user sessions
-2. **Build Dashboard** - Create the main dashboard with mesocycle card
-3. **Build Mesocycle Wizard** - Implement the 4-step setup flow
+1. **Build Dashboard** - Create the main dashboard with mesocycle card and Convex integration
+2. **Build Mesocycle Wizard** - Implement the 4-step setup flow with reactive calculations
+3. **Test Auth Flow** - Verify user sign-in/sign-up works and userId is properly extracted
 
 ---
 
@@ -194,18 +197,23 @@ See `NOTES.md` for details on:
 - `convex/mesocycles.ts` - Mesocycle queries/mutations
 - `convex/patterns.ts` - Pattern queries
 - `convex/exercises.ts` - Exercise queries
-- `src/routes/mesocycle/setup.tsx` - Mesocycle setup route
-- `src/routes/workout/index.tsx` - Workout entry route
+- `src/routes/mesocycle/setup.tsx` - Mesocycle setup route (protected)
+- `src/routes/workout/index.tsx` - Workout entry route (protected)
 - `src/routes/workout/active.tsx` - Active workout route
-- `src/routes/history/index.tsx` - History route
-- `src/routes/exercises/index.tsx` - Exercises route
+- `src/routes/history/index.tsx` - History route (protected)
+- `src/routes/exercises/index.tsx` - Exercises route (protected)
+- `src/routes/sign-in.tsx` - Sign-in/sign-up page
+- `src/components/auth/ProtectedRoute.tsx` - Route protection wrapper
+- `src/hooks/useAuth.ts` - Auth hook for session/userId access
 - `NOTES.md` - Technical debt tracking
 - `AGENTSTATUS.md` - This file
 - `SETUP.md` - Setup instructions
 
 ### Modified
 - `src/routes/__root.tsx` - Updated title
-- `src/components/Header.tsx` - Added fitness app navigation
+- `src/routes/index.tsx` - Converted to protected dashboard route
+- `src/components/Header.tsx` - Added fitness app navigation, updated sign-in link
+- `src/integrations/better-auth/header-user.tsx` - Updated sign-in redirect
 - `src/lib/auth.ts` - Better Auth configuration
 - `.env.local` - Added Better Auth secret
 
