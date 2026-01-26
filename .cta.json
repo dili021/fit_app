@@ -15,7 +15,6 @@
     "convex",
     "form",
     "shadcn",
-    "strapi",
     "better-auth",
     "tanstack-query"
   ]

@@ -2,19 +2,20 @@
 
 ## Technical Debt
 
-### Demo Files to Clean Up
-The following demo/example files remain in the codebase and should be removed when no longer needed:
-
-- `src/routes/demo/better-auth.tsx` - Better Auth demo/example
-- `src/routes/demo/form.address.tsx` - Form example
-- `src/routes/demo/form.simple.tsx` - Form example
-- `src/routes/demo/start.api-request.tsx` - API request example
-- `src/routes/demo/start.server-funcs.tsx` - Server functions example (uses local todos.json)
-- `src/routes/demo/start.ssr.*.tsx` - Multiple SSR examples
-- `src/routes/demo/strapi*.tsx` - Strapi integration examples
-- `src/routes/demo/api.names.ts` - API example
-
-**Note**: These are template examples and don't break anything, but should be cleaned up once the app is feature-complete.
+### Demo Files Cleanup ✅ COMPLETE
+All demo files have been removed:
+- ✅ `src/routes/demo/better-auth.tsx` - Deleted
+- ✅ `src/routes/demo/form.address.tsx` - Deleted
+- ✅ `src/routes/demo/form.simple.tsx` - Deleted
+- ✅ `src/routes/demo/start.api-request.tsx` - Deleted
+- ✅ `src/routes/demo/start.server-funcs.tsx` - Deleted
+- ✅ `src/routes/demo/start.ssr.*.tsx` - Deleted
+- ✅ `src/routes/demo/strapi*.tsx` - Deleted
+- ✅ `src/routes/demo/api.names.ts` - Deleted
+- ✅ `src/lib/strapiClient.ts` - Deleted
+- ✅ `src/hooks/demo.form*.ts` - Deleted
+- ✅ `src/components/demo.FormComponents.tsx` - Deleted
+- ✅ Strapi dependency removed from `package.json`
 
 ### Removed Files
 - `convex/todos.ts` - Deleted (was demo code)
