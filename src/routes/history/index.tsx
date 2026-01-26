@@ -3,13 +3,13 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { useAuth } from '@/hooks/useAuth'
 import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
-import { Id } from '../../../convex/_generated/dataModel'
+import { Id, Doc } from '../../../convex/_generated/dataModel'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, TrendingUp, Activity, BarChart3, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState, useMemo, useEffect } from 'react'
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart'
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts'
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 export const Route = createFileRoute('/history/')({
@@ -78,7 +78,7 @@ function HistoryContent({ userId }: { userId: string }) {
   }
 
   // Calculate workout duration
-  const getWorkoutDuration = (workout: typeof workouts[0]) => {
+  const getWorkoutDuration = (workout: NonNullable<typeof workouts>[0]) => {
     if (!workout.startedAt || !workout.completedAt) return null
     const durationMs = workout.completedAt - workout.startedAt
     const minutes = Math.floor(durationMs / 60000)
@@ -96,10 +96,6 @@ function HistoryContent({ userId }: { userId: string }) {
     return acc
   }, {} as Record<string, typeof workouts>) || {}
 
-  // Get unique dates with workouts
-  const workoutDates = Object.keys(workoutsByDate).sort((a, b) => 
-    new Date(b).getTime() - new Date(a).getTime()
-  )
 
   // Calendar view: Get dates for current month
   const getCalendarDates = () => {
@@ -268,34 +264,96 @@ function HistoryContent({ userId }: { userId: string }) {
                   {isExpanded && workoutSets && workoutSets.length > 0 && (
                     <div className="mt-4 pt-4 border-t">
                       <h4 className="text-sm font-semibold mb-3">Sets</h4>
-                      <div className="space-y-2">
-                        {workoutSets
-                          .sort((a, b) => a.orderInWorkout - b.orderInWorkout)
-                          .map((set) => {
-                            const exercise = exercises?.find(e => e._id === set.exerciseId)
-                            const pattern = patterns?.find(p => p._id === set.patternId)
-                            return (
-                              <div
-                                key={set._id}
-                                className="flex items-center justify-between p-2 rounded-lg bg-muted/50 text-sm"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <span className="font-medium w-8">#{set.orderInWorkout}</span>
-                                  <div>
-                                    <div className="font-medium">{exercise?.name || 'Unknown'}</div>
-                                    <div className="text-xs text-muted-foreground">{pattern?.displayName}</div>
+                      
+                      {/* Group sets by pattern, then by exercise (same as workout overview) */}
+                      {(() => {
+                        // Group sets by pattern, then by exercise
+                        const groupedByPattern = workoutSets.reduce((acc, set) => {
+                          const exercise = exercises?.find(e => e._id === set.exerciseId)
+                          const pattern = patterns?.find(p => p._id === set.patternId)
+                          
+                          if (!exercise || !pattern) return acc
+
+                          if (!acc[set.patternId]) {
+                            acc[set.patternId] = {
+                              patternId: set.patternId,
+                              patternName: pattern.displayName,
+                              exercises: {},
+                            }
+                          }
+
+                          if (!acc[set.patternId].exercises[set.exerciseId]) {
+                            acc[set.patternId].exercises[set.exerciseId] = {
+                              exerciseId: set.exerciseId,
+                              exerciseName: exercise.name,
+                              sets: [],
+                            }
+                          }
+
+                          acc[set.patternId].exercises[set.exerciseId].sets.push(set)
+                          return acc
+                        }, {} as Record<Id<"patterns">, {
+                          patternId: Id<"patterns">
+                          patternName: string
+                          exercises: Record<Id<"exercises">, {
+                            exerciseId: Id<"exercises">
+                            exerciseName: string
+                            sets: typeof workoutSets
+                          }>
+                        }>)
+
+                        return (
+                          <div className="space-y-4">
+                            {Object.values(groupedByPattern).map((patternGroup) => {
+                              const patternSets = Object.values(patternGroup.exercises).flatMap(e => e.sets)
+                              const patternTotalSets = patternSets.length
+                              
+                              return (
+                                <div key={patternGroup.patternId} className="space-y-2">
+                                  {/* Pattern Header */}
+                                  <div className="flex items-center justify-between pb-1 border-b">
+                                    <h5 className="text-sm font-semibold">{patternGroup.patternName}</h5>
+                                    <div className="text-xs text-muted-foreground">
+                                      {patternTotalSets} {patternTotalSets === 1 ? 'set' : 'sets'}
+                                    </div>
+                                  </div>
+
+                                  {/* Exercises in this pattern */}
+                                  <div className="space-y-2 ml-2">
+                                    {Object.values(patternGroup.exercises).map((exerciseGroup) => (
+                                      <div key={exerciseGroup.exerciseId} className="space-y-1">
+                                        <div className="text-xs font-medium text-muted-foreground">
+                                          {exerciseGroup.exerciseName}
+                                        </div>
+                                        <div className="space-y-1">
+                                          {exerciseGroup.sets
+                                            .sort((a, b) => a.orderInWorkout - b.orderInWorkout)
+                                            .map((set) => (
+                                              <div
+                                                key={set._id}
+                                                className="flex items-center justify-between p-2 rounded-lg bg-muted/50 text-sm"
+                                              >
+                                                <div className="flex items-center gap-3">
+                                                  <span className="font-medium w-8">#{set.orderInWorkout}</span>
+                                                  <div className="font-medium">
+                                                    {set.weight}kg × {set.reps} reps
+                                                  </div>
+                                                </div>
+                                                <div className="text-xs text-muted-foreground">
+                                                  {Math.round(set.weight * set.reps)}kg
+                                                </div>
+                                              </div>
+                                            ))}
+                                        </div>
+                                      </div>
+                                    ))}
                                   </div>
                                 </div>
-                                <div className="text-right">
-                                  <div className="font-medium">{set.weight}kg × {set.reps}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {Math.round(set.weight * set.reps)}kg total
-                                  </div>
-                                </div>
-                              </div>
-                            )
-                          })}
-                      </div>
+                              )
+                            })}
+                          </div>
+                        )
+                      })()}
                     </div>
                   )}
                 </CardContent>
@@ -358,7 +416,7 @@ function HistoryContent({ userId }: { userId: string }) {
       )}
 
       {/* Charts View */}
-      {selectedView === 'charts' && (
+      {selectedView === 'charts' && workouts !== undefined && (
         <ChartsView 
           userId={userId}
           workouts={workouts}
@@ -379,10 +437,10 @@ function ChartsView({
   exercises 
 }: { 
   userId: string
-  workouts: Awaited<ReturnType<typeof api.workouts.getAllWorkouts>> | undefined
-  mesocycles: Awaited<ReturnType<typeof api.mesocycles.getAllMesocycles>> | undefined
-  patterns: Awaited<ReturnType<typeof api.patterns.getAll>> | undefined
-  exercises: Awaited<ReturnType<typeof api.exercises.getAll>> | undefined
+  workouts: Doc<"workouts">[] | undefined
+  mesocycles: Doc<"mesocycles">[] | undefined
+  patterns: Doc<"patterns">[] | undefined
+  exercises: Doc<"exercises">[] | undefined
 }) {
   // Get all sets for user to calculate mesocycle comparison and filter exercises
   const allSets = useQuery(api.sets.getAllSetsForUser, { userId })
@@ -390,8 +448,8 @@ function ChartsView({
   // Filter exercises to only show ones the user has performed
   const performedExercises = useMemo(() => {
     if (!exercises || !allSets) return []
-    const exerciseIdsWithSets = new Set(allSets.map(s => s.exerciseId))
-    return exercises.filter(e => exerciseIdsWithSets.has(e._id))
+    const exerciseIdsWithSets = new Set(allSets.map((s: NonNullable<typeof allSets>[0]) => s.exerciseId))
+    return exercises.filter((e: Doc<"exercises">) => exerciseIdsWithSets.has(e._id))
   }, [exercises, allSets])
 
   // Initialize state with first available value to keep Select controlled
@@ -451,25 +509,25 @@ function ChartsView({
     if (!mesocycles || !allSets || !patterns || mesocycles.length < 2) return []
     
     return mesocycles
-      .filter(m => m.status === 'completed' || m.status === 'active')
-      .map((mesocycle) => {
-        const mesocycleSets = allSets.filter((set) => {
-          const workout = workouts?.find(w => w._id === set.workoutId)
+      .filter((m: Doc<"mesocycles">) => m.status === 'completed' || m.status === 'active')
+      .map((mesocycle: Doc<"mesocycles">) => {
+        const mesocycleSets = allSets.filter((set: NonNullable<typeof allSets>[0]) => {
+          const workout = workouts?.find((w: Doc<"workouts">) => w._id === set.workoutId)
           return workout?.mesocycleId === mesocycle._id
         })
         
-        const totalVolume = mesocycleSets.reduce((sum, s) => sum + (s.weight * s.reps), 0)
+        const totalVolume = mesocycleSets.reduce((sum: number, s: NonNullable<typeof allSets>[0]) => sum + (s.weight * s.reps), 0)
         const totalSets = mesocycleSets.length
         const avgVolumePerWorkout = workouts 
           ? (() => {
-              const mesocycleWorkouts = workouts.filter(w => w.mesocycleId === mesocycle._id && w.completed)
+              const mesocycleWorkouts = workouts.filter((w: Doc<"workouts">) => w.mesocycleId === mesocycle._id && w.completed)
               return mesocycleWorkouts.length > 0 ? totalVolume / mesocycleWorkouts.length : 0
             })()
           : 0
 
         // Create name from primary patterns
         const primaryPatternNames = mesocycle.primaryPatterns
-          .map(patternId => patterns.find(p => p._id === patternId)?.displayName)
+          .map((patternId: Id<"patterns">) => patterns?.find((p: Doc<"patterns">) => p._id === patternId)?.displayName)
           .filter(Boolean)
           .join(' + ')
         
@@ -498,8 +556,6 @@ function ChartsView({
     }
   }, [patterns, selectedPatternId])
 
-  const selectedExercise = exercises?.find(e => e._id === selectedExerciseId)
-  const selectedPattern = patterns?.find(p => p._id === selectedPatternId)
 
   const exerciseChartConfig = {
     volume: {
@@ -543,7 +599,7 @@ function ChartsView({
                   <SelectValue placeholder="Select pattern" />
                 </SelectTrigger>
                 <SelectContent>
-                  {patterns.map((pattern) => (
+                  {patterns?.map((pattern: Doc<"patterns">) => (
                     <SelectItem key={pattern._id} value={pattern._id}>
                       {pattern.displayName}
                     </SelectItem>
@@ -608,7 +664,7 @@ function ChartsView({
                   <SelectValue placeholder="Select exercise" />
                 </SelectTrigger>
                 <SelectContent>
-                  {performedExercises.map((exercise) => (
+                  {performedExercises.map((exercise: Doc<"exercises">) => (
                     <SelectItem key={exercise._id} value={exercise._id}>
                       {exercise.name}
                     </SelectItem>
