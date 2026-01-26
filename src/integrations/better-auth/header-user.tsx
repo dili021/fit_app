@@ -1,5 +1,6 @@
 import { authClient } from '@/lib/auth-client'
 import { Link } from '@tanstack/react-router'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 export default function BetterAuthHeader() {
   const { data: session, isPending } = authClient.useSession()
@@ -11,20 +12,20 @@ export default function BetterAuthHeader() {
   }
 
   if (session?.user) {
+    const displayName = session.user.name || session.user.email || 'User'
+    
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 w-full">
         {session.user.image ? (
-          <img src={session.user.image} alt="" className="h-8 w-8" />
-        ) : (
-          <div className="h-8 w-8 bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
-            <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
-              {session.user.name?.charAt(0).toUpperCase() || 'U'}
-            </span>
-          </div>
-        )}
+          <img src={session.user.image} alt="" className="h-8 w-8 rounded-full shrink-0" />
+        ) : null}
+        <span className="text-sm font-medium text-sidebar-foreground flex-1 truncate">
+          {displayName}
+        </span>
+        <ThemeToggle />
         <button
           onClick={() => authClient.signOut()}
-          className="flex-1 h-9 px-4 text-sm font-medium bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+          className="h-9 px-4 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80 transition-colors rounded-md min-h-[48px] shrink-0 whitespace-nowrap"
         >
           Sign out
         </button>
@@ -35,7 +36,7 @@ export default function BetterAuthHeader() {
   return (
     <Link
       to="/sign-in"
-      className="h-9 px-4 text-sm font-medium bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50 border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors inline-flex items-center"
+      className="h-9 px-4 text-sm font-medium bg-sidebar-accent text-sidebar-accent-foreground border border-sidebar-border active:bg-sidebar-accent/80 transition-colors inline-flex items-center rounded-md min-h-[48px]"
     >
       Sign in
     </Link>

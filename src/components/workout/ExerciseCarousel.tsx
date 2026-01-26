@@ -56,37 +56,39 @@ export function ExerciseCarousel({
   }
 
   return (
-    <div className="w-full">
-      <div className="flex items-center gap-2 mb-4">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handlePrevious}
-          className="shrink-0"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-
-        <div className="flex-1">
-          <Card className="cursor-pointer" onClick={() => onSelectExercise(currentExercise._id)}>
-            <CardContent className="p-6 text-center">
-              <h3 className="text-xl font-semibold">{currentExercise.name}</h3>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handleNext}
-          className="shrink-0"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
+    <div className="w-full max-w-2xl mx-auto">
+      <Card className="relative w-full">
+        <CardContent className="p-6">
+          {/* Navigation Arrows - Inside Card */}
+          <div className="absolute inset-y-0 left-0 flex items-center pl-2">
+            <button
+              onClick={handlePrevious}
+              className="p-2 rounded-full hover:bg-accent active:bg-accent/80 transition-colors"
+              aria-label="Previous exercise"
+            >
+              <ChevronLeft className="h-6 w-6 text-foreground" />
+            </button>
+          </div>
+          
+          <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+            <button
+              onClick={handleNext}
+              className="p-2 rounded-full hover:bg-accent active:bg-accent/80 transition-colors"
+              aria-label="Next exercise"
+            >
+              <ChevronRight className="h-6 w-6 text-foreground" />
+            </button>
+          </div>
+          
+          {/* Exercise Name - Centered */}
+          <div className="text-center px-12">
+            <h3 className="text-2xl font-semibold">{currentExercise.name}</h3>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Exercise dots indicator */}
-      <div className="flex justify-center gap-2">
+      <div className="flex justify-center gap-2 mt-4">
         {exercises.map((exercise, index) => (
           <button
             key={exercise._id}
@@ -94,10 +96,10 @@ export function ExerciseCarousel({
               setCurrentIndex(index)
               onSelectExercise(exercise._id)
             }}
-            className={`h-2 rounded-full transition-all ${
+            className={`h-2 rounded-full transition-all min-w-[8px] min-h-[8px] ${
               index === selectedIndex
                 ? 'w-8 bg-primary'
-                : 'w-2 bg-muted hover:bg-muted-foreground/50'
+                : 'w-2 bg-muted active:bg-muted-foreground/50'
             }`}
             aria-label={`Select ${exercise.name}`}
           />

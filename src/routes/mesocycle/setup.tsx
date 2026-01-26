@@ -398,53 +398,64 @@ function MesocycleSetupContent({ userId }: { userId: string }) {
 
           {/* Step 6: Summary */}
           {currentStep === 6 && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Duration:</span>
-                  <span className="font-medium">{formData.durationWeeks} weeks</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Primary Patterns:</span>
-                  <span className="font-medium">
-                    {patterns?.filter(p => formData.primaryPatterns.includes(p._id)).map(p => p.displayName).join(', ')}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Sessions Per Week:</span>
-                  <span className="font-medium">{formData.sessionsPerWeek}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Sets Per Primary Pattern Per Week:</span>
-                  <span className="font-medium">{formData.setsPerPrimaryPatternPerWeek}</span>
-                </div>
-                {calculatedTotalSetsPerWeek !== null && (
+            <div className="space-y-6">
+              {/* Primary Section */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-foreground">Primary</h3>
+                <div className="space-y-2 pl-4 border-l-2 border-primary">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total Sets Per Week:</span>
-                    <span className="font-medium">{calculatedTotalSetsPerWeek}</span>
+                    <span className="text-muted-foreground">Duration:</span>
+                    <span className="font-medium">{formData.durationWeeks} weeks</span>
                   </div>
-                )}
-                {setsPerPrimaryPatternPerSession !== null && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Sets Per Primary Pattern Per Session:</span>
-                    <span className="font-medium">{setsPerPrimaryPatternPerSession}</span>
+                    <span className="text-muted-foreground">Primary Patterns:</span>
+                    <span className="font-medium">
+                      {patterns?.filter(p => formData.primaryPatterns.includes(p._id)).map(p => p.displayName).join(', ')}
+                    </span>
                   </div>
-                )}
-                {totalSetsPerSession !== null && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total Sets Per Session:</span>
-                    <span className="font-medium">{totalSetsPerSession}</span>
+                    <span className="text-muted-foreground">Sessions Per Week:</span>
+                    <span className="font-medium">{formData.sessionsPerWeek}</span>
                   </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Rest Time:</span>
-                  <span className="font-medium">{formData.restTimeMinutes} minutes</span>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Sets Per Primary Pattern Per Week:</span>
+                    <span className="font-medium">{formData.setsPerPrimaryPatternPerWeek}</span>
+                  </div>
+                  {calculatedTotalSetsPerWeek !== null && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Total Sets Per Week:</span>
+                      <span className="font-medium">{calculatedTotalSetsPerWeek}</span>
+                    </div>
+                  )}
+                  {setsPerPrimaryPatternPerSession !== null && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Sets Per Primary Pattern Per Session:</span>
+                      <span className="font-medium">{setsPerPrimaryPatternPerSession}</span>
+                    </div>
+                  )}
+                  {totalSetsPerSession !== null && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Total Sets Per Session:</span>
+                      <span className="font-medium">{totalSetsPerSession}</span>
+                    </div>
+                  )}
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Training History:</span>
-                  <span className="font-medium">
-                    {formData.wasPreviouslyTraining ? 'Previously training' : 'Starting fresh'}
-                  </span>
+              </div>
+
+              {/* Secondary Section */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-foreground">Secondary</h3>
+                <div className="space-y-2 pl-4 border-l-2 border-muted">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Rest Time:</span>
+                    <span className="font-medium">{formData.restTimeMinutes} minutes</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Training History:</span>
+                    <span className="font-medium">
+                      {formData.wasPreviouslyTraining ? 'Previously training' : 'Starting fresh'}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

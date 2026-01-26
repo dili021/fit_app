@@ -7,6 +7,7 @@ import { api } from '../../../convex/_generated/api'
 import { Id } from '../../../convex/_generated/dataModel'
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { X, Check } from 'lucide-react'
 import { ExerciseCarousel } from '@/components/workout/ExerciseCarousel'
 import { SetLogger } from '@/components/workout/SetLogger'
@@ -438,7 +439,8 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
       <div className="fixed inset-0 bg-background z-50 flex flex-col">
       {/* Header */}
       <div className={`flex items-center justify-between p-4 border-b ${completedSets >= currentPattern.sets ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' : ''}`}>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 flex-1">
+          {/* Pattern Name */}
           <div className="flex items-center gap-2">
             {completedSets >= currentPattern.sets && (
               <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500 text-white">
@@ -446,77 +448,74 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
               </div>
             )}
             <div>
-              <h1 className={`text-xl font-semibold ${completedSets >= currentPattern.sets ? 'text-green-700 dark:text-green-400' : ''}`}>
-                {currentPattern.patternName}
-                {completedSets >= currentPattern.sets && ' ✓'}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Pattern {currentPatternIndex + 1} of {workoutTemplate.template.length}
-                {currentPattern.isPrimary && ' • Primary'}
-                {completedSets >= currentPattern.sets && ' • Complete!'}
-              </p>
+              <div className="flex items-center gap-2">
+                <h1 className={`text-xl font-semibold ${completedSets >= currentPattern.sets ? 'text-green-700 dark:text-green-400' : ''}`}>
+                  {currentPattern.patternName}
+                </h1>
+                {currentPattern.isPrimary && (
+                  <Badge variant="default" className="text-xs">
+                    Primary
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
-          {/* Session Timer */}
-          {currentWorkout?.startedAt && (
-            <div className="text-sm text-muted-foreground font-mono">
-              {Math.floor(sessionElapsedSeconds / 60)}:{(sessionElapsedSeconds % 60).toString().padStart(2, '0')}
-            </div>
-          )}
+          
+          {/* Pattern Dots Indicator */}
+          <div className="flex items-center gap-1.5 ml-auto">
+            {workoutTemplate.template.map((pattern, index) => {
+              const isCurrent = index === currentPatternIndex
+              const isCompleted = workoutSets && (() => {
+                const patternSets = workoutSets.filter(s => s.patternId === pattern.patternId)
+                return patternSets.length >= pattern.sets
+              })()
+              
+              return (
+                <div
+                  key={index}
+                  className={`w-2.5 h-2.5 rounded-full transition-all ${
+                    isCurrent
+                      ? 'w-6 bg-primary scale-110'
+                      : isCompleted
+                      ? 'bg-green-500'
+                      : 'bg-muted'
+                  }`}
+                  aria-label={`Pattern ${index + 1}: ${pattern.patternName}`}
+                />
+              )
+            })}
+          </div>
         </div>
+        
+        {/* Session Timer - Centered and Larger */}
+        {currentWorkout?.startedAt && (
+          <div className="absolute left-1/2 transform -translate-x-1/2 text-2xl font-mono font-bold text-foreground">
+            {Math.floor(sessionElapsedSeconds / 60)}:{(sessionElapsedSeconds % 60).toString().padStart(2, '0')}
+          </div>
+        )}
+        
         <Button
           variant="ghost"
           size="icon"
           onClick={() => navigate({ to: '/' })}
+          className="ml-auto"
         >
           <X className="h-5 w-5" />
         </Button>
       </div>
 
       {/* Main Content - Full Screen Pattern View */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto p-6 space-y-6">
-          {/* Set Counter - At the top */}
-          {selectedExerciseId && (
-            <div className="text-center">
-              <h2 className="text-2xl font-semibold">
-                Set {currentSetNumber} of {currentPattern.sets}
-              </h2>
-            </div>
-          )}
-
-          {/* Exercise Carousel */}
+      <div className="flex-1 overflow-y-auto flex flex-col">
+        <div className="flex-1 flex items-center justify-center p-6">
+          {/* Exercise Carousel - Top Half */}
           {selectedExerciseId ? (
-            <>
-              <ExerciseCarousel
-                patternId={currentPattern.patternId}
-                selectedExerciseId={selectedExerciseId}
-                onSelectExercise={setSelectedExerciseId}
-              />
-
-              {/* Set Logger - Always show when exercise is selected, key resets state on exercise change */}
-              <SetLogger
-                key={selectedExerciseId}
-                workoutId={currentWorkout._id}
-                patternId={currentPattern.patternId}
-                exerciseId={selectedExerciseId}
-                userId={userId}
-                setNumber={currentSetNumber}
-                totalSets={currentPattern.sets}
-                onSetComplete={handleSetComplete}
-                restTimeMinutes={mesocycle.restTimeMinutes}
-                onTimerStart={handleTimerStart}
-                onTimerStop={handleTimerStop}
-                onTimerUpdate={setTimerSeconds}
-                onTimerReset={handleTimerReset}
-                onRestTimerStart={handleRestTimerStart}
-                onRestTimerUpdate={handleRestTimerUpdate}
-                onRestTimerComplete={handleRestTimerComplete}
-                restTimerStopped={restTimerStopped}
-              />
-            </>
+            <ExerciseCarousel
+              patternId={currentPattern.patternId}
+              selectedExerciseId={selectedExerciseId}
+              onSelectExercise={setSelectedExerciseId}
+            />
           ) : (
-            <div className="text-center py-12">
+            <div className="text-center">
               <p className="text-muted-foreground mb-4">Select an exercise to begin</p>
               <ExerciseCarousel
                 patternId={currentPattern.patternId}
@@ -526,6 +525,55 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
             </div>
           )}
         </div>
+        
+        {/* Bottom Half - Set Logger with Set Dots */}
+        {selectedExerciseId && (
+          <div className="border-t p-6 space-y-4">
+            {/* Set Dots Indicator */}
+            <div className="flex justify-center items-center gap-2">
+              {Array.from({ length: currentPattern.sets }, (_, i) => {
+                const setNumber = i + 1
+                const isCurrent = setNumber === currentSetNumber
+                const isCompleted = setNumber < currentSetNumber
+                
+                return (
+                  <div
+                    key={setNumber}
+                    className={`transition-all ${
+                      isCurrent
+                        ? 'w-8 h-3 bg-primary rounded-full scale-110'
+                        : isCompleted
+                        ? 'w-3 h-3 bg-green-500 rounded-full'
+                        : 'w-3 h-3 bg-muted rounded-full'
+                    }`}
+                    aria-label={`Set ${setNumber}`}
+                  />
+                )
+              })}
+            </div>
+            
+            {/* Set Logger */}
+            <SetLogger
+              key={selectedExerciseId}
+              workoutId={currentWorkout._id}
+              patternId={currentPattern.patternId}
+              exerciseId={selectedExerciseId}
+              userId={userId}
+              setNumber={currentSetNumber}
+              totalSets={currentPattern.sets}
+              onSetComplete={handleSetComplete}
+              restTimeMinutes={mesocycle.restTimeMinutes}
+              onTimerStart={handleTimerStart}
+              onTimerStop={handleTimerStop}
+              onTimerUpdate={setTimerSeconds}
+              onTimerReset={handleTimerReset}
+              onRestTimerStart={handleRestTimerStart}
+              onRestTimerUpdate={handleRestTimerUpdate}
+              onRestTimerComplete={handleRestTimerComplete}
+              restTimerStopped={restTimerStopped}
+            />
+          </div>
+        )}
       </div>
 
       {/* Footer Navigation */}

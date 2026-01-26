@@ -155,30 +155,30 @@ function HistoryContent({ userId }: { userId: string }) {
       <div className="flex gap-2 mb-6">
         <button
           onClick={() => setSelectedView('list')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors min-h-[48px] ${
             selectedView === 'list'
               ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              : 'bg-muted text-muted-foreground active:bg-muted/80'
           }`}
         >
           List View
         </button>
         <button
           onClick={() => setSelectedView('calendar')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors min-h-[48px] ${
             selectedView === 'calendar'
               ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              : 'bg-muted text-muted-foreground active:bg-muted/80'
           }`}
         >
           Calendar View
         </button>
         <button
           onClick={() => setSelectedView('charts')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors min-h-[48px] ${
             selectedView === 'charts'
               ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              : 'bg-muted text-muted-foreground active:bg-muted/80'
           }`}
         >
           Charts
@@ -223,12 +223,12 @@ function HistoryContent({ userId }: { userId: string }) {
                       )}
                       <button
                         onClick={() => setExpandedWorkout(isExpanded ? null : workout._id)}
-                        className="p-1 hover:bg-muted rounded-md transition-colors"
+                        className="p-2 active:bg-muted rounded-md transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
                       >
                         {isExpanded ? (
-                          <ChevronUp className="w-4 h-4" />
+                          <ChevronUp className="w-5 h-5" />
                         ) : (
-                          <ChevronDown className="w-4 h-4" />
+                          <ChevronDown className="w-5 h-5" />
                         )}
                       </button>
                     </div>

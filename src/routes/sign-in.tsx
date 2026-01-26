@@ -53,13 +53,13 @@ function SignIn() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
-      <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-lg shadow-md">
+    <div className="flex items-center justify-center min-h-screen bg-muted px-4">
+      <div className="w-full max-w-md space-y-8 bg-card p-8 rounded-lg shadow-md border">
         <div>
-          <h2 className="text-3xl font-bold text-center text-gray-900">
+          <h2 className="text-3xl font-bold text-center text-card-foreground">
             {isSignUp ? 'Create Account' : 'Sign In'}
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-muted-foreground">
             {isSignUp
               ? 'Start tracking your training progress'
               : 'Welcome back to Training Tracker'}
@@ -69,7 +69,7 @@ function SignIn() {
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           {isSignUp && (
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="name" className="block text-sm font-medium text-foreground">
                 Name (optional)
               </label>
               <input
@@ -77,14 +77,14 @@ function SignIn() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-cyan-500"
+                className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring min-h-[48px]"
                 placeholder="Your name"
               />
             </div>
           )}
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="block text-sm font-medium text-foreground">
               Email
             </label>
             <input
@@ -93,13 +93,13 @@ function SignIn() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-cyan-500"
+              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring min-h-[48px]"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium text-foreground">
               Password
             </label>
               <input
@@ -108,15 +108,15 @@ function SignIn() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-cyan-500"
+                className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring min-h-[48px]"
                 placeholder="••••••••"
                 minLength={8}
               />
           </div>
 
           {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-800">{error}</p>
+            <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4">
+              <p className="text-sm text-destructive-foreground">{error}</p>
             </div>
           )}
 
@@ -124,7 +124,7 @@ function SignIn() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary active:scale-95 transition-transform focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
             >
               {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
             </button>
@@ -133,10 +133,10 @@ function SignIn() {
           {GOOGLE_CLIENT_ID && (
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                <span className="px-2 bg-card text-muted-foreground">Or continue with</span>
               </div>
             </div>
           )}
@@ -163,7 +163,7 @@ function SignIn() {
                   }
                 }}
                 disabled={loading}
-                className="w-full flex justify-center items-center gap-3 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex justify-center items-center gap-3 py-3 px-4 border border-input rounded-md shadow-sm text-sm font-medium text-foreground bg-background active:scale-95 transition-transform focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
@@ -195,7 +195,7 @@ function SignIn() {
                 setIsSignUp(!isSignUp)
                 setError('')
               }}
-              className="text-sm text-cyan-600 hover:text-cyan-500"
+              className="text-sm text-primary active:opacity-80 transition-opacity min-h-[48px] px-2"
             >
               {isSignUp
                 ? 'Already have an account? Sign in'
