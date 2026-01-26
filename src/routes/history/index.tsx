@@ -560,18 +560,27 @@ function ChartsView({
   const exerciseChartConfig = {
     volume: {
       label: "Total Volume (kg)",
-      color: "hsl(var(--chart-1))",
+      theme: {
+        light: "oklch(0.45 0.22 280)",
+        dark: "oklch(0.75 0.18 280)",
+      },
     },
   } satisfies ChartConfig
 
   const patternChartConfig = {
     volume: {
       label: "Total Volume (kg)",
-      color: "hsl(var(--chart-1))",
+      theme: {
+        light: "oklch(0.45 0.22 280)",
+        dark: "oklch(0.75 0.18 280)",
+      },
     },
     sets: {
       label: "Sets",
-      color: "hsl(var(--chart-2))",
+      theme: {
+        light: "oklch(0.55 0.18 25)",
+        dark: "oklch(0.75 0.18 25)",
+      },
     },
   }
 
@@ -737,8 +746,20 @@ function ChartsView({
           </CardHeader>
           <CardContent>
             <ChartContainer config={{
-              totalVolume: { label: "Total Volume (kg)", color: "hsl(var(--chart-1))" },
-              totalSets: { label: "Total Sets", color: "hsl(var(--chart-2))" },
+              totalVolume: { 
+                label: "Total Volume (kg)", 
+                theme: {
+                  light: "oklch(0.45 0.22 280)",
+                  dark: "oklch(0.75 0.18 280)",
+                },
+              },
+              totalSets: { 
+                label: "Total Sets", 
+                theme: {
+                  light: "oklch(0.55 0.18 25)",
+                  dark: "oklch(0.75 0.18 25)",
+                },
+              },
             }}>
               <BarChart data={mesocycleComparisonData}>
                 <CartesianGrid strokeDasharray="3 3" />

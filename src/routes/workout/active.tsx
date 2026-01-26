@@ -484,9 +484,6 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
                     )
                   })}
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {currentPatternIndex + 1} / {workoutTemplate.template.length}
-                </span>
               </div>
             </div>
           </div>
@@ -558,9 +555,6 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
                   )
                 })}
               </div>
-              <span className="text-xs text-muted-foreground">
-                {currentSetNumber} / {currentPattern.sets}
-              </span>
             </div>
             
             {/* Set Logger */}
