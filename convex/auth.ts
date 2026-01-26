@@ -6,14 +6,28 @@ import { query } from "./_generated/server";
 import { betterAuth, type BetterAuthOptions } from "better-auth/minimal";
 import authConfig from "./auth.config";
 
-const siteUrl = process.env.SITE_URL || process.env.VITE_SITE_URL || "http://localhost:3000";
+// Normalize URL - ensure it has protocol and no trailing slash
+const normalizeUrl = (url: string): string => {
+  if (!url) return url;
+  let normalized = url.trim();
+  // Add https:// if no protocol
+  if (!normalized.startsWith('http://') && !normalized.startsWith('https://')) {
+    normalized = `https://${normalized}`;
+  }
+  // Remove trailing slash
+  normalized = normalized.replace(/\/$/, '');
+  return normalized;
+};
+
+const siteUrlRaw = process.env.SITE_URL || process.env.VITE_SITE_URL || "http://localhost:3000";
+const siteUrl = normalizeUrl(siteUrlRaw);
 
 // Build trusted origins list - supports multiple origins
 // This allows CORS requests from multiple deployment URLs (Vercel preview/production)
 const getTrustedOrigins = (): string[] => {
   const origins: string[] = [];
   
-  // Add SITE_URL if set
+  // Add SITE_URL if set (normalized)
   if (siteUrl) {
     origins.push(siteUrl);
   }
@@ -22,7 +36,7 @@ const getTrustedOrigins = (): string[] => {
   // Example: TRUSTED_ORIGINS=https://app.vercel.app,https://preview.vercel.app
   if (process.env.TRUSTED_ORIGINS) {
     const additionalOrigins = process.env.TRUSTED_ORIGINS.split(',')
-      .map(o => o.trim())
+      .map(o => normalizeUrl(o.trim()))
       .filter(Boolean);
     origins.push(...additionalOrigins);
   }
@@ -33,7 +47,13 @@ const getTrustedOrigins = (): string[] => {
   }
   
   // Remove duplicates
-  return [...new Set(origins)];
+  const uniqueOrigins = [...new Set(origins)];
+  
+  // Debug logging (remove in production if needed)
+  console.log('[Better Auth] SITE_URL:', siteUrl);
+  console.log('[Better Auth] Trusted Origins:', uniqueOrigins);
+  
+  return uniqueOrigins;
 };
 
 // The component client has methods needed for integrating Convex with Better Auth,
