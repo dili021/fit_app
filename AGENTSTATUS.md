@@ -3,7 +3,7 @@
 ## Overview
 Tracking progress on the training tracker app implementation based on the plan.
 
-**Last Updated**: 2026-01-25 (Updated Phase 5 - Workout execution enhancements, timer overlays, workout overview, bug fixes)
+**Last Updated**: 2026-01-26 (Migrated Better Auth from SQLite to Convex integration)
 
 ---
 
@@ -16,11 +16,17 @@ Tracking progress on the training tracker app implementation based on the plan.
   - Environment variables set (`CONVEX_DEPLOYMENT`, `VITE_CONVEX_URL`)
   - Dev server running successfully
 
-- [x] **Better Auth Configuration**
-  - Secret generated and added to `.env.local`
-  - Configuration updated in `src/lib/auth.ts`
-  - Route handler already set up at `src/routes/api/auth/$.ts`
-  - Auth client configured in `src/lib/auth-client.ts`
+- [x] **Better Auth Configuration** ✅ MIGRATED TO CONVEX
+  - Secret generated and added to `.env.local` and Convex environment
+  - Migrated from SQLite to Convex + Better Auth integration
+  - Convex component registered in `convex/convex.config.ts`
+  - Auth configuration in `convex/auth.config.ts`
+  - Auth instance with Convex adapter in `convex/auth.ts`
+  - HTTP routes registered in `convex/http.ts`
+  - Auth client configured with Convex plugins in `src/lib/auth-client.ts`
+  - Provider wrapped with `ConvexBetterAuthProvider` in `src/integrations/convex/provider.tsx`
+  - Environment variables: `SITE_URL`, `VITE_SITE_URL`, `VITE_CONVEX_SITE_URL`
+  - Tables created automatically by Convex (no migrations needed)
 
 - [x] **Integration Verification**
   - Convex provider configured
@@ -220,7 +226,7 @@ Tracking progress on the training tracker app implementation based on the plan.
 
 See `NOTES.md` for details on:
 - Demo files to clean up
-- Better Auth database integration (if needed)
+- ~~Better Auth database integration~~ ✅ **COMPLETE** - Migrated to Convex + Better Auth
 - Exercise metadata expansion
 
 ---
@@ -243,6 +249,10 @@ See `NOTES.md` for details on:
 - `convex/exercises.ts` - Exercise queries
 - `convex/workouts.ts` - Workout queries and mutations
 - `convex/sets.ts` - Set queries and mutations
+- `convex/convex.config.ts` - Convex app config with Better Auth component
+- `convex/auth.config.ts` - Better Auth configuration provider
+- `convex/auth.ts` - Better Auth instance with Convex adapter
+- `convex/http.ts` - HTTP router for Better Auth endpoints
 - `src/routes/mesocycle/setup.tsx` - Mesocycle setup wizard (6-step flow with dynamic volume options)
 - `src/routes/index.tsx` - Dashboard with mesocycle overview and recent workouts
 - `src/routes/workout/index.tsx` - Workout entry page with template preview
@@ -272,13 +282,17 @@ See `NOTES.md` for details on:
 - `src/components/workout/SetLogger.tsx` - Timer button reset, global overlays integration, deferred callbacks
 - `src/components/Header.tsx` - Added fitness app navigation, updated sign-in link
 - `src/integrations/better-auth/header-user.tsx` - Updated sign-in redirect
-- `src/lib/auth.ts` - Better Auth configuration
+- `src/lib/auth-client.ts` - Updated to use Convex plugins (convexClient, crossDomainClient)
+- `src/integrations/convex/provider.tsx` - Wrapped with ConvexBetterAuthProvider
 - `convex/sets.ts` - Added getSetsForMesocycle query for progress tracking
-- `.env.local` - Added Better Auth secret
-- `package.json` - Added @radix-ui/react-progress and @radix-ui/react-radio-group dependencies
+- `.env.local` - Added Better Auth secret, SITE_URL, VITE_SITE_URL, VITE_CONVEX_SITE_URL
+- `package.json` - Added @convex-dev/better-auth, pinned better-auth@1.4.9, removed better-sqlite3 and @types/better-sqlite3
 
 ### Deleted
 - `convex/todos.ts` - Demo file
 - `src/routes/demo/convex.tsx` - Demo file
 - `src/routes/demo/api.tq-todos.ts` - Demo file
 - `src/routes/demo/tanstack-query.tsx` - Demo file
+- `src/lib/auth.ts` - Replaced by Convex-based auth in `convex/auth.ts`
+- `src/lib/db.ts` - SQLite database connection (no longer needed with Convex)
+- `src/routes/api/auth/$.ts` - TanStack Start auth route (replaced by Convex HTTP router)

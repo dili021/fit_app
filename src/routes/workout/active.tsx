@@ -5,9 +5,9 @@ import { useAuth } from '@/hooks/useAuth'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import { Id } from '../../../convex/_generated/dataModel'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { X } from 'lucide-react'
+import { X, Check } from 'lucide-react'
 import { ExerciseCarousel } from '@/components/workout/ExerciseCarousel'
 import { SetLogger } from '@/components/workout/SetLogger'
 import { TimerOverlay } from '@/components/workout/TimerOverlay'
@@ -81,9 +81,11 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
   const [timerSeconds, setTimerSeconds] = useState(0)
   const [showTimerOverlay, setShowTimerOverlay] = useState(false)
   const [restSecondsRemaining, setRestSecondsRemaining] = useState<number | null>(null)
-  const [showRestTimerOverlay, setShowRestTimerOverlay] = useState(false)
+  const [restTimerStopped, setRestTimerStopped] = useState(false)
   const [pendingPatternNavigation, setPendingPatternNavigation] = useState(false)
   const [showWorkoutOverview, setShowWorkoutOverview] = useState(false)
+  const [sessionElapsedSeconds, setSessionElapsedSeconds] = useState(0)
+  const sessionTimerIntervalRef = useRef<number | null>(null)
 
   // Get sets for this workout to track progress
   const workoutSets = useQuery(
@@ -115,7 +117,7 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
     setTimerSeconds(0)
     setShowTimerOverlay(false)
     setRestSecondsRemaining(null)
-    setShowRestTimerOverlay(false)
+    setRestTimerStopped(false)
     setPendingPatternNavigation(false)
   }, [currentPatternIndex, selectedExerciseId])
 
@@ -140,6 +142,37 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
       return () => clearTimeout(timer)
     }
   }, [allSetsCompleted, workoutSets, showWorkoutOverview])
+
+  // Session timer - starts when workout starts, runs until workout is concluded - MUST be before early returns
+  useEffect(() => {
+    if (currentWorkout?.startedAt && !currentWorkout.completed && !showWorkoutOverview) {
+      // Calculate initial elapsed time
+      const initialElapsed = Math.floor((Date.now() - currentWorkout.startedAt) / 1000)
+      setSessionElapsedSeconds(initialElapsed)
+
+      // Update every second
+      sessionTimerIntervalRef.current = window.setInterval(() => {
+        setSessionElapsedSeconds((prev) => prev + 1)
+      }, 1000)
+    } else {
+      // Stop timer when workout is completed or overview is shown
+      if (sessionTimerIntervalRef.current) {
+        clearInterval(sessionTimerIntervalRef.current)
+        sessionTimerIntervalRef.current = null
+      }
+      // Calculate final elapsed time if workout is completed
+      if (currentWorkout?.startedAt && currentWorkout.completedAt) {
+        const finalElapsed = Math.floor((currentWorkout.completedAt - currentWorkout.startedAt) / 1000)
+        setSessionElapsedSeconds(finalElapsed)
+      }
+    }
+
+    return () => {
+      if (sessionTimerIntervalRef.current) {
+        clearInterval(sessionTimerIntervalRef.current)
+      }
+    }
+  }, [currentWorkout?.startedAt, currentWorkout?.completed, currentWorkout?.completedAt, showWorkoutOverview])
 
   // Loading state - check if queries are still loading
   if (activeWorkout === undefined || (workoutId && workout === undefined)) {
@@ -197,13 +230,6 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
   const isLastPattern = currentPatternIndex === workoutTemplate.template.length - 1
   const nextPattern = !isLastPattern ? workoutTemplate.template[currentPatternIndex + 1] : null
 
-  // Calculate completed sets for current exercise (for SetLogger display)
-  const completedSetsForExercise = workoutSets && selectedExerciseId && currentPattern
-    ? workoutSets.filter(
-        (s) => s.patternId === currentPattern.patternId && s.exerciseId === selectedExerciseId
-      ).length
-    : 0
-
   // Check if all primary pattern sets are completed
   const allPrimarySetsCompleted = workoutSets && workoutTemplate ? (() => {
     const primaryPatterns = workoutTemplate.template.filter((p) => p.isPrimary)
@@ -220,25 +246,6 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
   const isNextPatternDisabled = nextPattern 
     ? !nextPattern.isPrimary && !allPrimarySetsCompleted
     : false
-
-  // Check if we should auto-navigate (prim->prim, sec->sec, or prim->sec when last primary done)
-  const shouldAutoNavigate = (() => {
-    if (isLastPattern) return false
-    if (!nextPattern) return false
-    
-    // Check if current pattern is complete
-    const currentPatternSets = workoutSets?.filter((s) => s.patternId === currentPattern.patternId) || []
-    const currentPatternComplete = currentPatternSets.length >= currentPattern.sets
-    
-    if (!currentPatternComplete) return false
-    
-    // Auto-navigate if: prim->prim, sec->sec, or prim->sec (when all prims done)
-    if (currentPattern.isPrimary && nextPattern.isPrimary) return true
-    if (!currentPattern.isPrimary && !nextPattern.isPrimary) return true
-    if (currentPattern.isPrimary && !nextPattern.isPrimary && allPrimarySetsCompleted) return true
-    
-    return false
-  })()
 
   const handleNextPattern = () => {
     if (!isLastPattern && !isNextPatternDisabled) {
@@ -270,10 +277,6 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
     setShowTimerOverlay(false) // Hide overlay when stopped
   }
 
-  const handleTimerDismiss = () => {
-    setShowTimerOverlay(false) // Just hide overlay, timer keeps running
-  }
-
   const handleTimerReset = () => {
     setIsTimerRunning(false)
     setTimerSeconds(0)
@@ -282,7 +285,7 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
 
   const handleRestTimerStart = (seconds: number) => {
     setRestSecondsRemaining(seconds)
-    setShowRestTimerOverlay(true)
+    setRestTimerStopped(false) // Reset stop flag when starting
   }
 
   const handleRestTimerUpdate = (seconds: number) => {
@@ -291,16 +294,27 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
 
   const handleRestTimerComplete = () => {
     setRestSecondsRemaining(null)
-    setShowRestTimerOverlay(false)
+    setRestTimerStopped(false) // Reset stop flag when rest completes naturally
+    // Reset timer state when rest completes to enable timer button
+    setIsTimerRunning(false)
+    setTimerSeconds(0)
+    setShowTimerOverlay(false)
     // Check if we need to navigate after rest completes
     if (pendingPatternNavigation) {
       handleNextPattern()
     }
   }
 
-  const handleRestTimerDismiss = () => {
-    setShowRestTimerOverlay(false) // Just hide overlay, timer keeps running
-    // Check if we need to navigate after dismissing
+  const handleRestTimerStop = () => {
+    // Signal SetLogger to stop its rest timer
+    setRestTimerStopped(true)
+    // Stopping rest timer stops it completely
+    setRestSecondsRemaining(null)
+    // Reset timer state to enable timer button
+    setIsTimerRunning(false)
+    setTimerSeconds(0)
+    setShowTimerOverlay(false)
+    // Check if we need to navigate after stopping
     if (pendingPatternNavigation) {
       handleNextPattern()
     }
@@ -371,51 +385,70 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
     }
   }
 
-  const handleBackFromOverview = () => {
-    setShowWorkoutOverview(false)
-  }
-
   // Show workout overview if all sets are completed
   if (showWorkoutOverview && workoutSets && exercises && patterns) {
+    // Calculate total session time from workout start to now (or completedAt if completed)
+    const totalSessionTime = currentWorkout?.startedAt 
+      ? Math.floor(((currentWorkout.completedAt || Date.now()) - currentWorkout.startedAt) / 1000)
+      : 0
+
     return (
       <WorkoutOverview
         sets={workoutSets}
         exercises={exercises}
         patterns={patterns}
+        totalSessionTime={totalSessionTime}
         onComplete={handleCompleteWorkoutFromOverview}
-        onBack={handleBackFromOverview}
       />
     )
   }
 
   return (
     <>
-      {/* Timer Overlay - Shows when timer is running or overlay is visible */}
+      {/* Timer Overlay - Shows when timer is running */}
       <TimerOverlay
         isVisible={showTimerOverlay && isTimerRunning}
-        onDismiss={handleTimerDismiss}
         onStart={handleTimerStart}
         onStop={handleTimerStop}
         elapsedSeconds={timerSeconds}
         isRunning={isTimerRunning}
       />
 
-      {/* Rest Timer Overlay - Shows when rest timer is active */}
+      {/* Rest Timer Overlay - Always visible when rest timer is running */}
       <RestTimerOverlay
-        isVisible={showRestTimerOverlay && restSecondsRemaining !== null && restSecondsRemaining > 0}
-        onDismiss={handleRestTimerDismiss}
+        isVisible={restSecondsRemaining !== null && restSecondsRemaining > 0}
         secondsRemaining={restSecondsRemaining || 0}
+        onDismiss={handleRestTimerStop}
       />
       
       <div className="fixed inset-0 bg-background z-50 flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
-        <div>
-          <h1 className="text-xl font-semibold">{currentPattern.patternName}</h1>
-          <p className="text-sm text-muted-foreground">
-            Pattern {currentPatternIndex + 1} of {workoutTemplate.template.length}
-            {currentPattern.isPrimary && ' • Primary'}
-          </p>
+      <div className={`flex items-center justify-between p-4 border-b ${completedSets >= currentPattern.sets ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' : ''}`}>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            {completedSets >= currentPattern.sets && (
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500 text-white">
+                <Check className="h-5 w-5" />
+              </div>
+            )}
+            <div>
+              <h1 className={`text-xl font-semibold ${completedSets >= currentPattern.sets ? 'text-green-700 dark:text-green-400' : ''}`}>
+                {currentPattern.patternName}
+                {completedSets >= currentPattern.sets && ' ✓'}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Pattern {currentPatternIndex + 1} of {workoutTemplate.template.length}
+                {currentPattern.isPrimary && ' • Primary'}
+                {completedSets >= currentPattern.sets && ' • Complete!'}
+              </p>
+            </div>
+          </div>
+          {/* Session Timer */}
+          {currentWorkout?.startedAt && (
+            <div className="text-sm text-muted-foreground font-mono">
+              {Math.floor(sessionElapsedSeconds / 60)}:{(sessionElapsedSeconds % 60).toString().padStart(2, '0')}
+            </div>
+          )}
         </div>
         <Button
           variant="ghost"
@@ -465,6 +498,7 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
                 onRestTimerStart={handleRestTimerStart}
                 onRestTimerUpdate={handleRestTimerUpdate}
                 onRestTimerComplete={handleRestTimerComplete}
+                restTimerStopped={restTimerStopped}
               />
             </>
           ) : (

@@ -4,14 +4,14 @@ import { Card, CardContent } from '@/components/ui/card'
 
 interface RestTimerOverlayProps {
   isVisible: boolean
-  onDismiss: () => void
   secondsRemaining: number
+  onDismiss: () => void
 }
 
 export function RestTimerOverlay({
   isVisible,
-  onDismiss,
   secondsRemaining,
+  onDismiss,
 }: RestTimerOverlayProps) {
   if (!isVisible) return null
 

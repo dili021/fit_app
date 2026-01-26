@@ -30,16 +30,16 @@ interface WorkoutOverviewProps {
   sets: Set[]
   exercises: Exercise[]
   patterns: Pattern[]
+  totalSessionTime: number // Total session time in seconds
   onComplete: () => void
-  onBack: () => void
 }
 
 export function WorkoutOverview({
   sets,
   exercises,
   patterns,
+  totalSessionTime,
   onComplete,
-  onBack,
 }: WorkoutOverviewProps) {
   const formatTime = (seconds: number) => {
     if (seconds === 0) return 'N/A'
@@ -86,8 +86,6 @@ export function WorkoutOverview({
   // Calculate totals
   const totalSets = sets.length
   const totalVolume = sets.reduce((sum, set) => sum + (set.weight * set.reps), 0)
-  const totalTime = sets.reduce((sum, set) => sum + set.duration, 0)
-  const setsWithTimer = sets.filter((s) => s.duration > 0).length
 
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col">
@@ -99,29 +97,29 @@ export function WorkoutOverview({
           </div>
 
           {/* Summary Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="space-y-4 mb-6">
             <Card>
               <CardContent className="p-4">
-                <div className="text-sm text-muted-foreground">Total Sets</div>
-                <div className="text-2xl font-bold">{totalSets}</div>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">Total Sets</div>
+                  <div className="text-2xl font-bold">{totalSets}</div>
+                </div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4">
-                <div className="text-sm text-muted-foreground">Total Volume</div>
-                <div className="text-2xl font-bold">{totalVolume.toFixed(0)} kg</div>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">Total Volume</div>
+                  <div className="text-2xl font-bold">{totalVolume.toFixed(0)} kg</div>
+                </div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4">
-                <div className="text-sm text-muted-foreground">Total Time</div>
-                <div className="text-2xl font-bold">{formatTime(totalTime)}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-sm text-muted-foreground">Sets Timed</div>
-                <div className="text-2xl font-bold">{setsWithTimer}</div>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">Total Time</div>
+                  <div className="text-2xl font-bold">{formatTime(totalSessionTime)}</div>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -195,11 +193,8 @@ export function WorkoutOverview({
 
       {/* Footer */}
       <div className="border-t p-4">
-        <div className="max-w-4xl mx-auto flex gap-4">
-          <Button variant="outline" onClick={onBack} className="flex-1">
-            Back to Workout
-          </Button>
-          <Button onClick={onComplete} className="flex-1">
+        <div className="max-w-4xl mx-auto">
+          <Button onClick={onComplete} className="w-full">
             <Check className="h-4 w-4 mr-2" />
             Complete Workout
           </Button>

@@ -24,6 +24,7 @@ interface SetLoggerProps {
   onRestTimerStart?: (seconds: number) => void
   onRestTimerUpdate?: (seconds: number) => void
   onRestTimerComplete?: () => void
+  restTimerStopped?: boolean // Signal from parent to stop rest timer
 }
 
 export function SetLogger({
@@ -42,6 +43,7 @@ export function SetLogger({
   onRestTimerStart,
   onRestTimerUpdate,
   onRestTimerComplete,
+  restTimerStopped = false,
 }: SetLoggerProps) {
   const [weight, setWeight] = useState<string>('')
   const [reps, setReps] = useState<string>('')
@@ -61,6 +63,22 @@ export function SetLogger({
     restTimerCompleteRef.current = onRestTimerComplete
     timerUpdateRef.current = onTimerUpdate
   }, [onRestTimerUpdate, onRestTimerComplete, onTimerUpdate])
+
+  // Stop rest timer when parent signals to stop
+  useEffect(() => {
+    if (restTimerStopped && restSecondsRemaining !== null) {
+      // Clear the interval
+      if (restIntervalRef.current) {
+        clearInterval(restIntervalRef.current)
+        restIntervalRef.current = null
+      }
+      // Reset rest timer state
+      setRestSecondsRemaining(null)
+      setIsTimerRunning(false)
+      setElapsedSeconds(0)
+      startTimeRef.current = null
+    }
+  }, [restTimerStopped, restSecondsRemaining])
 
   const lastSet = useQuery(api.sets.getLastSetForExercise, {
     exerciseId,
@@ -128,7 +146,11 @@ export function SetLogger({
                 body: 'Time to start your next set!',
               })
             }
-            // Use ref to avoid calling during render
+            // Reset timer state when rest completes FIRST
+            setIsTimerRunning(false)
+            setElapsedSeconds(0)
+            startTimeRef.current = null
+            // Use ref to avoid calling during render - call after state reset
             setTimeout(() => {
               restTimerCompleteRef.current?.()
             }, 0)
@@ -147,7 +169,7 @@ export function SetLogger({
         clearInterval(restIntervalRef.current)
         restIntervalRef.current = null
       }
-      // Ensure timer is reset when rest completes
+      // Ensure timer is reset when rest completes or is cleared
       if (restSecondsRemaining === null) {
         setIsTimerRunning(false)
         setElapsedSeconds(0)
@@ -212,6 +234,7 @@ export function SetLogger({
       setIsTimerRunning(false)
       setElapsedSeconds(0)
       startTimeRef.current = null
+      // Call reset callback to sync parent state
       onTimerReset?.()
 
       // Start rest timer
