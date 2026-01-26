@@ -92,6 +92,9 @@ export const generateWorkoutTemplate = query({
     const weeksElapsed = Math.floor(elapsed / (7 * 24 * 60 * 60 * 1000));
     const currentWeek = Math.min(weeksElapsed + 1, mesocycle.durationWeeks);
 
+    // Check if it's the final week (deload week)
+    const isDeloadWeek = currentWeek === mesocycle.durationWeeks;
+
     // Calculate build-up percentage if needed
     let setsMultiplier = 1.0;
     if (!mesocycle.wasPreviouslyTraining) {
@@ -101,6 +104,11 @@ export const generateWorkoutTemplate = query({
         setsMultiplier = 0.75;
       }
       // Week 5+ uses 1.0 (full volume)
+    }
+
+    // Apply deload reduction (50% of current volume) in final week
+    if (isDeloadWeek) {
+      setsMultiplier *= 0.5;
     }
 
     // Calculate sets per primary pattern per week (with build-up)
@@ -157,6 +165,7 @@ export const generateWorkoutTemplate = query({
       currentWeek,
       setsPerPrimaryPatternPerSession,
       totalSetsPerSession: template.reduce((sum, item) => sum + item.sets, 0),
+      isDeloadWeek,
     };
   },
 });

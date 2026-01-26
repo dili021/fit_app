@@ -3,10 +3,11 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { useAuth } from '@/hooks/useAuth'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
+import { useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Dumbbell, Play, Calendar } from 'lucide-react'
+import { Dumbbell, Play, Calendar, AlertCircle } from 'lucide-react'
 
 export const Route = createFileRoute('/workout/')({
   component: WorkoutIndex,
@@ -44,16 +45,31 @@ function WorkoutIndexContent({ userId }: { userId: string }) {
   const navigate = useNavigate()
   const activeMesocycle = useQuery(api.mesocycles.getActiveMesocycle, { userId })
   const activeWorkout = useQuery(api.workouts.getActiveWorkout, { userId })
+  const mesocycleStatusInfo = useQuery(
+    api.mesocycles.getMesocycleStatusInfo,
+    activeMesocycle ? { mesocycleId: activeMesocycle._id } : "skip"
+  )
   const workoutTemplate = useQuery(
     api.workouts.generateWorkoutTemplate,
     activeMesocycle ? { mesocycleId: activeMesocycle._id } : "skip"
   )
   const createWorkout = useMutation(api.workouts.createWorkout)
+  const checkStatus = useMutation(api.mesocycles.checkAndUpdateMesocycleStatus)
+
+  // Check status when component loads
+  useEffect(() => {
+    if (activeMesocycle) {
+      checkStatus({ mesocycleId: activeMesocycle._id })
+    }
+  }, [activeMesocycle?._id, checkStatus])
 
   // Calculate current week if mesocycle exists
-  const currentWeek = activeMesocycle
+  const currentWeek = mesocycleStatusInfo?.currentWeek ?? (activeMesocycle
     ? calculateCurrentWeek(activeMesocycle.startDate, activeMesocycle.durationWeeks)
-    : 0
+    : 0)
+  
+  const isDeloadWeek = mesocycleStatusInfo?.isDeloadWeek ?? false
+  const isCompleted = activeMesocycle?.status === "completed" || mesocycleStatusInfo?.status === "completed"
 
   const handleStartWorkout = async () => {
     if (!activeMesocycle) return
@@ -98,8 +114,18 @@ function WorkoutIndexContent({ userId }: { userId: string }) {
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Start Workout</h1>
-        <p className="text-muted-foreground">Week {currentWeek} of {activeMesocycle.durationWeeks}</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Start Workout</h1>
+            <p className="text-muted-foreground">Week {currentWeek} of {activeMesocycle.durationWeeks}</p>
+          </div>
+          {isDeloadWeek && !isCompleted && (
+            <Badge variant="destructive" className="flex items-center gap-1">
+              <AlertCircle className="h-3 w-3" />
+              Deload Week
+            </Badge>
+          )}
+        </div>
       </div>
 
       {hasActiveWorkout ? (
@@ -138,6 +164,11 @@ function WorkoutIndexContent({ userId }: { userId: string }) {
                 </CardTitle>
                 <CardDescription>
                   {workoutTemplate.totalSetsPerSession} total sets across {workoutTemplate.template.length} patterns
+                  {workoutTemplate.isDeloadWeek && (
+                    <span className="block mt-1 text-orange-600 dark:text-orange-400">
+                      Deload week - Volume reduced by 50%
+                    </span>
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -166,19 +197,32 @@ function WorkoutIndexContent({ userId }: { userId: string }) {
             </Card>
           )}
 
-          <Card>
-            <CardContent className="py-6">
-              <Button
-                onClick={handleStartWorkout}
-                size="lg"
-                className="w-full"
-                disabled={!workoutTemplate}
-              >
-                <Play className="h-5 w-5 mr-2" />
-                Start Workout
-              </Button>
-            </CardContent>
-          </Card>
+          {isCompleted ? (
+            <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
+              <CardContent className="py-6 text-center">
+                <p className="text-green-900 dark:text-green-100 mb-4">
+                  This mesocycle has been completed. Set up a new mesocycle to continue training.
+                </p>
+                <Button asChild>
+                  <Link to="/mesocycle/setup">Set Up New Mesocycle</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="py-6">
+                <Button
+                  onClick={handleStartWorkout}
+                  size="lg"
+                  className="w-full"
+                  disabled={!workoutTemplate}
+                >
+                  <Play className="h-5 w-5 mr-2" />
+                  Start Workout
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
     </div>

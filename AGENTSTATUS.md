@@ -3,7 +3,7 @@
 ## Overview
 Tracking progress on the training tracker app implementation based on the plan.
 
-**Last Updated**: 2026-01-26 (Phase 6 complete - Charts implemented and fixed: exercise progress line rendering issue resolved)
+**Last Updated**: 2026-01-26 (Phase 7 complete - Mesocycle management with deload automation, completion detection, and setup prompts)
 
 ---
 
@@ -155,13 +155,17 @@ Tracking progress on the training tracker app implementation based on the plan.
   - Removed exercise count display ("n of m")
 
 - [x] **Set Logging**
-  - Weight input (shows last weight for exercise)
+  - Weight input (shows suggested weight from progression system)
   - Compact "Start Timer" button (opens global timer overlay)
   - Reps input (shows last reps for exercise)
   - Set completion tracking
   - Timer button resets immediately after set completion
   - Weight/reps persist for same exercise, reset on exercise change
-  - Auto-progression ready (8-12 rep range logic can be added)
+  - **Auto-progression implemented** (8-12 rep range logic) ✅ CORE FEATURE
+    - Calculates suggested weight based on last performance
+    - Shows increase/decrease/maintain suggestions with visual indicators
+    - Stores `suggestedWeightChange` in set record
+    - Keeps user in hypertrophy zone (8-12 reps)
 
 - [x] **Timer System**
   - Global timer overlay (TimerOverlay component)
@@ -235,15 +239,15 @@ Tracking progress on the training tracker app implementation based on the plan.
 
 ---
 
-## Phase 7: Advanced Features ⏳ PENDING
+## Phase 7: Advanced Features ✅ COMPLETE
 
-### Status: ⏳ Pending
+### Status: ✅ Complete
 
-- [ ] **Mesocycle Management**
-  - Build-up logic implementation (50% → 75% → 100%)
-  - Deload week automation
-  - Mesocycle completion detection
-  - New mesocycle setup prompt after deload
+- [x] **Mesocycle Management**
+  - Build-up logic implementation (50% → 75% → 100%) ✅ (Already implemented in Phase 3)
+  - Deload week automation ✅ (Automatically reduces volume by 50% in final week)
+  - Mesocycle completion detection ✅ (Automatically marks as completed after deload week)
+  - New mesocycle setup prompt after deload ✅ (Completion card with setup button on dashboard and workout page)
 
 ---
 
@@ -313,9 +317,11 @@ See `NOTES.md` for details on:
 - `src/lib/auth-client.ts` - Updated to use Convex plugins (convexClient, crossDomainClient)
 - `src/integrations/convex/provider.tsx` - Wrapped with ConvexBetterAuthProvider
 - `convex/sets.ts` - Added getSetsForMesocycle, getExerciseProgress, getPatternVolume, getAllSetsForUser queries for progress tracking
-- `convex/workouts.ts` - Added getAllWorkouts query for history page
-- `convex/mesocycles.ts` - Added getAllMesocycles query for history page
+- `convex/workouts.ts` - Added getAllWorkouts query for history page, updated generateWorkoutTemplate to handle deload weeks (50% volume reduction)
+- `convex/mesocycles.ts` - Added getAllMesocycles query for history page, added checkAndUpdateMesocycleStatus mutation and getMesocycleStatusInfo query for deload/completion management
 - `src/routes/history/index.tsx` - Fixed exercise progress chart line rendering (changed chart config color from `hsl(var(--chart-1))` to `#000000` to fix invalid CSS variable resolution)
+- `src/routes/index.tsx` - Added mesocycle status checking, deload week badge, completion prompt card with setup button
+- `src/routes/workout/index.tsx` - Added status checking, deload week indicator, completion state handling
 - `.env.local` - Added Better Auth secret, SITE_URL, VITE_SITE_URL, VITE_CONVEX_SITE_URL
 - `package.json` - Added @convex-dev/better-auth, pinned better-auth@1.4.9, removed better-sqlite3 and @types/better-sqlite3
 

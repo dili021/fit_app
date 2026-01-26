@@ -84,6 +84,11 @@ export function SetLogger({
     exerciseId,
     userId,
   })
+  const suggestedWeight = useQuery(api.progression.getSuggestedWeight, {
+    userId,
+    exerciseId,
+    patternId,
+  })
   const createSet = useMutation(api.sets.createSet)
 
   // Request notification permission on mount
@@ -96,12 +101,12 @@ export function SetLogger({
   // Load last weight/reps when exercise changes
   // Component remounts when exerciseId changes (via key prop), so this will populate fresh state
   // Weight/reps persist when completing sets on the same exercise (key doesn't change)
+  // NOTE: We don't auto-fill suggested weight - user may not have the exact plates available
   useEffect(() => {
     if (lastSet) {
       setWeight(lastSet.weight.toString())
       setReps(lastSet.reps.toString())
     } else {
-      // Reset if no last set found
       setWeight('')
       setReps('')
     }
@@ -243,6 +248,8 @@ export function SetLogger({
       onRestTimerStart?.(restSeconds)
 
       // Call completion callback
+      // Note: Convex queries will automatically refetch after mutation,
+      // so suggestedWeight and lastSet will update with the new set
       onSetComplete()
     } catch (error) {
       console.error('Failed to save set:', error)
@@ -278,7 +285,26 @@ export function SetLogger({
             placeholder={lastSet?.weight.toString() || '0'}
             className="mt-2 text-lg"
           />
-          {lastSet && (
+          {suggestedWeight?.suggestion && (
+            <div className="mt-1 space-y-0.5">
+              {suggestedWeight.suggestion === 'increase' && (
+                <p className="text-xs text-green-600 font-medium">
+                  ↑ Suggested: {suggestedWeight.suggestedWeight}kg (last: {suggestedWeight.lastReps} reps @ {suggestedWeight.lastWeight}kg)
+                </p>
+              )}
+              {suggestedWeight.suggestion === 'decrease' && (
+                <p className="text-xs text-orange-600 font-medium">
+                  ↓ Suggested: {suggestedWeight.suggestedWeight}kg (last: {suggestedWeight.lastReps} reps @ {suggestedWeight.lastWeight}kg)
+                </p>
+              )}
+              {suggestedWeight.suggestion === 'maintain' && (
+                <p className="text-xs text-blue-600 font-medium">
+                  → Maintain: {suggestedWeight.suggestedWeight}kg (in 8-12 rep zone)
+                </p>
+              )}
+            </div>
+          )}
+          {!suggestedWeight?.suggestion && lastSet && (
             <p className="text-xs text-muted-foreground mt-1">
               Last: {lastSet.weight}kg
             </p>

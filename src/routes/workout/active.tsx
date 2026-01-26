@@ -95,6 +95,19 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
 
   const completeWorkout = useMutation(api.workouts.completeWorkout)
 
+  // Get progression suggestion for current exercise (for rest timer display)
+  // Must be called unconditionally (before early returns), but can skip when data not available
+  const progressionSuggestion = useQuery(
+    api.progression.getSuggestedWeight,
+    workoutTemplate && selectedExerciseId && workoutTemplate.template[currentPatternIndex]
+      ? {
+          userId,
+          exerciseId: selectedExerciseId,
+          patternId: workoutTemplate.template[currentPatternIndex].patternId,
+        }
+      : "skip"
+  )
+
   // Calculate completed sets for current pattern (across all exercises in the pattern)
   useEffect(() => {
     if (workoutSets && workoutTemplate?.template[currentPatternIndex]) {
@@ -419,6 +432,7 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
         isVisible={restSecondsRemaining !== null && restSecondsRemaining > 0}
         secondsRemaining={restSecondsRemaining || 0}
         onDismiss={handleRestTimerStop}
+        progressionSuggestion={progressionSuggestion || null}
       />
       
       <div className="fixed inset-0 bg-background z-50 flex flex-col">

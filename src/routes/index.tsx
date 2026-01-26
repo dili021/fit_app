@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { useAuth } from '@/hooks/useAuth'
-import { useQuery } from 'convex/react'
+import { useQuery, useMutation } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, Dumbbell, Play, AlertCircle } from 'lucide-react'
+import { Calendar, Dumbbell, Play, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export const Route = createFileRoute('/')({ component: Dashboard })
 
@@ -47,13 +48,31 @@ function DashboardContent({ userId }: { userId: string }) {
     api.sets.getSetsForMesocycle,
     activeMesocycle ? { mesocycleId: activeMesocycle._id } : "skip"
   )
+  const mesocycleStatusInfo = useQuery(
+    api.mesocycles.getMesocycleStatusInfo,
+    activeMesocycle ? { mesocycleId: activeMesocycle._id } : "skip"
+  )
+  const checkStatus = useMutation(api.mesocycles.checkAndUpdateMesocycleStatus)
+  const [showCompletionPrompt, setShowCompletionPrompt] = useState(false)
+
+  // Check and update mesocycle status on load
+  useEffect(() => {
+    if (activeMesocycle) {
+      checkStatus({ mesocycleId: activeMesocycle._id }).then((result) => {
+        if (result.status === "completed" && result.action === "completed") {
+          setShowCompletionPrompt(true)
+        }
+      })
+    }
+  }, [activeMesocycle?._id, checkStatus])
 
   // Calculate current week if mesocycle exists
-  const currentWeek = activeMesocycle
+  const currentWeek = mesocycleStatusInfo?.currentWeek ?? (activeMesocycle
     ? calculateCurrentWeek(activeMesocycle.startDate, activeMesocycle.durationWeeks)
-    : 0
+    : 0)
 
-  const isFinalWeek = activeMesocycle && currentWeek === activeMesocycle.durationWeeks
+  const isDeloadWeek = mesocycleStatusInfo?.isDeloadWeek ?? (activeMesocycle && currentWeek === activeMesocycle.durationWeeks)
+  const isCompleted = activeMesocycle?.status === "completed" || mesocycleStatusInfo?.status === "completed"
 
   // Calculate progress based on completed sets, not week number
   const mesocycleProgress = activeMesocycle && mesocycleSets ? (() => {
@@ -128,10 +147,16 @@ function DashboardContent({ userId }: { userId: string }) {
                     Week {currentWeek} of {activeMesocycle.durationWeeks}
                   </CardDescription>
                 </div>
-                {isFinalWeek && (
+                {isDeloadWeek && !isCompleted && (
                   <Badge variant="destructive" className="flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" />
                     Deload Week
+                  </Badge>
+                )}
+                {isCompleted && (
+                  <Badge variant="default" className="flex items-center gap-1 bg-green-600">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Completed
                   </Badge>
                 )}
               </div>
@@ -171,17 +196,25 @@ function DashboardContent({ userId }: { userId: string }) {
               </div>
             </CardContent>
             <CardFooter>
-              <Button asChild className="w-full">
-                <Link to="/workout">
-                  <Play className="h-4 w-4 mr-2" />
-                  Start Workout
-                </Link>
-              </Button>
+              {!isCompleted ? (
+                <Button asChild className="w-full">
+                  <Link to="/workout">
+                    <Play className="h-4 w-4 mr-2" />
+                    Start Workout
+                  </Link>
+                </Button>
+              ) : (
+                <Button asChild className="w-full" variant="outline">
+                  <Link to="/mesocycle/setup">
+                    Set Up New Mesocycle
+                  </Link>
+                </Button>
+              )}
             </CardFooter>
           </Card>
 
           {/* Deload Notification */}
-          {isFinalWeek && (
+          {isDeloadWeek && !isCompleted && (
             <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
               <CardContent className="py-4">
                 <div className="flex items-start gap-3">
@@ -191,9 +224,32 @@ function DashboardContent({ userId }: { userId: string }) {
                       Deload Week
                     </h3>
                     <p className="text-sm text-blue-800 dark:text-blue-200">
-                      This is your final week. Consider reducing volume by 50% for recovery before
-                      starting your next mesocycle.
+                      This is your final week. Volume has been automatically reduced by 50% for recovery.
                     </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Completion Prompt */}
+          {(isCompleted || showCompletionPrompt) && (
+            <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
+              <CardContent className="py-6">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-green-900 dark:text-green-100 mb-1">
+                      Mesocycle Completed!
+                    </h3>
+                    <p className="text-sm text-green-800 dark:text-green-200 mb-4">
+                      Congratulations on completing your mesocycle! Set up a new mesocycle to continue your training.
+                    </p>
+                    <Button asChild className="bg-green-600 hover:bg-green-700">
+                      <Link to="/mesocycle/setup" onClick={() => setShowCompletionPrompt(false)}>
+                        Set Up New Mesocycle
+                      </Link>
+                    </Button>
                   </div>
                 </div>
               </CardContent>

@@ -13,6 +13,7 @@ import type * as exercises from "../exercises.js";
 import type * as http from "../http.js";
 import type * as mesocycles from "../mesocycles.js";
 import type * as patterns from "../patterns.js";
+import type * as progression from "../progression.js";
 import type * as seed from "../seed.js";
 import type * as sets from "../sets.js";
 import type * as workouts from "../workouts.js";
@@ -29,6 +30,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   mesocycles: typeof mesocycles;
   patterns: typeof patterns;
+  progression: typeof progression;
   seed: typeof seed;
   sets: typeof sets;
   workouts: typeof workouts;

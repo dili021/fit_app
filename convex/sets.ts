@@ -216,6 +216,21 @@ export const createSet = mutation({
 
     const order = existingSets ? existingSets.orderInWorkout + 1 : args.orderInWorkout;
 
+    // Calculate suggested weight change based on 8-12 rep range (auto-progression)
+    // This is a CORE feature - keeps user in hypertrophy zone
+    let suggestedWeightChange: "increase" | "decrease" | "maintain" | undefined = undefined;
+    
+    if (args.reps >= 12) {
+      // Hit 12+ reps → suggest weight increase for next time
+      suggestedWeightChange = "increase";
+    } else if (args.reps < 8) {
+      // Can't hit 8 reps → suggest weight decrease for next time
+      suggestedWeightChange = "decrease";
+    } else {
+      // 8-12 reps → maintain (sweet spot)
+      suggestedWeightChange = "maintain";
+    }
+
     const setId = await ctx.db.insert("sets", {
       workoutId: args.workoutId,
       patternId: args.patternId,
@@ -226,6 +241,7 @@ export const createSet = mutation({
       startTime: args.startTime,
       endTime: args.endTime,
       duration: args.duration,
+      suggestedWeightChange,
     });
 
     return setId;
