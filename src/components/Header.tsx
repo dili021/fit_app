@@ -1,6 +1,8 @@
 import { Link } from '@tanstack/react-router'
 
 import BetterAuthHeader from '../integrations/better-auth/header-user.tsx'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 import { useState } from 'react'
 import {
@@ -18,115 +20,139 @@ export default function Header() {
 
   return (
     <>
-      <header className="p-4 flex items-center bg-gray-800 text-white shadow-lg">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-          aria-label="Open menu"
-        >
-          <Menu size={24} />
-        </button>
-        <h1 className="ml-4 text-xl font-semibold">
-          <Link to="/">
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 items-center px-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsOpen(true)}
+            className="mr-2"
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <Link to="/" className="flex items-center gap-2 font-semibold">
             <img
               src="/tanstack-word-logo-white.svg"
               alt="TanStack Logo"
-              className="h-10"
+              className="h-8 dark:invert"
             />
           </Link>
-        </h1>
+        </div>
       </header>
 
+      {/* Backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm"
+          onClick={() => setIsOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-80 bg-gray-900 text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
+        className={cn(
+          'fixed top-0 left-0 z-50 h-full w-80 border-r bg-sidebar text-sidebar-foreground shadow-lg transition-transform duration-300 ease-in-out',
+          'flex flex-col',
           isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        )}
       >
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold">Navigation</h2>
-          <button
+        {/* Sidebar Header */}
+        <div className="flex h-14 items-center justify-between border-b border-sidebar-border px-4">
+          <h2 className="text-lg font-semibold">Navigation</h2>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setIsOpen(false)}
-            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+            className="h-8 w-8"
             aria-label="Close menu"
           >
-            <X size={24} />
-          </button>
+            <X className="h-4 w-4" />
+          </Button>
         </div>
 
-        <nav className="flex-1 p-4 overflow-y-auto">
-          <Link
+        {/* Navigation */}
+        <nav className="flex-1 space-y-1 overflow-y-auto p-4">
+          <NavLink
             to="/"
+            icon={Home}
+            label="Dashboard"
             onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-            activeProps={{
-              className:
-                'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-            }}
-          >
-            <Home size={20} />
-            <span className="font-medium">Dashboard</span>
-          </Link>
+          />
 
           {/* Fitness App Routes */}
-          <div className="border-t border-gray-700 my-4 pt-4">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase mb-2 px-3">
+          <div className="my-4 space-y-1 border-t border-sidebar-border pt-4">
+            <h3 className="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Fitness App
             </h3>
-            <Link
+            <NavLink
               to="/mesocycle/setup"
+              icon={SquareFunction}
+              label="Setup Mesocycle"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-              activeProps={{
-                className:
-                  'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-              }}
-            >
-              <SquareFunction size={20} />
-              <span className="font-medium">Setup Mesocycle</span>
-            </Link>
-            <Link
+            />
+            <NavLink
               to="/workout"
+              icon={Network}
+              label="Workout"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-              activeProps={{
-                className:
-                  'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-              }}
-            >
-              <Network size={20} />
-              <span className="font-medium">Workout</span>
-            </Link>
-            <Link
+            />
+            <NavLink
               to="/history"
+              icon={StickyNote}
+              label="History"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-              activeProps={{
-                className:
-                  'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-              }}
-            >
-              <StickyNote size={20} />
-              <span className="font-medium">History</span>
-            </Link>
-            <Link
+            />
+            <NavLink
               to="/exercises"
+              icon={ClipboardType}
+              label="Exercises"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-              activeProps={{
-                className:
-                  'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-              }}
-            >
-              <ClipboardType size={20} />
-              <span className="font-medium">Exercises</span>
-            </Link>
+            />
           </div>
         </nav>
 
-        <div className="p-4 border-t border-gray-700 bg-gray-800 flex flex-col gap-2">
+        {/* Sidebar Footer */}
+        <div className="border-t border-sidebar-border bg-sidebar-accent/50 p-4">
           <BetterAuthHeader />
         </div>
       </aside>
     </>
+  )
+}
+
+function NavLink({
+  to,
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  to: string
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  onClick: () => void
+}) {
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      className={cn(
+        'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+        'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring'
+      )}
+      activeProps={{
+        className: cn(
+          'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+          'bg-sidebar-primary text-sidebar-primary-foreground',
+          'hover:bg-sidebar-primary/90',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring'
+        ),
+      }}
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      <span>{label}</span>
+    </Link>
   )
 }
