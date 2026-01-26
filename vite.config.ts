@@ -7,6 +7,7 @@ import { fileURLToPath, URL } from 'url'
 
 import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
+import { swVersionPlugin } from './vite-plugin-sw-version'
 
 const config = defineConfig({
   resolve: {
@@ -24,6 +25,7 @@ const config = defineConfig({
     tailwindcss(),
     tanstackStart(),
     viteReact(),
+    swVersionPlugin(),
   ],
 })
 

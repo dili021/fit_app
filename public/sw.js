@@ -1,5 +1,6 @@
 // Service Worker for Training Tracker PWA
-const CACHE_NAME = 'training-tracker-v1'
+// CACHE_NAME will be replaced during build with version from package.json
+const CACHE_NAME = 'training-tracker-1.0.0'
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
