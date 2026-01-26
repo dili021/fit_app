@@ -18,6 +18,21 @@ export const getRecentWorkouts = query({
 });
 
 /**
+ * Get all workouts for a user (chronological, completed only)
+ */
+export const getAllWorkouts = query({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("workouts")
+      .withIndex("userId_date", (q) => q.eq("userId", args.userId))
+      .filter((q) => q.eq(q.field("completed"), true))
+      .order("desc")
+      .collect();
+  },
+});
+
+/**
  * Get workouts for a mesocycle
  */
 export const getWorkoutsByMesocycle = query({

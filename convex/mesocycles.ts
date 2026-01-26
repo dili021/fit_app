@@ -27,6 +27,20 @@ export const getMesocycleById = query({
 });
 
 /**
+ * Get all mesocycles for a user
+ */
+export const getAllMesocycles = query({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("mesocycles")
+      .withIndex("userId", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .collect();
+  },
+});
+
+/**
  * Create a new mesocycle
  */
 export const createMesocycle = mutation({

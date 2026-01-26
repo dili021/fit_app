@@ -42,6 +42,125 @@ export const getSetsForMesocycle = query({
 });
 
 /**
+ * Get exercise progress over time (all sets for a specific exercise)
+ */
+export const getExerciseProgress = query({
+  args: { exerciseId: v.id("exercises"), userId: v.string() },
+  handler: async (ctx, args) => {
+    // Get all workouts for user
+    const workouts = await ctx.db
+      .query("workouts")
+      .withIndex("userId_date", (q) => q.eq("userId", args.userId))
+      .filter((q) => q.eq(q.field("completed"), true))
+      .order("asc")
+      .collect();
+
+    // Get all sets for this exercise across all workouts
+    const progress = [];
+    for (const workout of workouts) {
+      const sets = await ctx.db
+        .query("sets")
+        .withIndex("exerciseId", (q) => q.eq("exerciseId", args.exerciseId))
+        .filter((q) => q.eq(q.field("workoutId"), workout._id))
+        .order("asc")
+        .collect();
+
+      if (sets.length > 0) {
+        // Calculate average weight and reps for this workout
+        const totalWeight = sets.reduce((sum, s) => sum + s.weight, 0);
+        const totalReps = sets.reduce((sum, s) => sum + s.reps, 0);
+        const totalVolume = sets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+        
+        progress.push({
+          workoutId: workout._id,
+          date: workout.date,
+          weekNumber: workout.weekNumber,
+          setCount: sets.length,
+          avgWeight: totalWeight / sets.length,
+          avgReps: totalReps / sets.length,
+          totalVolume,
+          setDetails: sets.map(s => ({
+            weight: s.weight,
+            reps: s.reps,
+            volume: s.weight * s.reps,
+          })),
+        });
+      }
+    }
+
+    return progress;
+  },
+});
+
+/**
+ * Get pattern volume over time (aggregated by workout date)
+ */
+export const getPatternVolume = query({
+  args: { patternId: v.id("patterns"), userId: v.string() },
+  handler: async (ctx, args) => {
+    // Get all workouts for user
+    const workouts = await ctx.db
+      .query("workouts")
+      .withIndex("userId_date", (q) => q.eq("userId", args.userId))
+      .filter((q) => q.eq(q.field("completed"), true))
+      .order("asc")
+      .collect();
+
+    // Get all sets for this pattern across all workouts
+    const volume = [];
+    for (const workout of workouts) {
+      const sets = await ctx.db
+        .query("sets")
+        .withIndex("patternId", (q) => q.eq("patternId", args.patternId))
+        .filter((q) => q.eq(q.field("workoutId"), workout._id))
+        .collect();
+
+      if (sets.length > 0) {
+        const totalVolume = sets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+        const totalSets = sets.length;
+        
+        volume.push({
+          workoutId: workout._id,
+          date: workout.date,
+          weekNumber: workout.weekNumber,
+          sets: totalSets,
+          totalVolume,
+        });
+      }
+    }
+
+    return volume;
+  },
+});
+
+/**
+ * Get all sets for a user (for comprehensive progress tracking)
+ */
+export const getAllSetsForUser = query({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    // Get all workouts for user
+    const workouts = await ctx.db
+      .query("workouts")
+      .withIndex("userId_date", (q) => q.eq("userId", args.userId))
+      .filter((q) => q.eq(q.field("completed"), true))
+      .collect();
+
+    // Get all sets for these workouts
+    const allSets = [];
+    for (const workout of workouts) {
+      const sets = await ctx.db
+        .query("sets")
+        .withIndex("workoutId", (q) => q.eq("workoutId", workout._id))
+        .collect();
+      allSets.push(...sets);
+    }
+
+    return allSets;
+  },
+});
+
+/**
  * Get last set for an exercise (for showing previous weight/reps)
  */
 export const getLastSetForExercise = query({

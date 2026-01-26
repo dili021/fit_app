@@ -3,7 +3,7 @@
 ## Overview
 Tracking progress on the training tracker app implementation based on the plan.
 
-**Last Updated**: 2026-01-26 (Migrated Better Auth from SQLite to Convex integration)
+**Last Updated**: 2026-01-26 (Phase 6 complete - Charts implemented and fixed: exercise progress line rendering issue resolved)
 
 ---
 
@@ -165,26 +165,42 @@ Tracking progress on the training tracker app implementation based on the plan.
 
 - [x] **Timer System**
   - Global timer overlay (TimerOverlay component)
-  - Dismissable timer overlay
+  - Work timer: Optional, start/stop only (no dismiss)
   - Timer state synced between SetLogger and parent
   - Timer resets when set completes
+  - Timer button enabled after rest completes or is dismissed
   - Timer button disabled during rest timer
 
 - [x] **Rest Timer**
   - Global rest timer overlay (RestTimerOverlay component)
-  - Dismissable rest timer overlay
+  - Always visible when running (cannot be hidden while active)
+  - Dismissable - dismissing stops timer completely (doesn't run in background)
   - Automatic rest timer after set completion
   - Countdown display (minutes:seconds format)
   - Browser notification when rest completes
   - Timer blocks next set until rest completes/dismissed
   - Navigation triggers after rest timer closes (if auto-navigate condition met)
 
+- [x] **Session Timer**
+  - Starts when workout begins (uses workout.startedAt)
+  - Displays in header during workout (small, monospace format)
+  - Updates every second while workout is active
+  - Stops when workout is concluded or overview is shown
+  - Shows total session time in workout overview (not sum of individual set durations)
+
 - [x] **Workout Overview**
   - Comprehensive workout summary when all sets completed
   - Groups exercises by pattern with pattern headers
-  - Shows total sets, total volume, total time, sets timed
+  - Single column layout for stats (Total Sets, Total Volume, Total Time)
+  - Removed "Sets Timed" stat
+  - Removed "Back to Workout" button
   - Displays individual set details (weight, reps, duration)
-  - "Back to Workout" and "Complete Workout" buttons
+  - Shows total session time (from workout start to completion)
+
+- [x] **Pattern Completion UI**
+  - Header shows green background and checkmark when pattern is complete
+  - Pattern name turns green with checkmark icon
+  - "Complete!" text added to pattern subtitle
 
 - [x] **Bug Fixes**
   - Fixed React Hooks order violation (all hooks called unconditionally)
@@ -194,19 +210,28 @@ Tracking progress on the training tracker app implementation based on the plan.
   - Fixed mesocycle progress bar (calculates from total sets logged, not week number)
   - Fixed auto-navigation bug (exact set completion check)
   - Fixed set counter to show pattern sets, not workout sets
+  - Fixed timer button not enabling after rest completes (proper state reset)
+  - Fixed rest timer popping back up after dismissal (stops completely when dismissed)
+  - Fixed session timer hooks order (moved to top before early returns)
 
 ---
 
-## Phase 6: Progress Tracking ⏳ PENDING
+## Phase 6: Progress Tracking ✅ COMPLETE
 
-### Status: ⏳ Pending
+### Status: ✅ Complete
 
-- [ ] **History Page**
-  - Workout list (chronological)
-  - Calendar view with workout dots
-  - Per-exercise progress charts (shadcn charts)
-  - Per-pattern volume tracking graphs
-  - Mesocycle comparison (if multiple completed)
+- [x] **History Page**
+  - Workout list (chronological) ✅
+  - Calendar view with workout dots ✅
+  - Expandable workout cards with set details ✅
+  - Workout statistics (total sets, volume, exercises) ✅
+  - Convex queries for exercise progress and pattern volume ✅
+- [x] **Charts**
+  - Per-exercise progress charts (total volume over time with connecting lines) ✅
+  - Per-pattern volume tracking graphs (volume and sets per workout) ✅
+  - Mesocycle comparison (total volume and sets across mesocycles) ✅
+  - Exercise and pattern selectors for chart filtering ✅
+  - Fixed exercise progress chart line rendering (CSS variable color resolution issue) ✅
 
 ---
 
@@ -233,7 +258,7 @@ See `NOTES.md` for details on:
 
 ## Next Steps
 
-1. **Build Progress Tracking** - Create history page with charts and progress visualization (Phase 6)
+1. **Complete Progress Tracking** - Install shadcn chart component and add progress charts (Phase 6)
 2. **Add Auto-Progression Logic** - Implement weight increase/decrease suggestions based on rep ranges
 3. **Test & Polish** - End-to-end testing of workout flow, UI/UX refinements
 
@@ -262,7 +287,7 @@ See `NOTES.md` for details on:
 - `src/components/workout/TimerOverlay.tsx` - Global timer overlay component
 - `src/components/workout/RestTimerOverlay.tsx` - Global rest timer overlay component
 - `src/components/workout/WorkoutOverview.tsx` - Workout completion summary with pattern grouping
-- `src/routes/history/index.tsx` - History route (protected)
+- `src/routes/history/index.tsx` - History page with list, calendar, and charts views (protected)
 - `src/routes/exercises/index.tsx` - Exercises route (protected)
 - `src/routes/sign-in.tsx` - Sign-in/sign-up page
 - `src/components/auth/ProtectedRoute.tsx` - Route protection wrapper
@@ -278,13 +303,19 @@ See `NOTES.md` for details on:
 ### Modified
 - `src/routes/__root.tsx` - Updated title
 - `src/routes/index.tsx` - Converted to protected dashboard route, mesocycle progress based on sets logged
-- `src/routes/workout/active.tsx` - Fixed hooks order, added timer/rest overlays, workout overview, navigation logic
-- `src/components/workout/SetLogger.tsx` - Timer button reset, global overlays integration, deferred callbacks
+- `src/routes/workout/active.tsx` - Fixed hooks order, added timer/rest overlays, workout overview, navigation logic, session timer, pattern completion UI, simplified timer handlers
+- `src/components/workout/SetLogger.tsx` - Timer button reset, global overlays integration, deferred callbacks, rest timer stop handling
+- `src/components/workout/TimerOverlay.tsx` - Removed dismiss functionality, start/stop only
+- `src/components/workout/RestTimerOverlay.tsx` - Added dismiss that stops timer completely, always visible when running
+- `src/components/workout/WorkoutOverview.tsx` - Single column layout, removed "Sets Timed" and "Back to Workout" button, uses session time
 - `src/components/Header.tsx` - Added fitness app navigation, updated sign-in link
 - `src/integrations/better-auth/header-user.tsx` - Updated sign-in redirect
 - `src/lib/auth-client.ts` - Updated to use Convex plugins (convexClient, crossDomainClient)
 - `src/integrations/convex/provider.tsx` - Wrapped with ConvexBetterAuthProvider
-- `convex/sets.ts` - Added getSetsForMesocycle query for progress tracking
+- `convex/sets.ts` - Added getSetsForMesocycle, getExerciseProgress, getPatternVolume, getAllSetsForUser queries for progress tracking
+- `convex/workouts.ts` - Added getAllWorkouts query for history page
+- `convex/mesocycles.ts` - Added getAllMesocycles query for history page
+- `src/routes/history/index.tsx` - Fixed exercise progress chart line rendering (changed chart config color from `hsl(var(--chart-1))` to `#000000` to fix invalid CSS variable resolution)
 - `.env.local` - Added Better Auth secret, SITE_URL, VITE_SITE_URL, VITE_CONVEX_SITE_URL
 - `package.json` - Added @convex-dev/better-auth, pinned better-auth@1.4.9, removed better-sqlite3 and @types/better-sqlite3
 
