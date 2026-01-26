@@ -51,8 +51,8 @@ self.addEventListener('fetch', (event) => {
   const isCSS = url.pathname.endsWith('.css')
   const isStaticAsset = url.pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/i)
 
-  // Network-first strategy for HTML, JS, and CSS (hashed filenames change on deploy)
-  if (isHTML || isJS || isCSS) {
+  // Network-first for HTML only (to get new JS/CSS references on version change)
+  if (isHTML) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
@@ -69,6 +69,29 @@ self.addEventListener('fetch', (event) => {
           // Network failed, try cache
           return caches.match(event.request)
         })
+    )
+    return
+  }
+
+  // Cache-first for JS and CSS (only fetches when version changes and cache is cleared)
+  if (isJS || isCSS) {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse
+        }
+
+        return fetch(event.request).then((response) => {
+          // Only cache successful responses
+          if (response && response.status === 200 && response.type === 'basic') {
+            const responseToCache = response.clone()
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache)
+            })
+          }
+          return response
+        })
+      })
     )
     return
   }
