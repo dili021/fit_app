@@ -5,6 +5,7 @@ import {
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import { useEffect } from 'react'
 
 import Header from '../components/Header'
 
@@ -13,6 +14,7 @@ import ConvexProvider from '../integrations/convex/provider'
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
 import appCss from '../styles.css?url'
+import { registerServiceWorker } from '../lib/service-worker'
 
 import type { QueryClient } from '@tanstack/react-query'
 
@@ -28,7 +30,27 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
       {
         name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
+        content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
+      },
+      {
+        name: 'description',
+        content: 'Track your workouts, mesocycles, and training progress',
+      },
+      {
+        name: 'theme-color',
+        content: '#000000',
+      },
+      {
+        name: 'apple-mobile-web-app-capable',
+        content: 'yes',
+      },
+      {
+        name: 'apple-mobile-web-app-status-bar-style',
+        content: 'black-translucent',
+      },
+      {
+        name: 'apple-mobile-web-app-title',
+        content: 'Training Tracker',
       },
       {
         title: 'Training Tracker',
@@ -38,6 +60,14 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       {
         rel: 'stylesheet',
         href: appCss,
+      },
+      {
+        rel: 'manifest',
+        href: '/manifest.json',
+      },
+      {
+        rel: 'apple-touch-icon',
+        href: '/logo192.png',
       },
     ],
   }),
@@ -56,6 +86,11 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  // Register service worker for PWA
+  useEffect(() => {
+    registerServiceWorker()
+  }, [])
+
   return (
     <html lang="en">
       <head>
