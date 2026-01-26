@@ -24,7 +24,6 @@ import { Route as DemoStartApiRequestRouteImport } from './routes/demo/start.api
 import { Route as DemoFormSimpleRouteImport } from './routes/demo/form.simple'
 import { Route as DemoFormAddressRouteImport } from './routes/demo/form.address'
 import { Route as DemoApiNamesRouteImport } from './routes/demo/api.names'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as DemoStartSsrIndexRouteImport } from './routes/demo/start.ssr.index'
 import { Route as DemoStartSsrSpaModeRouteImport } from './routes/demo/start.ssr.spa-mode'
 import { Route as DemoStartSsrFullSsrRouteImport } from './routes/demo/start.ssr.full-ssr'
@@ -105,11 +104,6 @@ const DemoApiNamesRoute = DemoApiNamesRouteImport.update({
   path: '/demo/api/names',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DemoStartSsrIndexRoute = DemoStartSsrIndexRouteImport.update({
   id: '/demo/start/ssr/',
   path: '/demo/start/ssr/',
@@ -141,7 +135,6 @@ export interface FileRoutesByFullPath {
   '/exercises/': typeof ExercisesIndexRoute
   '/history/': typeof HistoryIndexRoute
   '/workout/': typeof WorkoutIndexRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
@@ -163,7 +156,6 @@ export interface FileRoutesByTo {
   '/exercises': typeof ExercisesIndexRoute
   '/history': typeof HistoryIndexRoute
   '/workout': typeof WorkoutIndexRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
@@ -186,7 +178,6 @@ export interface FileRoutesById {
   '/exercises/': typeof ExercisesIndexRoute
   '/history/': typeof HistoryIndexRoute
   '/workout/': typeof WorkoutIndexRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
@@ -210,7 +201,6 @@ export interface FileRouteTypes {
     | '/exercises/'
     | '/history/'
     | '/workout/'
-    | '/api/auth/$'
     | '/demo/api/names'
     | '/demo/form/address'
     | '/demo/form/simple'
@@ -232,7 +222,6 @@ export interface FileRouteTypes {
     | '/exercises'
     | '/history'
     | '/workout'
-    | '/api/auth/$'
     | '/demo/api/names'
     | '/demo/form/address'
     | '/demo/form/simple'
@@ -254,7 +243,6 @@ export interface FileRouteTypes {
     | '/exercises/'
     | '/history/'
     | '/workout/'
-    | '/api/auth/$'
     | '/demo/api/names'
     | '/demo/form/address'
     | '/demo/form/simple'
@@ -277,7 +265,6 @@ export interface RootRouteChildren {
   ExercisesIndexRoute: typeof ExercisesIndexRoute
   HistoryIndexRoute: typeof HistoryIndexRoute
   WorkoutIndexRoute: typeof WorkoutIndexRoute
-  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   DemoApiNamesRoute: typeof DemoApiNamesRoute
   DemoFormAddressRoute: typeof DemoFormAddressRoute
   DemoFormSimpleRoute: typeof DemoFormSimpleRoute
@@ -397,13 +384,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoApiNamesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/demo/start/ssr/': {
       id: '/demo/start/ssr/'
       path: '/demo/start/ssr'
@@ -445,7 +425,6 @@ const rootRouteChildren: RootRouteChildren = {
   ExercisesIndexRoute: ExercisesIndexRoute,
   HistoryIndexRoute: HistoryIndexRoute,
   WorkoutIndexRoute: WorkoutIndexRoute,
-  ApiAuthSplatRoute: ApiAuthSplatRoute,
   DemoApiNamesRoute: DemoApiNamesRoute,
   DemoFormAddressRoute: DemoFormAddressRoute,
   DemoFormSimpleRoute: DemoFormSimpleRoute,
