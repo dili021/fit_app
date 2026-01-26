@@ -33,7 +33,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim()
 })
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - network-first for HTML/JS, cache-first for static assets
 self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') {
@@ -45,27 +45,71 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse
-      }
+  const url = new URL(event.request.url)
+  const isHTML = url.pathname === '/' || url.pathname.endsWith('.html')
+  const isJS = url.pathname.endsWith('.js')
+  const isCSS = url.pathname.endsWith('.css')
+  const isStaticAsset = url.pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/i)
 
-      return fetch(event.request).then((response) => {
-        // Don't cache non-successful responses
-        if (!response || response.status !== 200 || response.type !== 'basic') {
+  // Network-first strategy for HTML, JS, and CSS (hashed filenames change on deploy)
+  if (isHTML || isJS || isCSS) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Only cache successful responses
+          if (response && response.status === 200 && response.type === 'basic') {
+            const responseToCache = response.clone()
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache)
+            })
+          }
           return response
+        })
+        .catch(() => {
+          // Network failed, try cache
+          return caches.match(event.request)
+        })
+    )
+    return
+  }
+
+  // Cache-first strategy for static assets (images, fonts, etc.)
+  if (isStaticAsset) {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse
         }
 
-        // Clone the response
-        const responseToCache = response.clone()
-
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache)
+        return fetch(event.request).then((response) => {
+          // Only cache successful responses
+          if (response && response.status === 200 && response.type === 'basic') {
+            const responseToCache = response.clone()
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache)
+            })
+          }
+          return response
         })
+      })
+    )
+    return
+  }
 
+  // Default: network-first for everything else
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseToCache = response.clone()
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache)
+          })
+        }
         return response
       })
-    })
+      .catch(() => {
+        return caches.match(event.request)
+      })
   )
 })
