@@ -458,32 +458,37 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
                   </Badge>
                 )}
               </div>
+              {/* Pattern Counter */}
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="text-xs text-muted-foreground">Pattern</span>
+                <div className="flex items-center gap-1">
+                  {workoutTemplate.template.map((pattern, index) => {
+                    const isCurrent = index === currentPatternIndex
+                    const isCompleted = workoutSets && (() => {
+                      const patternSets = workoutSets.filter(s => s.patternId === pattern.patternId)
+                      return patternSets.length >= pattern.sets
+                    })()
+                    
+                    return (
+                      <div
+                        key={index}
+                        className={`w-1.5 h-1.5 rounded-full transition-all ${
+                          isCurrent
+                            ? 'bg-primary'
+                            : isCompleted
+                            ? 'bg-green-500'
+                            : 'bg-muted'
+                        }`}
+                        aria-label={`Pattern ${index + 1}: ${pattern.patternName}`}
+                      />
+                    )
+                  })}
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {currentPatternIndex + 1} / {workoutTemplate.template.length}
+                </span>
+              </div>
             </div>
-          </div>
-          
-          {/* Pattern Dots Indicator */}
-          <div className="flex items-center gap-1.5 ml-auto">
-            {workoutTemplate.template.map((pattern, index) => {
-              const isCurrent = index === currentPatternIndex
-              const isCompleted = workoutSets && (() => {
-                const patternSets = workoutSets.filter(s => s.patternId === pattern.patternId)
-                return patternSets.length >= pattern.sets
-              })()
-              
-              return (
-                <div
-                  key={index}
-                  className={`w-2.5 h-2.5 rounded-full transition-all ${
-                    isCurrent
-                      ? 'w-6 bg-primary scale-110'
-                      : isCompleted
-                      ? 'bg-green-500'
-                      : 'bg-muted'
-                  }`}
-                  aria-label={`Pattern ${index + 1}: ${pattern.patternName}`}
-                />
-              )
-            })}
           </div>
         </div>
         
@@ -529,27 +534,33 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
         {/* Bottom Half - Set Logger with Set Dots */}
         {selectedExerciseId && (
           <div className="border-t p-6 space-y-4">
-            {/* Set Dots Indicator */}
-            <div className="flex justify-center items-center gap-2">
-              {Array.from({ length: currentPattern.sets }, (_, i) => {
-                const setNumber = i + 1
-                const isCurrent = setNumber === currentSetNumber
-                const isCompleted = setNumber < currentSetNumber
-                
-                return (
-                  <div
-                    key={setNumber}
-                    className={`transition-all ${
-                      isCurrent
-                        ? 'w-8 h-3 bg-primary rounded-full scale-110'
-                        : isCompleted
-                        ? 'w-3 h-3 bg-green-500 rounded-full'
-                        : 'w-3 h-3 bg-muted rounded-full'
-                    }`}
-                    aria-label={`Set ${setNumber}`}
-                  />
-                )
-              })}
+            {/* Set Counter */}
+            <div className="flex justify-center items-center gap-1.5">
+              <span className="text-xs text-muted-foreground">Sets</span>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: currentPattern.sets }, (_, i) => {
+                  const setNumber = i + 1
+                  const isCurrent = setNumber === currentSetNumber
+                  const isCompleted = setNumber < currentSetNumber
+                  
+                  return (
+                    <div
+                      key={setNumber}
+                      className={`w-1.5 h-1.5 rounded-full transition-all ${
+                        isCurrent
+                          ? 'bg-primary'
+                          : isCompleted
+                          ? 'bg-green-500'
+                          : 'bg-muted'
+                      }`}
+                      aria-label={`Set ${setNumber}`}
+                    />
+                  )
+                })}
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {currentSetNumber} / {currentPattern.sets}
+              </span>
             </div>
             
             {/* Set Logger */}

@@ -560,7 +560,7 @@ function ChartsView({
   const exerciseChartConfig = {
     volume: {
       label: "Total Volume (kg)",
-      color: "#000000",
+      color: "hsl(var(--chart-1))",
     },
   } satisfies ChartConfig
 

@@ -88,7 +88,7 @@ export function ExerciseCarousel({
       </Card>
 
       {/* Exercise dots indicator */}
-      <div className="flex justify-center gap-2 mt-4">
+      <div className="flex justify-center gap-1.5 mt-4">
         {exercises.map((exercise, index) => (
           <button
             key={exercise._id}
@@ -96,10 +96,10 @@ export function ExerciseCarousel({
               setCurrentIndex(index)
               onSelectExercise(exercise._id)
             }}
-            className={`h-2 rounded-full transition-all min-w-[8px] min-h-[8px] ${
+            className={`h-1.5 rounded-full transition-all min-w-[6px] min-h-[6px] ${
               index === selectedIndex
-                ? 'w-8 bg-primary'
-                : 'w-2 bg-muted active:bg-muted-foreground/50'
+                ? 'w-6 bg-primary'
+                : 'w-1.5 bg-muted active:bg-muted-foreground/50'
             }`}
             aria-label={`Select ${exercise.name}`}
           />
