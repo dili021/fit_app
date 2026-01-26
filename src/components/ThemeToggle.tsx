@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react'
 import { Moon, Sun } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
@@ -37,30 +35,20 @@ export function ThemeToggle() {
   if (!mounted) {
     // Return placeholder to prevent hydration mismatch
     return (
-      <Button
-        variant="ghost"
-        size="icon"
-        className="size-12"
+      <button
+        className="size-12 min-h-[48px] min-w-[48px] text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80 transition-colors rounded-md flex items-center justify-center"
         aria-label="Toggle theme"
         disabled
       >
         <Sun className="h-5 w-5" />
-      </Button>
+      </button>
     )
   }
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
+    <button
       onClick={toggleTheme}
-      className={cn(
-        "size-12 min-h-[48px] min-w-[48px]",
-        "active:scale-95 transition-transform",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
-        "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-        "active:bg-sidebar-accent/80"
-      )}
+      className="size-12 min-h-[48px] min-w-[48px] text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80 transition-colors rounded-md flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >
       {theme === 'light' ? (
@@ -68,6 +56,6 @@ export function ThemeToggle() {
       ) : (
         <Sun className="h-5 w-5" />
       )}
-    </Button>
+    </button>
   )
 }

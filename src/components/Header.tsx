@@ -1,7 +1,6 @@
 import { Link } from '@tanstack/react-router'
 
 import BetterAuthHeader from '../integrations/better-auth/header-user.tsx'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 import { useState } from 'react'
@@ -23,15 +22,13 @@ export default function Header() {
       {/* Bottom Header - Menu and Logo */}
       <header className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between px-4">
-          <Button
-            variant="ghost"
-            size="icon"
+          <button
             onClick={() => setIsOpen(true)}
-            className="min-h-[48px] min-w-[48px]"
+            className="min-h-[48px] min-w-[48px] text-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80 transition-colors rounded-md flex items-center justify-center"
             aria-label="Open menu"
           >
             <Menu className="h-6 w-6" />
-          </Button>
+          </button>
           <Link to="/" className="flex items-center gap-2">
             <span className="text-2xl font-bold" style={{ fontFamily: "'Bungee', cursive" }}>
               Gainz
@@ -61,15 +58,13 @@ export default function Header() {
         {/* Sidebar Header */}
         <div className="flex h-14 items-center justify-between border-b border-sidebar-border px-4">
           <h2 className="text-lg font-semibold">Navigation</h2>
-          <Button
-            variant="ghost"
-            size="icon"
+          <button
             onClick={() => setIsOpen(false)}
-            className="min-h-[48px] min-w-[48px]"
+            className="min-h-[48px] min-w-[48px] text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80 transition-colors rounded-md flex items-center justify-center"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />
-          </Button>
+          </button>
         </div>
 
         {/* Navigation */}
