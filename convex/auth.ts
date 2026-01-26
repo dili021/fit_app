@@ -8,13 +8,43 @@ import authConfig from "./auth.config";
 
 const siteUrl = process.env.SITE_URL || process.env.VITE_SITE_URL || "http://localhost:3000";
 
+// Build trusted origins list - supports multiple origins
+// This allows CORS requests from multiple deployment URLs (Vercel preview/production)
+const getTrustedOrigins = (): string[] => {
+  const origins: string[] = [];
+  
+  // Add SITE_URL if set
+  if (siteUrl) {
+    origins.push(siteUrl);
+  }
+  
+  // Add TRUSTED_ORIGINS if set (comma-separated list)
+  // Example: TRUSTED_ORIGINS=https://app.vercel.app,https://preview.vercel.app
+  if (process.env.TRUSTED_ORIGINS) {
+    const additionalOrigins = process.env.TRUSTED_ORIGINS.split(',')
+      .map(o => o.trim())
+      .filter(Boolean);
+    origins.push(...additionalOrigins);
+  }
+  
+  // Always include localhost for development
+  if (!origins.includes("http://localhost:3000")) {
+    origins.push("http://localhost:3000");
+  }
+  
+  // Remove duplicates
+  return [...new Set(origins)];
+};
+
 // The component client has methods needed for integrating Convex with Better Auth,
 // as well as helper methods for general use.
 export const authComponent = createClient<DataModel>(components.betterAuth);
 
 export const createAuth = (ctx: GenericCtx<DataModel>) => {
+  const trustedOrigins = getTrustedOrigins();
+  
   return betterAuth({
-    trustedOrigins: [siteUrl],
+    trustedOrigins,
     database: authComponent.adapter(ctx),
     // Configure email/password authentication
     emailAndPassword: {
