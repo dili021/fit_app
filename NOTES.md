@@ -44,3 +44,28 @@ All demo files have been removed:
 
 - Better Auth database integration: Currently using stateless mode. May need to add database adapter for user persistence if required.
 - Exercise metadata: Schema includes `metadata: v.optional(v.any())` for future expansion (form cues, equipment, etc.)
+
+## Refactoring Tasks
+
+### Avoid TanStack Query for Convex Data
+**Status**: TODO
+
+**Issue**: Currently using TanStack Query (`useQuery` from `@tanstack/react-query`) for Convex data, which is redundant since Convex provides its own reactive hooks (`useQuery` from `convex/react`).
+
+**Why**: 
+- Convex's `useQuery` already provides reactive, real-time updates
+- TanStack Query adds unnecessary abstraction layer
+- Convex has native pagination support (`usePaginatedQuery`) that works better than TSQ's infinite queries
+- Reduces bundle size and complexity
+
+**Action Items**:
+- [ ] Replace all `useQuery` from `@tanstack/react-query` with `useQuery` from `convex/react` for Convex data
+- [ ] Use Convex's `usePaginatedQuery` for workout history infinite scroll instead of TSQ infinite queries
+- [ ] Keep TanStack Query only for non-Convex API calls (if any)
+- [ ] Update all components that fetch Convex data to use Convex hooks directly
+
+**Workout History Pagination**:
+- Implement infinite scroll using Convex's native `usePaginatedQuery` hook
+- Update `getAllWorkouts` query to use `.paginate(paginationOpts)` instead of `.collect()`
+- Add scroll detection to load more workouts when user scrolls near bottom
+- This will improve performance as workout history grows
