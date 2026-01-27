@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { Id } from "./_generated/dataModel";
 
 /**
  * Get sets for a workout
@@ -36,6 +37,7 @@ export const getSetsForWorkouts = query({
 
 /**
  * Get all sets for a mesocycle (for progress calculation)
+ * Optimized: Use workoutId_order index for efficient lookups
  */
 export const getSetsForMesocycle = query({
   args: { mesocycleId: v.id("mesocycles") },
@@ -46,12 +48,14 @@ export const getSetsForMesocycle = query({
       .withIndex("mesocycleId", (q) => q.eq("mesocycleId", args.mesocycleId))
       .collect();
 
-    // Get all sets for these workouts
+    // Get all sets for these workouts using indexed lookup
+    // workoutId_order index allows efficient per-workout queries
     const allSets = [];
     for (const workout of workouts) {
       const sets = await ctx.db
         .query("sets")
-        .withIndex("workoutId", (q) => q.eq("workoutId", workout._id))
+        .withIndex("workoutId_order", (q) => q.eq("workoutId", workout._id))
+        .order("asc")
         .collect();
       allSets.push(...sets);
     }
@@ -62,50 +66,89 @@ export const getSetsForMesocycle = query({
 
 /**
  * Get exercise progress over time (all sets for a specific exercise)
+ * Optimized: Query sets by workoutId (indexed) to avoid reading all sets globally
  */
 export const getExerciseProgress = query({
-  args: { exerciseId: v.id("exercises"), userId: v.string() },
+  args: { 
+    exerciseId: v.id("exercises"), 
+    userId: v.string(),
+    // Optional: limit to recent workouts to reduce query load
+    limitWorkouts: v.optional(v.number()),
+  },
   handler: async (ctx, args) => {
-    // Get all workouts for user
-    const workouts = await ctx.db
+    // Get workouts for user (optionally limited to recent ones)
+    let workoutsQuery = ctx.db
       .query("workouts")
       .withIndex("userId_date", (q) => q.eq("userId", args.userId))
       .filter((q) => q.eq(q.field("completed"), true))
-      .order("asc")
-      .collect();
+      .order("desc"); // Most recent first
+    
+    // Apply limit if provided (e.g., last 100 workouts for charts)
+    const workouts = args.limitWorkouts 
+      ? await workoutsQuery.take(args.limitWorkouts)
+      : await workoutsQuery.collect();
+    
+    // Reverse to chronological order
+    workouts.reverse();
+    
+    // Create a map of workoutId -> workout for quick access
+    const workoutMap = new Map(workouts.map((w) => [w._id, w]));
 
-    // Get all sets for this exercise across all workouts
-    const progress = [];
+    // Query sets by workoutId (indexed) and filter by exerciseId
+    // This only reads sets for this user's workouts, not all sets globally
+    // Using workoutId index is efficient - each query only reads sets for that specific workout
+    const allSets = [];
     for (const workout of workouts) {
       const sets = await ctx.db
         .query("sets")
-        .withIndex("exerciseId", (q) => q.eq("exerciseId", args.exerciseId))
-        .filter((q) => q.eq(q.field("workoutId"), workout._id))
+        .withIndex("workoutId_order", (q) => q.eq("workoutId", workout._id))
+        .filter((q) => q.eq(q.field("exerciseId"), args.exerciseId))
         .order("asc")
         .collect();
-
-      if (sets.length > 0) {
-        // Calculate average weight and reps for this workout
-        const totalWeight = sets.reduce((sum, s) => sum + s.weight, 0);
-        const totalReps = sets.reduce((sum, s) => sum + s.reps, 0);
-        const totalVolume = sets.reduce((sum, s) => sum + s.weight * s.reps, 0);
-        
-        progress.push({
-          workoutId: workout._id,
-          date: workout.date,
-          weekNumber: workout.weekNumber,
-          setCount: sets.length,
-          avgWeight: totalWeight / sets.length,
-          avgReps: totalReps / sets.length,
-          totalVolume,
-          setDetails: sets.map(s => ({
-            weight: s.weight,
-            reps: s.reps,
-            volume: s.weight * s.reps,
-          })),
-        });
-      }
+      allSets.push(...sets);
     }
+
+    // Group sets by workoutId
+    const setsByWorkout = new Map<Id<"workouts">, typeof allSets>();
+    for (const set of allSets) {
+      if (!setsByWorkout.has(set.workoutId)) {
+        setsByWorkout.set(set.workoutId, []);
+      }
+      setsByWorkout.get(set.workoutId)!.push(set);
+    }
+
+    // Aggregate progress by workout
+    const progress = [];
+    for (const [workoutId, sets] of setsByWorkout.entries()) {
+      const workout = workoutMap.get(workoutId);
+      if (!workout) continue;
+
+      // Sort sets by orderInWorkout to maintain sequence
+      sets.sort((a, b) => a.orderInWorkout - b.orderInWorkout);
+
+      // Calculate average weight and reps for this workout
+      const totalWeight = sets.reduce((sum, s) => sum + s.weight, 0);
+      const totalReps = sets.reduce((sum, s) => sum + s.reps, 0);
+      const totalVolume = sets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+      
+      progress.push({
+        workoutId: workout._id,
+        date: workout.date,
+        weekNumber: workout.weekNumber,
+        setCount: sets.length,
+        avgWeight: totalWeight / sets.length,
+        avgReps: totalReps / sets.length,
+        totalVolume,
+        setDetails: sets.map(s => ({
+          weight: s.weight,
+          reps: s.reps,
+          volume: s.weight * s.reps,
+        })),
+      });
+    }
+
+    // Sort by date to ensure chronological order
+    progress.sort((a, b) => a.date - b.date);
 
     return progress;
   },
@@ -113,40 +156,77 @@ export const getExerciseProgress = query({
 
 /**
  * Get pattern volume over time (aggregated by workout date)
+ * Optimized: Query sets by workoutId (indexed) to avoid reading all sets globally
  */
 export const getPatternVolume = query({
-  args: { patternId: v.id("patterns"), userId: v.string() },
+  args: { 
+    patternId: v.id("patterns"), 
+    userId: v.string(),
+    // Optional: limit to recent workouts to reduce query load
+    limitWorkouts: v.optional(v.number()),
+  },
   handler: async (ctx, args) => {
-    // Get all workouts for user
-    const workouts = await ctx.db
+    // Get workouts for user (optionally limited to recent ones)
+    let workoutsQuery = ctx.db
       .query("workouts")
       .withIndex("userId_date", (q) => q.eq("userId", args.userId))
       .filter((q) => q.eq(q.field("completed"), true))
-      .order("asc")
-      .collect();
+      .order("desc"); // Most recent first
+    
+    // Apply limit if provided (e.g., last 100 workouts for charts)
+    const workouts = args.limitWorkouts 
+      ? await workoutsQuery.take(args.limitWorkouts)
+      : await workoutsQuery.collect();
+    
+    // Reverse to chronological order
+    workouts.reverse();
 
-    // Get all sets for this pattern across all workouts
-    const volume = [];
+    // Create a map of workoutId -> workout for quick access
+    const workoutMap = new Map(workouts.map((w) => [w._id, w]));
+
+    // Query sets by workoutId (indexed) and filter by patternId
+    // This only reads sets for this user's workouts, not all sets globally
+    // Using workoutId index is efficient - each query only reads sets for that specific workout
+    const allSets = [];
     for (const workout of workouts) {
       const sets = await ctx.db
         .query("sets")
-        .withIndex("patternId", (q) => q.eq("patternId", args.patternId))
-        .filter((q) => q.eq(q.field("workoutId"), workout._id))
+        .withIndex("workoutId_order", (q) => q.eq("workoutId", workout._id))
+        .filter((q) => q.eq(q.field("patternId"), args.patternId))
+        .order("asc")
         .collect();
-
-      if (sets.length > 0) {
-        const totalVolume = sets.reduce((sum, s) => sum + s.weight * s.reps, 0);
-        const totalSets = sets.length;
-        
-        volume.push({
-          workoutId: workout._id,
-          date: workout.date,
-          weekNumber: workout.weekNumber,
-          sets: totalSets,
-          totalVolume,
-        });
-      }
+      allSets.push(...sets);
     }
+
+    // Group sets by workoutId
+    const setsByWorkout = new Map<Id<"workouts">, typeof allSets>();
+    for (const set of allSets) {
+      if (!setsByWorkout.has(set.workoutId)) {
+        setsByWorkout.set(set.workoutId, []);
+      }
+      setsByWorkout.get(set.workoutId)!.push(set);
+    }
+
+    // Aggregate volume by workout
+    const volume = [];
+    for (const [workoutId, sets] of setsByWorkout.entries()) {
+      const workout = workoutMap.get(workoutId);
+      if (!workout) continue;
+
+      const totalVolume = sets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+      const totalSets = sets.length;
+      
+      volume.push({
+        workoutId: workout._id,
+        date: workout.date,
+        weekNumber: workout.weekNumber,
+        sets: totalSets,
+        totalVolume,
+      });
+    }
+
+    // Sort by date to ensure chronological order
+    volume.sort((a, b) => a.date - b.date);
 
     return volume;
   },
@@ -154,6 +234,7 @@ export const getPatternVolume = query({
 
 /**
  * Get all sets for a user (for comprehensive progress tracking)
+ * Optimized: Use workoutId index efficiently by querying sets directly
  */
 export const getAllSetsForUser = query({
   args: { userId: v.string() },
@@ -165,12 +246,18 @@ export const getAllSetsForUser = query({
       .filter((q) => q.eq(q.field("completed"), true))
       .collect();
 
-    // Get all sets for these workouts
+    // Create a Set of workout IDs for fast lookup
+    const workoutIds = new Set(workouts.map((w) => w._id));
+
+    // Query sets using workoutId index - Convex will efficiently filter
+    // We query each workout's sets individually since workoutId is indexed
+    // This is still efficient because workoutId index allows direct lookups
     const allSets = [];
     for (const workout of workouts) {
       const sets = await ctx.db
         .query("sets")
-        .withIndex("workoutId", (q) => q.eq("workoutId", workout._id))
+        .withIndex("workoutId_order", (q) => q.eq("workoutId", workout._id))
+        .order("asc")
         .collect();
       allSets.push(...sets);
     }
