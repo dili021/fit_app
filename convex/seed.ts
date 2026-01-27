@@ -577,3 +577,132 @@ export const seedUserWorkoutData = mutation({
     };
   },
 });
+
+/**
+ * Seed many workouts for testing pagination (creates 50+ workouts)
+ * Run with: npx convex run seed:seedManyWorkouts --args '{"userId": "your-user-id"}'
+ */
+export const seedManyWorkouts = mutation({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    // Get patterns and exercises
+    const patterns = await ctx.db.query("patterns").collect();
+    const exercises = await ctx.db.query("exercises").collect();
+
+    if (patterns.length === 0 || exercises.length === 0) {
+      throw new Error("Patterns and exercises must be seeded first. Run seed:seedAll");
+    }
+
+    const patternMap = new Map(patterns.map((p) => [p.name, p._id]));
+    const pushPatternId = patternMap.get("push");
+    const pullPatternId = patternMap.get("pull");
+    
+    if (!pushPatternId || !pullPatternId) {
+      throw new Error("Missing required patterns");
+    }
+
+    const exerciseMap = new Map<string, any>();
+    exercises.forEach((e) => {
+      const pattern = patterns.find((p) => p._id === e.patternId);
+      if (pattern) {
+        const key = `${pattern.name}:${e.name}`;
+        exerciseMap.set(key, e);
+      }
+    });
+
+    const now = Date.now();
+    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+    const oneDayMs = 24 * 60 * 60 * 1000;
+
+    // Create a completed mesocycle for these workouts
+    const mesoStart = now - (20 * oneWeekMs); // Started 20 weeks ago
+    const mesoId = await ctx.db.insert("mesocycles", {
+      userId: args.userId,
+      name: "Pagination Test Mesocycle",
+      startDate: mesoStart,
+      durationWeeks: 20,
+      primaryPatterns: [pushPatternId, pullPatternId],
+      targetSetsPerWeek: 15,
+      sessionsPerWeek: 3,
+      wasPreviouslyTraining: true,
+      restTimeMinutes: 3,
+      status: "completed",
+      currentWeek: 20,
+    });
+
+    // Create 50+ workouts (3 sessions/week for 20 weeks = 60 workouts)
+    let workoutsCreated = 0;
+    const benchPress = exerciseMap.get("push:Bench Press");
+    const pullUps = exerciseMap.get("pull:Pull-ups");
+
+    for (let week = 1; week <= 20; week++) {
+      for (let session = 0; session < 3; session++) {
+        const workoutDate = mesoStart + (week - 1) * oneWeekMs + session * 2 * oneDayMs;
+        const startedAt = workoutDate;
+        const completedAt = startedAt + (45 + Math.random() * 30) * 60 * 1000;
+
+        const workoutId = await ctx.db.insert("workouts", {
+          userId: args.userId,
+          mesocycleId: mesoId,
+          date: workoutDate,
+          weekNumber: week,
+          completed: true,
+          startedAt,
+          completedAt,
+        });
+
+        // Add sets for Push pattern
+        if (benchPress) {
+          const baseWeight = 80 + week * 2.5;
+          for (let set = 1; set <= 5; set++) {
+            const weight = baseWeight + (set === 1 ? -5 : 0);
+            const reps = 8 + Math.floor(Math.random() * 3);
+            const setStart = startedAt + set * 3 * 60 * 1000;
+            const setEnd = setStart + (30 + Math.random() * 20) * 1000;
+
+            await ctx.db.insert("sets", {
+              workoutId,
+              patternId: pushPatternId,
+              exerciseId: benchPress._id,
+              weight: Math.round(weight * 10) / 10,
+              reps,
+              orderInWorkout: (set - 1) * 2 + 1,
+              startTime: setStart,
+              endTime: setEnd,
+              duration: Math.floor((setEnd - setStart) / 1000),
+            });
+          }
+        }
+
+        // Add sets for Pull pattern
+        if (pullUps) {
+          const baseReps = 8 + week;
+          for (let set = 1; set <= 4; set++) {
+            const reps = baseReps + Math.floor(Math.random() * 2);
+            const setStart = startedAt + (5 + set) * 3 * 60 * 1000;
+            const setEnd = setStart + (20 + Math.random() * 15) * 1000;
+
+            await ctx.db.insert("sets", {
+              workoutId,
+              patternId: pullPatternId,
+              exerciseId: pullUps._id,
+              weight: 0,
+              reps,
+              orderInWorkout: set * 2,
+              startTime: setStart,
+              endTime: setEnd,
+              duration: Math.floor((setEnd - setStart) / 1000),
+            });
+          }
+        }
+
+        workoutsCreated++;
+      }
+    }
+
+    return {
+      mesocycleId: mesoId,
+      workoutsCreated,
+    };
+  },
+});

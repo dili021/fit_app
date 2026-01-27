@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { paginationOptsValidator } from "convex/server";
 import { Id } from "./_generated/dataModel";
 
 /**
@@ -19,6 +20,7 @@ export const getRecentWorkouts = query({
 
 /**
  * Get all workouts for a user (chronological, completed only)
+ * @deprecated Use getAllWorkoutsPaginated for pagination support
  */
 export const getAllWorkouts = query({
   args: { userId: v.string() },
@@ -29,6 +31,24 @@ export const getAllWorkouts = query({
       .filter((q) => q.eq(q.field("completed"), true))
       .order("desc")
       .collect();
+  },
+});
+
+/**
+ * Get workouts for a user with pagination (for infinite scroll)
+ */
+export const getAllWorkoutsPaginated = query({
+  args: { 
+    userId: v.string(),
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("workouts")
+      .withIndex("userId_date", (q) => q.eq("userId", args.userId))
+      .filter((q) => q.eq(q.field("completed"), true))
+      .order("desc")
+      .paginate(args.paginationOpts);
   },
 });
 

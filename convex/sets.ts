@@ -16,6 +16,25 @@ export const getSetsForWorkout = query({
 });
 
 /**
+ * Get sets for multiple workouts
+ */
+export const getSetsForWorkouts = query({
+  args: { workoutIds: v.array(v.id("workouts")) },
+  handler: async (ctx, args) => {
+    const allSets = [];
+    for (const workoutId of args.workoutIds) {
+      const sets = await ctx.db
+        .query("sets")
+        .withIndex("workoutId_order", (q) => q.eq("workoutId", workoutId))
+        .order("asc")
+        .collect();
+      allSets.push(...sets);
+    }
+    return allSets;
+  },
+});
+
+/**
  * Get all sets for a mesocycle (for progress calculation)
  */
 export const getSetsForMesocycle = query({

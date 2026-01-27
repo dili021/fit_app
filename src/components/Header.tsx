@@ -75,11 +75,8 @@ export default function Header() {
             onClick={() => setIsOpen(false)}
           />
 
-          {/* Fitness App Routes */}
+          {/* Routes */}
           <div className="my-4 space-y-1 border-t border-sidebar-border pt-4">
-            <h3 className="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Fitness App
-            </h3>
             <NavLink
               to="/mesocycle/setup"
               icon={SquareFunction}
@@ -92,12 +89,13 @@ export default function Header() {
               label="History"
               onClick={() => setIsOpen(false)}
             />
-            <NavLink
+            {/* TODO: Add exercises route */}
+            {/* <NavLink
               to="/exercises"
               icon={ClipboardType}
               label="Exercises"
               onClick={() => setIsOpen(false)}
-            />
+            /> */}
           </div>
         </nav>
 
