@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils'
 
 import { useState } from 'react'
 import {
-  ClipboardType,
   Home,
   Menu,
   SquareFunction,
@@ -19,7 +18,7 @@ export default function Header() {
   return (
     <>
       {/* Bottom Header - Menu and Logo */}
-      <header className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="fixed bottom-0 left-0 right-0 z-40 border-t bg-sidebar-accent/95 backdrop-blur supports-[backdrop-filter]:bg-sidebar-accent/60">
         <div className="container flex h-16 items-center justify-between px-4">
           <button
             onClick={() => setIsOpen(true)}

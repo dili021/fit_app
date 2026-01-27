@@ -996,8 +996,7 @@ function ChartsView({
                   type="linear"
                   stroke="var(--color-volume)"
                   strokeWidth={2}
-                  dot={{ r: 4, fill: "var(--color-volume)" }}
-                  activeDot={{ r: 6 }}
+                  dot={false}
                   connectNulls={false}
                 />
               </LineChart>
@@ -1076,8 +1075,7 @@ function ChartsView({
                     type="linear"
                     stroke="var(--color-volume)"
                     strokeWidth={2}
-                    dot={{ r: 4, fill: "var(--color-volume)" }}
-                    activeDot={{ r: 6 }}
+                    dot={false}
                     connectNulls={false}
                   />
                 </LineChart>
@@ -1143,8 +1141,7 @@ function ChartsView({
                   type="linear"
                   stroke="var(--color-totalVolume)"
                   strokeWidth={2}
-                  dot={{ r: 4, fill: "var(--color-totalVolume)" }}
-                  activeDot={{ r: 6 }}
+                  dot={false}
                   connectNulls={false}
                 />
               </LineChart>
