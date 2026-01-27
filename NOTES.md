@@ -42,8 +42,11 @@ All demo files have been removed:
 
 ## Future Considerations
 
-- Better Auth database integration: Currently using stateless mode. May need to add database adapter for user persistence if required.
+- ✅ Better Auth - Convex integration: IMPLEMENTED
 - Exercise metadata: Schema includes `metadata: v.optional(v.any())` for future expansion (form cues, equipment, etc.)
+- Improve radio buttons UI during meso setup
+- Info project - add helpful info throughout the app: why the set ranges are as they are, how progression is handled, etc. Basically explain the core tenants to the user and other potential helpful info
+- Improve exercise library and resolution: add variants (e.g. bench press - incline/decline/flat, barbell/dumbbell, etc.)
 
 ## Refactoring Tasks
 

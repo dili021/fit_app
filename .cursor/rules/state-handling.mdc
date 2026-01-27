@@ -1,0 +1,588 @@
+---
+description: State layer architecture (Component/Zustand/Convex/TSQ) and handling loading/empty/error/success states
+globs: **/*.{tsx,ts}
+alwaysApply: false
+---
+
+# State Management - Architecture and State Handling
+
+## State Layer Architecture
+
+Use the appropriate state management solution for each type of state:
+
+### 1. Component State (`useState`) - Local UI State
+
+**Use for**: Component-scoped UI state that doesn't need to be shared.
+
+```tsx
+// ✅ GOOD: Local UI state
+function Modal() {
+  const [isOpen, setIsOpen] = useState(false)
+  const [formInput, setFormInput] = useState('')
+  
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <input value={formInput} onChange={(e) => setFormInput(e.target.value)} />
+    </Dialog>
+  )
+}
+```
+
+**Examples**:
+- Modal/dialog open/close state
+- Form input values (before submission)
+- UI toggles (dropdowns, accordions)
+- Component-scoped timers
+- Temporary UI state
+
+### 2. Zustand - Global UI State / Slices
+
+**Use for**: Client-side state that needs to be shared across multiple components but isn't server data.
+
+```tsx
+// ✅ GOOD: Global UI state with Zustand
+import { create } from 'zustand'
+
+interface UIStore {
+  sidebarOpen: boolean
+  theme: 'light' | 'dark'
+  setSidebarOpen: (open: boolean) => void
+  setTheme: (theme: 'light' | 'dark') => void
+}
+
+const useUIStore = create<UIStore>((set) => ({
+  sidebarOpen: false,
+  theme: 'light',
+  setSidebarOpen: (open) => set({ sidebarOpen: open }),
+  setTheme: (theme) => set({ theme }),
+}))
+```
+
+**Examples**:
+- Global UI preferences (sidebar state, theme)
+- Client-side filters/selections shared across routes
+- Temporary client-side calculations/cache
+- UI state that persists across navigation
+- Client-side derived state
+
+**❌ DON'T use Zustand for**: Server data (use Convex instead)
+
+### 3. Convex - Server State
+
+**Use for**: All data that comes from or should be persisted to the server.
+
+```tsx
+// ✅ GOOD: Server state with Convex
+import { useQuery, useMutation } from 'convex/react'
+import { api } from '../convex/_generated/api'
+
+function WorkoutList() {
+  const workouts = useQuery(api.workouts.getAllWorkouts, { userId })
+  const createWorkout = useMutation(api.workouts.createWorkout)
+  
+  // Convex handles loading, caching, real-time updates automatically
+}
+```
+
+**Examples**:
+- Database queries (workouts, mesocycles, sets, exercises)
+- User data
+- Any persisted data
+- Real-time subscriptions
+- Server-side calculations
+
+**✅ Always use Convex for**: Data that needs persistence, real-time updates, or server-side logic
+
+### 4. TanStack Query (TSQ) - External API State
+
+**Use for**: Data from external APIs (not Convex) or third-party services.
+
+```tsx
+// ✅ GOOD: External API state with TanStack Query
+import { useQuery } from '@tanstack/react-query'
+
+function WeatherWidget() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['weather'],
+    queryFn: async () => {
+      const res = await fetch('https://api.weather.com/current')
+      return res.json()
+    },
+  })
+  
+  // Handle loading/error states
+}
+```
+
+**Examples**:
+- Third-party API calls (weather, maps, external services)
+- Non-Convex REST APIs
+- External data that doesn't need real-time updates
+
+**❌ DON'T use TSQ for**: Convex data (Convex has built-in reactive queries)
+
+## State Layer Decision Tree
+
+```
+Is it server data that needs persistence?
+├─ YES → Use Convex (useQuery/useMutation)
+└─ NO → Is it shared across multiple components?
+    ├─ YES → Use Zustand (global UI state)
+    └─ NO → Use useState (local UI state)
+
+Is it from an external API (not Convex)?
+└─ YES → Use TanStack Query
+```
+
+## ❌ BAD: Wrong State Layer
+
+```tsx
+// ❌ BAD: Using Zustand for server data
+const useWorkoutsStore = create((set) => ({
+  workouts: [],
+  fetchWorkouts: async () => {
+    const data = await fetch('/api/workouts')
+    set({ workouts: await data.json() })
+  },
+}))
+
+// ✅ GOOD: Use Convex for server data
+const workouts = useQuery(api.workouts.getAllWorkouts, { userId })
+```
+
+```tsx
+// ❌ BAD: Using Convex for local UI state
+const [isModalOpen, setIsModalOpen] = useQuery(api.ui.getModalState, {})
+
+// ✅ GOOD: Use useState for local UI
+const [isModalOpen, setIsModalOpen] = useState(false)
+```
+
+---
+
+## State Handling - Loading, Empty, Error, and Success
+
+Always explicitly handle all possible states when working with async data: **loading**, **empty**, **error**, and **success/content**.
+
+## Core Principle
+
+**Every component that fetches or displays data must handle all four states:**
+1. **Loading** - Data is being fetched
+2. **Empty** - Data fetch succeeded but no data exists
+3. **Error** - Data fetch failed or operation errored
+4. **Success/Content** - Data loaded successfully and should be displayed
+
+## Convex Query States
+
+For Convex queries (`useQuery`), the return value follows this pattern:
+
+```typescript
+const data = useQuery(api.myFunction.myQuery, args)
+// data can be:
+// - undefined (loading)
+// - null (loaded but no data)
+// - T (loaded with data)
+// - throws error (error state - handled by error boundary)
+```
+
+### ❌ BAD: Missing State Handling
+
+```tsx
+function MyComponent() {
+  const data = useQuery(api.myFunction.getData, { userId })
+  
+  // ❌ Assumes data exists - will crash if undefined or null
+  return <div>{data.name}</div>
+}
+```
+
+### ✅ GOOD: Complete State Handling (Manual)
+
+```tsx
+function MyComponent() {
+  const data = useQuery(api.myFunction.getData, { userId })
+  
+  // Loading state
+  if (data === undefined) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
+      </div>
+    )
+  }
+  
+  // Empty state
+  if (data === null || (Array.isArray(data) && data.length === 0)) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">No data available</p>
+      </div>
+    )
+  }
+  
+  // Success/Content state
+  return <div>{data.name}</div>
+}
+```
+
+### ✅ BETTER: Using Custom Adapters
+
+```tsx
+import { useConvexQuery } from '@/hooks/useConvexQuery'
+import { LoadingSpinner, EmptyState } from '@/components/ui/state-handlers'
+
+function MyComponent() {
+  const { data, isLoading, isEmpty } = useConvexQuery(
+    api.myFunction.getData,
+    { userId }
+  )
+  
+  if (isLoading) return <LoadingSpinner />
+  if (isEmpty) return <EmptyState message="No data available" />
+  
+  return <div>{data.name}</div>
+}
+```
+
+## Convex Mutation States
+
+For mutations (`useMutation`), handle errors explicitly:
+
+### ❌ BAD: No Error Handling
+
+```tsx
+function MyComponent() {
+  const createItem = useMutation(api.myFunction.createItem)
+  
+  const handleCreate = async () => {
+    // ❌ No error handling
+    await createItem({ name: 'Test' })
+  }
+  
+  return <Button onClick={handleCreate}>Create</Button>
+}
+```
+
+### ✅ GOOD: Error Handling (Manual)
+
+```tsx
+function MyComponent() {
+  const createItem = useMutation(api.myFunction.createItem)
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  
+  const handleCreate = async () => {
+    setError(null)
+    setIsLoading(true)
+    
+    try {
+      await createItem({ name: 'Test' })
+      // Success - mutation completed
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create item')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  
+  return (
+    <div>
+      {error && (
+        <div className="text-red-500 mb-4">{error}</div>
+      )}
+      <Button onClick={handleCreate} disabled={isLoading}>
+        {isLoading ? 'Creating...' : 'Create'}
+      </Button>
+    </div>
+  )
+}
+```
+
+### ✅ BETTER: Using Custom Adapters
+
+```tsx
+import { useConvexMutation } from '@/hooks/useConvexMutation'
+import { ErrorDisplay } from '@/components/ui/state-handlers'
+
+function MyComponent() {
+  const { mutate, isLoading, error, resetError } = useConvexMutation(
+    api.myFunction.createItem,
+    {
+      onSuccess: () => {
+        // Handle success
+      }
+    }
+  )
+  
+  return (
+    <div>
+      {error && <ErrorDisplay error={error} onDismiss={resetError} />}
+      <Button onClick={() => mutate({ name: 'Test' })} disabled={isLoading}>
+        {isLoading ? 'Creating...' : 'Create'}
+      </Button>
+    </div>
+  )
+}
+```
+
+## Multiple Queries Pattern
+
+When using multiple queries, handle each one's loading state:
+
+### ❌ BAD: Partial State Handling
+
+```tsx
+function Dashboard() {
+  const mesocycle = useQuery(api.mesocycles.getActiveMesocycle, { userId })
+  const workouts = useQuery(api.workouts.getRecentWorkouts, { userId })
+  
+  // ❌ Only checks mesocycle, workouts might be undefined
+  if (mesocycle === undefined) {
+    return <LoadingSpinner />
+  }
+  
+  return <div>{mesocycle.name} - {workouts.length} workouts</div>
+}
+```
+
+### ✅ GOOD: Complete State Handling (Manual)
+
+```tsx
+function Dashboard() {
+  const mesocycle = useQuery(api.mesocycles.getActiveMesocycle, { userId })
+  const workouts = useQuery(api.workouts.getRecentWorkouts, { userId })
+  
+  // Loading state - any query loading
+  if (mesocycle === undefined || workouts === undefined) {
+    return <LoadingSpinner />
+  }
+  
+  // Empty state - check each query
+  if (!mesocycle) {
+    return <EmptyState message="No active mesocycle" />
+  }
+  
+  // Success state - all data loaded
+  return (
+    <div>
+      <h1>{mesocycle.name}</h1>
+      <p>{workouts.length} recent workouts</p>
+    </div>
+  )
+}
+```
+
+### ✅ BETTER: Using Custom Adapters
+
+```tsx
+import { useConvexQuery, useQueriesLoading } from '@/hooks/useConvexQuery'
+import { LoadingSpinner, EmptyState } from '@/components/ui/state-handlers'
+
+function Dashboard() {
+  const mesocycle = useConvexQuery(api.mesocycles.getActiveMesocycle, { userId })
+  const workouts = useConvexQuery(api.workouts.getRecentWorkouts, { userId })
+  
+  // Loading state - any query loading
+  if (useQueriesLoading(mesocycle.data, workouts.data)) {
+    return <LoadingSpinner />
+  }
+  
+  // Empty state - check each query
+  if (mesocycle.isEmpty) {
+    return <EmptyState message="No active mesocycle" />
+  }
+  
+  // Success state - all data loaded
+  return (
+    <div>
+      <h1>{mesocycle.data.name}</h1>
+      <p>{workouts.data.length} recent workouts</p>
+    </div>
+  )
+}
+```
+
+## Conditional Queries Pattern
+
+For queries that use `"skip"`, handle the skip state:
+
+### ✅ GOOD: Conditional Query Handling
+
+```tsx
+function Component({ mesocycleId }: { mesocycleId: string | null }) {
+  const mesocycle = useQuery(
+    api.mesocycles.getMesocycleById,
+    mesocycleId ? { id: mesocycleId } : "skip"
+  )
+  
+  // Loading state
+  if (mesocycleId && mesocycle === undefined) {
+    return <LoadingSpinner />
+  }
+  
+  // Empty/not found state
+  if (mesocycleId && mesocycle === null) {
+    return <EmptyState message="Mesocycle not found" />
+  }
+  
+  // No ID provided
+  if (!mesocycleId) {
+    return <EmptyState message="Please select a mesocycle" />
+  }
+  
+  // Success state
+  return <div>{mesocycle.name}</div>
+}
+```
+
+## Array Data Pattern
+
+For array data, check both loading and empty array:
+
+### ✅ GOOD: Array State Handling
+
+```tsx
+function WorkoutList() {
+  const workouts = useQuery(api.workouts.getAllWorkouts, { userId })
+  
+  // Loading
+  if (workouts === undefined) {
+    return <LoadingSpinner />
+  }
+  
+  // Empty array
+  if (workouts.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">No workouts yet</p>
+        <Button>Start First Workout</Button>
+      </div>
+    )
+  }
+  
+  // Success - has items
+  return (
+    <ul>
+      {workouts.map(workout => (
+        <li key={workout._id}>{workout.name}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+## Error Boundaries
+
+For query errors, use React Error Boundaries at route level:
+
+```tsx
+// Route component with error boundary
+function MyRoute() {
+  return (
+    <ErrorBoundary fallback={<ErrorFallback />}>
+      <MyComponent />
+    </ErrorBoundary>
+  )
+}
+```
+
+## State Checklist
+
+When creating a component with data fetching, ensure:
+
+- [ ] **Loading state**: Show spinner/skeleton when `data === undefined`
+- [ ] **Empty state**: Show empty message when `data === null` or `data.length === 0`
+- [ ] **Error state**: Handle errors from mutations with try/catch
+- [ ] **Success state**: Render content when data is available
+- [ ] **Multiple queries**: Handle loading state for all queries
+- [ ] **Conditional queries**: Handle skip state appropriately
+- [ ] **User feedback**: Show loading indicators, error messages, empty states
+
+## Common Patterns
+
+### Loading Spinner Component
+
+```tsx
+function LoadingSpinner() {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
+    </div>
+  )
+}
+```
+
+### Empty State Component
+
+```tsx
+function EmptyState({ message, action }: { message: string; action?: React.ReactNode }) {
+  return (
+    <div className="text-center py-12">
+      <p className="text-muted-foreground mb-4">{message}</p>
+      {action}
+    </div>
+  )
+}
+```
+
+### Error Display Component
+
+```tsx
+function ErrorDisplay({ error }: { error: string }) {
+  return (
+    <div className="rounded-md bg-red-50 p-4 text-red-800">
+      <p>{error}</p>
+    </div>
+  )
+}
+```
+
+---
+
+## Using Custom Adapters (Recommended)
+
+The project includes custom adapter hooks that enforce state handling patterns:
+
+### Available Adapters
+
+- **`useConvexQuery`** - Wraps Convex queries with `isLoading`, `isEmpty`, `isReady` flags
+- **`useConvexMutation`** - Wraps Convex mutations with `isLoading`, `error`, `resetError`
+- **`useQueriesLoading`** - Utility to check if multiple queries are loading
+- **`useQueriesReady`** - Utility to check if multiple queries are ready
+
+### State Handler Components
+
+- **`LoadingSpinner`** - Consistent loading UI
+- **`EmptyState`** - Consistent empty state UI
+- **`ErrorDisplay`** - Consistent error display UI
+- **`QueryStateHandler`** - Declarative component for all states
+
+### Import Paths
+
+```tsx
+import { useConvexQuery, useConvexMutation, useQueriesLoading } from '@/hooks'
+import { LoadingSpinner, EmptyState, ErrorDisplay, QueryStateHandler } from '@/components/ui/state-handlers'
+```
+
+### Migration Example
+
+**Before:**
+```tsx
+const mesocycle = useQuery(api.mesocycles.getActiveMesocycle, { userId })
+if (mesocycle === undefined) return <Spinner />
+if (!mesocycle) return <Empty />
+```
+
+**After:**
+```tsx
+const { data, isLoading, isEmpty } = useConvexQuery(api.mesocycles.getActiveMesocycle, { userId })
+if (isLoading) return <LoadingSpinner />
+if (isEmpty) return <EmptyState message="No mesocycle" />
+```
+
+**Benefits:**
+- ✅ Consistent state handling across codebase
+- ✅ Less boilerplate
+- ✅ Type-safe
+- ✅ Preserves all Convex features (real-time, subscriptions)
+- ✅ Easier to refactor patterns in one place

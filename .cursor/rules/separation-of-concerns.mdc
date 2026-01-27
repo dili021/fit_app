@@ -1,0 +1,182 @@
+---
+description: Business logic should be separated from UI components into domain-specific modules
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Separation of Concerns - Business Logic Domain
+
+All business logic must be handled and written separately in a business domain layer, not mixed with UI components.
+
+## Core Principle
+
+**UI components should only handle presentation and user interaction. All business logic, calculations, data transformations, and domain rules belong in separate domain modules.**
+
+## Structure
+
+### Domain Modules Location
+
+Business logic should be organized in domain-specific modules:
+
+```
+src/
+  domains/
+    workout/
+      workout-logic.ts      # Workout state management, flow control
+      workout-calculations.ts  # Set distribution, progression calculations
+    mesocycle/
+      mesocycle-logic.ts    # Mesocycle status, week calculations
+      mesocycle-calculations.ts  # Set distribution, volume calculations
+    progression/
+      progression-logic.ts  # Weight suggestions, rep range logic
+    exercise/
+      exercise-logic.ts     # Exercise selection, filtering
+```
+
+### Backend Domain Logic
+
+For Convex functions, organize by domain in the `convex/` directory:
+
+```
+convex/
+  workouts.ts        # Workout domain mutations/queries
+  mesocycles.ts      # Mesocycle domain logic
+  progression.ts     # Progression calculations
+  sets.ts            # Set domain logic
+```
+
+## Rules
+
+### ❌ BAD: Business Logic in Components
+
+```tsx
+// Component contains business logic
+function WorkoutComponent() {
+  const [sets, setSets] = useState([])
+  
+  // ❌ Business logic mixed with UI
+  const calculateProgression = (reps: number, currentWeight: number) => {
+    if (reps >= 12) return currentWeight + 2.5
+    if (reps < 8) return currentWeight - 2.5
+    return currentWeight
+  }
+  
+  const handleSetComplete = (reps: number) => {
+    const newWeight = calculateProgression(reps, currentWeight)
+    // ... more logic
+  }
+  
+  return <div>...</div>
+}
+```
+
+### ✅ GOOD: Business Logic in Domain Module
+
+```tsx
+// src/domains/progression/progression-logic.ts
+export function calculateSuggestedWeight(
+  reps: number,
+  currentWeight: number
+): number {
+  if (reps >= 12) return currentWeight + 2.5
+  if (reps < 8) return currentWeight - 2.5
+  return currentWeight
+}
+
+// Component only handles UI
+function WorkoutComponent() {
+  const handleSetComplete = (reps: number) => {
+    const newWeight = calculateSuggestedWeight(reps, currentWeight)
+    // Update state, call mutations
+  }
+  
+  return <div>...</div>
+}
+```
+
+### ❌ BAD: Complex Calculations in Components
+
+```tsx
+function MesocycleCard() {
+  // ❌ Complex calculation logic in component
+  const calculateCurrentWeek = (startDate: Date, durationWeeks: number) => {
+    const now = new Date()
+    const weeksSinceStart = Math.floor(
+      (now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 7)
+    )
+    return Math.min(weeksSinceStart + 1, durationWeeks)
+  }
+  
+  const currentWeek = calculateCurrentWeek(startDate, durationWeeks)
+  // ...
+}
+```
+
+### ✅ GOOD: Calculations in Domain Module
+
+```tsx
+// src/domains/mesocycle/mesocycle-calculations.ts
+export function calculateCurrentWeek(
+  startDate: Date,
+  durationWeeks: number
+): number {
+  const now = new Date()
+  const weeksSinceStart = Math.floor(
+    (now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 7)
+  )
+  return Math.min(weeksSinceStart + 1, durationWeeks)
+}
+
+// Component uses domain function
+function MesocycleCard() {
+  const currentWeek = calculateCurrentWeek(startDate, durationWeeks)
+  // ...
+}
+```
+
+## What Belongs in Domain Modules
+
+### ✅ Domain Logic Includes:
+
+- **Business rules**: Progression calculations, rep range logic, set distribution
+- **Data transformations**: Formatting, aggregations, filtering
+- **State management logic**: Workout flow, pattern sequencing
+- **Validation**: Input validation, business rule validation
+- **Calculations**: Week calculations, volume calculations, progress tracking
+- **Domain models**: Type definitions, interfaces for domain entities
+
+### ✅ Components Should Only:
+
+- Render UI based on props/state
+- Handle user interactions (clicks, inputs)
+- Call domain functions/mutations
+- Manage local UI state (modals, form inputs)
+- Compose domain logic for presentation
+
+## Convex Functions
+
+For backend logic in Convex:
+
+- Keep domain logic in `convex/` files organized by domain
+- Use queries for read operations
+- Use mutations for write operations
+- Keep business rules separate from data access
+
+## Testing Benefits
+
+Separating business logic enables:
+
+- Unit testing domain logic without UI
+- Testing business rules independently
+- Easier refactoring and maintenance
+- Reusable logic across components
+
+## Migration Pattern
+
+When refactoring existing code:
+
+1. Identify business logic in components
+2. Extract to appropriate domain module
+3. Import and use in component
+4. Test domain logic independently
+5. Update component to use domain function
