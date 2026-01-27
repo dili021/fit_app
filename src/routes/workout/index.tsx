@@ -49,10 +49,6 @@ function WorkoutIndexContent({ userId }: { userId: string }) {
     api.mesocycles.getMesocycleStatusInfo,
     activeMesocycle ? { mesocycleId: activeMesocycle._id } : "skip"
   )
-  const workoutTemplate = useQuery(
-    api.workouts.generateWorkoutTemplate,
-    activeMesocycle ? { mesocycleId: activeMesocycle._id } : "skip"
-  )
   const createWorkout = useMutation(api.workouts.createWorkout)
   const checkStatus = useMutation(api.mesocycles.checkAndUpdateMesocycleStatus)
 
@@ -156,40 +152,6 @@ function WorkoutIndexContent({ userId }: { userId: string }) {
         </Card>
       ) : (
         <>
-          {workoutTemplate && (
-            <div className="mb-6 space-y-3">
-              <p className="text-sm text-muted-foreground">
-                {workoutTemplate.totalSetsPerSession} total sets across {workoutTemplate.template.length} patterns
-              </p>
-              {workoutTemplate.isDeloadWeek && (
-                <p className="text-sm text-orange-600 dark:text-orange-400">
-                  Deload week - Volume reduced by 50%
-                </p>
-              )}
-              <div className="space-y-3">
-                {workoutTemplate.template.map((item) => (
-                  <div
-                    key={item.patternId}
-                    className="flex items-center justify-between p-3 rounded-lg border bg-card"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Dumbbell className="h-5 w-5 text-primary" />
-                      <div>
-                        <div className="font-medium">
-                          {item.patternName}
-                          {item.isPrimary && (
-                            <Badge variant="secondary" className="ml-2">Primary</Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="font-semibold">{item.sets} sets</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {isCompleted ? (
             <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
               <CardContent className="py-6 text-center">
@@ -206,7 +168,7 @@ function WorkoutIndexContent({ userId }: { userId: string }) {
               onClick={handleStartWorkout}
               size="lg"
               className="w-full"
-              disabled={!workoutTemplate}
+              disabled={!activeMesocycle}
             >
               <Play className="h-5 w-5 mr-2" />
               Start Workout

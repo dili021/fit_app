@@ -8,7 +8,6 @@ import {
   ClipboardType,
   Home,
   Menu,
-  Network,
   SquareFunction,
   StickyNote,
   X,
@@ -85,12 +84,6 @@ export default function Header() {
               to="/mesocycle/setup"
               icon={SquareFunction}
               label="Setup Mesocycle"
-              onClick={() => setIsOpen(false)}
-            />
-            <NavLink
-              to="/workout"
-              icon={Network}
-              label="Workout"
               onClick={() => setIsOpen(false)}
             />
             <NavLink

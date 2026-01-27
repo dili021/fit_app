@@ -8,6 +8,14 @@ import { Id } from '../../../convex/_generated/dataModel'
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { X, Check } from 'lucide-react'
 import { ExerciseCarousel } from '@/components/workout/ExerciseCarousel'
 import { SetLogger } from '@/components/workout/SetLogger'
@@ -85,6 +93,7 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
   const [restTimerStopped, setRestTimerStopped] = useState(false)
   const [pendingPatternNavigation, setPendingPatternNavigation] = useState(false)
   const [showWorkoutOverview, setShowWorkoutOverview] = useState(false)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [sessionElapsedSeconds, setSessionElapsedSeconds] = useState(0)
   const sessionTimerIntervalRef = useRef<number | null>(null)
 
@@ -95,6 +104,7 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
   )
 
   const completeWorkout = useMutation(api.workouts.completeWorkout)
+  const deleteWorkout = useMutation(api.workouts.deleteWorkout)
 
   // Get progression suggestion for current exercise (for rest timer display)
   // Must be called unconditionally (before early returns), but can skip when data not available
@@ -379,13 +389,34 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
   }
 
 
-  const handleConcludeSession = async () => {
+  const handleConcludeSession = () => {
+    // Only show confirmation if not all sets are completed
+    if (!allSetsCompleted) {
+      setShowConfirmDialog(true)
+      return
+    }
+
+    // If all sets completed, conclude directly
+    concludeWorkout()
+  }
+
+  const concludeWorkout = async () => {
     try {
-      await completeWorkout({ workoutId: currentWorkout._id })
+      // Check if there are any sets completed
+      const hasSets = workoutSets && workoutSets.length > 0
+
+      if (!hasSets) {
+        // Delete the workout if no sets were completed
+        await deleteWorkout({ workoutId: currentWorkout._id })
+      } else {
+        // Complete the workout if sets were completed
+        await completeWorkout({ workoutId: currentWorkout._id })
+      }
+      
       navigate({ to: '/' })
     } catch (error) {
-      console.error('Failed to complete workout:', error)
-      alert('Failed to complete workout. Please try again.')
+      console.error('Failed to conclude workout:', error)
+      alert('Failed to conclude workout. Please try again.')
     }
   }
 
@@ -419,6 +450,35 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
 
   return (
     <>
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Conclude Session?</DialogTitle>
+            <DialogDescription>
+              You haven't completed all sets for this workout. Are you sure you want to conclude the session?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setShowConfirmDialog(false)
+                concludeWorkout()
+              }}
+            >
+              Conclude Session
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Timer Overlay - Shows when timer is running */}
       <TimerOverlay
         isVisible={showTimerOverlay && isTimerRunning}
@@ -533,7 +593,7 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
           <div className="border-t p-6 space-y-4">
             {/* Set Counter */}
             <div className="flex justify-center items-center gap-1.5">
-              <span className="text-xs text-muted-foreground">Sets</span>
+              <span className="text-xs text-muted-foreground">Set</span>
               <div className="flex items-center gap-1">
                 {Array.from({ length: currentPattern.sets }, (_, i) => {
                   const setNumber = i + 1

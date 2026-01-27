@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { useAuth } from '@/hooks/useAuth'
 import { useQuery, useMutation } from 'convex/react'
@@ -41,7 +41,9 @@ function calculateCurrentWeek(startDate: number, durationWeeks: number): number 
 }
 
 function DashboardContent({ userId }: { userId: string }) {
+  const navigate = useNavigate()
   const activeMesocycle = useQuery(api.mesocycles.getActiveMesocycle, { userId })
+  const activeWorkout = useQuery(api.workouts.getActiveWorkout, { userId })
   const recentWorkouts = useQuery(api.workouts.getRecentWorkouts, { userId, limit: 3 })
   const patterns = useQuery(api.patterns.getAll)
   const mesocycleSets = useQuery(
@@ -52,7 +54,12 @@ function DashboardContent({ userId }: { userId: string }) {
     api.mesocycles.getMesocycleStatusInfo,
     activeMesocycle ? { mesocycleId: activeMesocycle._id } : "skip"
   )
+  const workoutTemplate = useQuery(
+    api.workouts.generateWorkoutTemplate,
+    activeMesocycle ? { mesocycleId: activeMesocycle._id } : "skip"
+  )
   const checkStatus = useMutation(api.mesocycles.checkAndUpdateMesocycleStatus)
+  const createWorkout = useMutation(api.workouts.createWorkout)
   const [showCompletionPrompt, setShowCompletionPrompt] = useState(false)
 
   // Check and update mesocycle status on load
@@ -88,12 +95,43 @@ function DashboardContent({ userId }: { userId: string }) {
     return totalExpectedSets > 0 ? (completedSets / totalExpectedSets) * 100 : 0
   })() : 0
 
-  // Get primary pattern names
+  // Get primary pattern names for title
   const primaryPatternNames = activeMesocycle && patterns
     ? patterns
         .filter((p) => activeMesocycle.primaryPatterns.includes(p._id))
         .map((p) => p.displayName)
     : []
+  
+  const mesocycleTitle = primaryPatternNames.length > 0
+    ? `${primaryPatternNames.join(' and ')} mesocycle`
+    : 'Active Mesocycle'
+
+  const handleStartWorkout = async () => {
+    if (!activeMesocycle) return
+
+    // If there's an active workout, navigate to it
+    if (activeWorkout && !activeWorkout.completed) {
+      navigate({ to: '/workout/active', search: { workoutId: activeWorkout._id } })
+      return
+    }
+
+    // Otherwise, create a new workout
+    try {
+      const workoutId = await createWorkout({
+        userId,
+        mesocycleId: activeMesocycle._id,
+        weekNumber: currentWeek,
+      })
+
+      // Navigate directly to active workout page
+      navigate({ to: '/workout/active', search: { workoutId } })
+    } catch (error) {
+      console.error('Failed to create workout:', error)
+      alert('Failed to start workout. Please try again.')
+    }
+  }
+
+  const hasActiveWorkout = activeWorkout && !activeWorkout.completed
 
   // Format workout date
   const formatWorkoutDate = (timestamp: number) => {
@@ -118,7 +156,34 @@ function DashboardContent({ userId }: { userId: string }) {
         <p className="text-muted-foreground">Track your training progress</p>
       </div>
 
-      {!activeMesocycle ? (
+      {activeMesocycle === undefined ? (
+        // Placeholder card while loading
+        <Card>
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle>
+                  <h2 className="text-2xl font-semibold">Loading...</h2>
+                </CardTitle>
+                <CardDescription className="mt-2">Loading mesocycle data</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="h-2 bg-muted rounded-full animate-pulse" />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="h-16 bg-muted rounded animate-pulse" />
+              <div className="h-16 bg-muted rounded animate-pulse" />
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button disabled className="w-full">
+              <Play className="h-4 w-4 mr-2" />
+              Start Workout
+            </Button>
+          </CardFooter>
+        </Card>
+      ) : !activeMesocycle ? (
         <Card>
           <CardContent className="py-12 text-center">
             <Dumbbell className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
@@ -140,7 +205,7 @@ function DashboardContent({ userId }: { userId: string }) {
                 <div>
                   <CardTitle>
                     <h2 className="text-2xl font-semibold">
-                      {activeMesocycle.name || 'Active Mesocycle'}
+                      {mesocycleTitle}
                     </h2>
                   </CardTitle>
                   <CardDescription className="mt-2">
@@ -161,7 +226,7 @@ function DashboardContent({ userId }: { userId: string }) {
                 )}
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3">
               {/* Mesocycle Progress */}
               <div>
                 <div className="flex justify-between text-sm mb-2">
@@ -171,20 +236,39 @@ function DashboardContent({ userId }: { userId: string }) {
                 <Progress value={mesocycleProgress} className="h-2" />
               </div>
 
-              {/* Primary Patterns */}
-              <div>
-                <h3 className="text-sm font-medium mb-2">Primary Patterns</h3>
-                <div className="flex flex-wrap gap-2">
-                  {primaryPatternNames.map((name) => (
-                    <Badge key={name} variant="secondary">
-                      {name}
-                    </Badge>
-                  ))}
+              {/* Workout Template - Dense and Minimal */}
+              {workoutTemplate && (
+                <div className="pt-2 border-t space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Today's Workout</span>
+                    <span className="font-semibold">{workoutTemplate.totalSetsPerSession} sets</span>
+                  </div>
+                  {workoutTemplate.isDeloadWeek && (
+                    <p className="text-xs text-orange-600 dark:text-orange-400">
+                      Deload week - Volume reduced by 50%
+                    </p>
+                  )}
+                  <div className="space-y-1.5">
+                    {workoutTemplate.template.map((item) => (
+                      <div
+                        key={item.patternId}
+                        className="flex items-center justify-between text-sm py-1"
+                      >
+                        <span className="text-muted-foreground">
+                          {item.patternName}
+                          {item.isPrimary && (
+                            <Badge variant="secondary" className="ml-1.5 text-xs">Primary</Badge>
+                          )}
+                        </span>
+                        <span className="font-medium">{item.sets} sets</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Volume Info */}
-              <div className="grid grid-cols-2 gap-4 pt-2">
+              <div className="grid grid-cols-2 gap-4 pt-2 border-t">
                 <div>
                   <div className="text-sm text-muted-foreground">Sets/Week</div>
                   <div className="text-lg font-semibold">{activeMesocycle.targetSetsPerWeek}</div>
@@ -197,11 +281,13 @@ function DashboardContent({ userId }: { userId: string }) {
             </CardContent>
             <CardFooter>
               {!isCompleted ? (
-                <Button asChild className="w-full">
-                  <Link to="/workout">
-                    <Play className="h-4 w-4 mr-2" />
-                    Start Workout
-                  </Link>
+                <Button 
+                  onClick={handleStartWorkout}
+                  className="w-full"
+                  disabled={!activeMesocycle}
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  {hasActiveWorkout ? 'Continue Workout' : 'Start Workout'}
                 </Button>
               ) : (
                 <Button asChild className="w-full" variant="outline">

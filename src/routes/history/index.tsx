@@ -161,7 +161,7 @@ function HistoryContent({ userId }: { userId: string }) {
               : 'bg-muted text-muted-foreground active:bg-muted/80'
           }`}
         >
-          List View
+          Workout History
         </button>
         <button
           onClick={() => setSelectedView('calendar')}
@@ -171,7 +171,7 @@ function HistoryContent({ userId }: { userId: string }) {
               : 'bg-muted text-muted-foreground active:bg-muted/80'
           }`}
         >
-          Calendar View
+          Workout Calendar
         </button>
         <button
           onClick={() => setSelectedView('charts')}
@@ -181,7 +181,7 @@ function HistoryContent({ userId }: { userId: string }) {
               : 'bg-muted text-muted-foreground active:bg-muted/80'
           }`}
         >
-          Charts
+          Progress
         </button>
       </div>
 
@@ -575,13 +575,6 @@ function ChartsView({
         dark: "oklch(0.75 0.18 280)",
       },
     },
-    sets: {
-      label: "Sets",
-      theme: {
-        light: "oklch(0.55 0.18 25)",
-        dark: "oklch(0.75 0.18 25)",
-      },
-    },
   }
 
   return (
@@ -596,7 +589,7 @@ function ChartsView({
                 Pattern Volume Tracking
               </CardTitle>
               <CardDescription>
-                Track total volume and sets per workout for a movement pattern
+                Track total volume per workout for a movement pattern
               </CardDescription>
             </div>
             {patterns && patterns.length > 0 && (
@@ -620,26 +613,40 @@ function ChartsView({
         </CardHeader>
         <CardContent>
           {patternChartData.length > 0 ? (
-            <ChartContainer config={patternChartConfig}>
-              <BarChart data={patternChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar 
-                  yAxisId="left"
-                  dataKey="volume" 
-                  fill="var(--color-volume)" 
-                  radius={[4, 4, 0, 0]}
+            <ChartContainer config={patternChartConfig} className="min-h-[300px] w-full">
+              <LineChart
+                accessibilityLayer
+                data={patternChartData}
+                margin={{
+                  left: 12,
+                  right: 12,
+                }}
+              >
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tickFormatter={(value) => value}
+                  type="category"
                 />
-                <Bar 
-                  yAxisId="right"
-                  dataKey="sets" 
-                  fill="var(--color-sets)" 
-                  radius={[4, 4, 0, 0]}
+                <YAxis />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent />}
                 />
-              </BarChart>
+                <Line
+                  dataKey="volume"
+                  name="volume"
+                  type="linear"
+                  stroke="var(--color-volume)"
+                  strokeWidth={2}
+                  dot={{ r: 4, fill: "var(--color-volume)" }}
+                  activeDot={{ r: 6 }}
+                  connectNulls={false}
+                />
+              </LineChart>
             </ChartContainer>
           ) : (
             <div className="flex items-center justify-center h-[300px] text-muted-foreground">
@@ -741,7 +748,7 @@ function ChartsView({
               Mesocycle Comparison
             </CardTitle>
             <CardDescription>
-              Compare total volume and sets across completed mesocycles
+              Compare total volume across completed mesocycles
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -753,33 +760,40 @@ function ChartsView({
                   dark: "oklch(0.75 0.18 280)",
                 },
               },
-              totalSets: { 
-                label: "Total Sets", 
-                theme: {
-                  light: "oklch(0.55 0.18 25)",
-                  dark: "oklch(0.75 0.18 25)",
-                },
-              },
-            }}>
-              <BarChart data={mesocycleComparisonData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar 
-                  yAxisId="left"
-                  dataKey="totalVolume" 
-                  fill="var(--color-totalVolume)" 
-                  radius={[4, 4, 0, 0]}
+            }} className="min-h-[300px] w-full">
+              <LineChart
+                accessibilityLayer
+                data={mesocycleComparisonData}
+                margin={{
+                  left: 12,
+                  right: 12,
+                }}
+              >
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="name"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tickFormatter={(value) => value}
+                  type="category"
                 />
-                <Bar 
-                  yAxisId="right"
-                  dataKey="totalSets" 
-                  fill="var(--color-totalSets)" 
-                  radius={[4, 4, 0, 0]}
+                <YAxis />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent />}
                 />
-              </BarChart>
+                <Line
+                  dataKey="totalVolume"
+                  name="totalVolume"
+                  type="linear"
+                  stroke="var(--color-totalVolume)"
+                  strokeWidth={2}
+                  dot={{ r: 4, fill: "var(--color-totalVolume)" }}
+                  activeDot={{ r: 6 }}
+                  connectNulls={false}
+                />
+              </LineChart>
             </ChartContainer>
           </CardContent>
         </Card>

@@ -63,20 +63,20 @@ export function ExerciseCarousel({
           <div className="absolute inset-y-0 left-0 flex items-center pl-2">
             <button
               onClick={handlePrevious}
-              className="p-2 rounded-full hover:bg-accent active:bg-accent/80 transition-colors"
+              className="p-2 rounded-full hover:bg-muted hover:text-muted-foreground active:bg-muted/80 transition-colors"
               aria-label="Previous exercise"
             >
-              <ChevronLeft className="h-6 w-6 text-foreground" />
+              <ChevronLeft className="h-6 w-6" />
             </button>
           </div>
           
           <div className="absolute inset-y-0 right-0 flex items-center pr-2">
             <button
               onClick={handleNext}
-              className="p-2 rounded-full hover:bg-accent active:bg-accent/80 transition-colors"
+              className="p-2 rounded-full hover:bg-muted hover:text-muted-foreground active:bg-muted/80 transition-colors"
               aria-label="Next exercise"
             >
-              <ChevronRight className="h-6 w-6 text-foreground" />
+              <ChevronRight className="h-6 w-6" />
             </button>
           </div>
           

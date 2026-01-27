@@ -33,7 +33,6 @@ export function SetLogger({
   exerciseId,
   userId,
   setNumber,
-  totalSets,
   onSetComplete,
   restTimeMinutes,
   onTimerStart,

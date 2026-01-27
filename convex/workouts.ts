@@ -215,3 +215,21 @@ export const completeWorkout = mutation({
     return args.workoutId;
   },
 });
+
+/**
+ * Delete a workout
+ */
+export const deleteWorkout = mutation({
+  args: {
+    workoutId: v.id("workouts"),
+  },
+  handler: async (ctx, args) => {
+    const workout = await ctx.db.get(args.workoutId);
+    if (!workout) {
+      throw new Error("Workout not found");
+    }
+
+    await ctx.db.delete(args.workoutId);
+    return args.workoutId;
+  },
+});
