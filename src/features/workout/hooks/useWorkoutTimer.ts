@@ -27,16 +27,13 @@ export function useWorkoutTimer({
   useEffect(() => {
     if (isTimerRunning) {
       let elapsed = 0
-      const handleTimerUpdate = (currentElapsed: number) => {
-        // Use ref to avoid calling during render
-        setTimeout(() => {
-          timerUpdateRef.current?.(currentElapsed)
-        }, 0)
-      }
 
       timerIntervalRef.current = window.setInterval(() => {
         elapsed += 1
-        handleTimerUpdate(elapsed)
+        // Use setTimeout to avoid calling during render
+        setTimeout(() => {
+          timerUpdateRef.current?.(elapsed)
+        }, 0)
       }, 1000)
     } else {
       if (timerIntervalRef.current) {

@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery } from 'convex/react'
 import { Check } from 'lucide-react'
-import { api } from '../../../convex/_generated/api'
+import { api } from '../../../../convex/_generated/api'
+import { useActivateMesocycleCalculations } from '../hooks/useActivateMesocycleCalculations'
 import { SessionsPerWeekStep } from './steps/SessionsPerWeekStep'
 import { SetsPerPatternStep } from './steps/SetsPerPatternStep'
 import { RestTimeStep } from './steps/RestTimeStep'
 import { TrainingHistoryStep } from './steps/TrainingHistoryStep'
 import { SessionPreview } from './steps/SessionPreview'
-import { useActivateMesocycleCalculations } from './hooks/useActivateMesocycleCalculations'
-import type { Id } from '../../../convex/_generated/dataModel'
+import type { Id } from '../../../../convex/_generated/dataModel'
 import {
   Dialog,
   DialogContent,

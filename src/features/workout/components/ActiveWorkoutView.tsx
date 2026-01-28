@@ -1,10 +1,11 @@
-import { ExerciseSelectionSection } from './ExerciseSelectionSection'
-import { SetLoggerSection } from './SetLoggerSection'
-import { WorkoutFooter } from './WorkoutFooter'
+import { ActiveWorkoutHeader } from './ActiveWorkoutHeader'
 import { ConcludeSessionDialog } from './ConcludeSessionDialog'
+import { ExerciseSelectionSection } from './ExerciseSelectionSection'
+import { RestTimerOverlay } from './RestTimerOverlay'
+import { SetLoggerSection } from './SetLoggerSection'
+import { TimerOverlay } from './TimerOverlay'
+import { WorkoutFooter } from './WorkoutFooter'
 import type { Doc, Id } from '../../../../convex/_generated/dataModel'
-import { RestTimerOverlay } from '@/components/workout/RestTimerOverlay'
-import { TimerOverlay } from '@/components/workout/TimerOverlay'
 
 interface ActiveWorkoutViewProps {
   currentPattern: {
@@ -15,7 +16,12 @@ interface ActiveWorkoutViewProps {
   }
   completedSets: number
   workoutTemplate: {
-    template: Array<{ patternId: Id<'patterns'>; sets: number }>
+    template: Array<{
+      patternId: Id<'patterns'>
+      patternName: string
+      sets: number
+      isPrimary: boolean
+    }>
   }
   workoutSets: Array<Doc<'sets'>> | undefined
   currentPatternIndex: number
@@ -65,10 +71,10 @@ interface ActiveWorkoutViewProps {
 export function ActiveWorkoutView({
   currentPattern,
   completedSets: _completedSets,
-  workoutTemplate: _workoutTemplate,
+  workoutTemplate,
   workoutSets: _workoutSets,
   currentPatternIndex,
-  sessionElapsedSeconds: _sessionElapsedSeconds,
+  sessionElapsedSeconds,
   currentWorkout,
   selectedExerciseId,
   setSelectedExerciseId,
@@ -118,13 +124,24 @@ export function ActiveWorkoutView({
       />
 
       <RestTimerOverlay
-        isVisible={restSecondsRemaining !== null && restSecondsRemaining > 0}
+        isVisible={
+          !restTimerStopped &&
+          restSecondsRemaining !== null &&
+          restSecondsRemaining > 0
+        }
         secondsRemaining={restSecondsRemaining || 0}
         onDismiss={onRestTimerStop}
         progressionSuggestion={progressionSuggestion || null}
       />
 
-      <div className="fixed inset-0 bg-background z-50 flex flex-col">
+      <div className="fixed inset-0 bg-background z-10 flex flex-col">
+        <ActiveWorkoutHeader
+          currentPattern={currentPattern}
+          workoutTemplate={workoutTemplate}
+          currentPatternIndex={currentPatternIndex}
+          sessionElapsedSeconds={sessionElapsedSeconds}
+          getDotClassName={getDotClassName}
+        />
         <div className="flex-1 overflow-y-auto flex flex-col">
           <ExerciseSelectionSection
             currentPattern={currentPattern}

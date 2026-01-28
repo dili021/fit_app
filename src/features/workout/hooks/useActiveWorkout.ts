@@ -84,13 +84,13 @@ export function useActiveWorkout({ userId, workoutId }: UseActiveWorkoutProps) {
     setRestSecondsRemaining(null)
     setRestTimerStopped(false)
     patternNav.setPendingPatternNavigation(false)
-  }, [currentPatternIndex, selectedExerciseId, patternNav])
+  }, [currentPatternIndex, selectedExerciseId])
 
   // Timer handlers
   const handleTimerStart = () => {
+    setTimerSeconds(0)
     setIsTimerRunning(true)
     setShowTimerOverlay(true)
-    setTimerSeconds(0)
   }
 
   const handleTimerStop = () => {

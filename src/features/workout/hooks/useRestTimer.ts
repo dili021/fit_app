@@ -43,6 +43,15 @@ export function useRestTimer({
 
   // Rest timer logic - sync with parent overlay
   useEffect(() => {
+    // Don't start timer if stopped
+    if (stopped) {
+      if (restIntervalRef.current) {
+        clearInterval(restIntervalRef.current)
+        restIntervalRef.current = null
+      }
+      return
+    }
+
     if (restSecondsRemaining !== null && restSecondsRemaining > 0) {
       const handleRestComplete = () => {
         // Rest complete - show notification
@@ -87,7 +96,7 @@ export function useRestTimer({
         clearInterval(restIntervalRef.current)
       }
     }
-  }, [restSecondsRemaining])
+  }, [restSecondsRemaining, stopped])
 
   const startRest = () => {
     const restSeconds = restTimeMinutes * 60

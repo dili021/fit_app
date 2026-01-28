@@ -1,5 +1,5 @@
+import { SetLogger } from './SetLogger'
 import type { Id } from '../../../../convex/_generated/dataModel'
-import { SetLogger } from '@/components/workout/SetLogger'
 
 interface SetLoggerSectionProps {
   currentPattern: {

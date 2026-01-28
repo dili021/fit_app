@@ -23,7 +23,8 @@ export function RestTimerOverlay({
   onDismiss,
   progressionSuggestion,
 }: RestTimerOverlayProps) {
-  if (!isVisible) return null
+  // Prevent rendering if not visible or if seconds is invalid
+  if (!isVisible || secondsRemaining <= 0) return null
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)

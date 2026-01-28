@@ -1,4 +1,4 @@
-import type { Doc } from '../../../../convex/_generated/dataModel'
+import type { Doc, Id } from '../../../../../convex/_generated/dataModel'
 
 interface SessionPreviewProps {
   mesocycle: Doc<'mesocycles'>
@@ -30,7 +30,7 @@ export function SessionPreview({
       <h4 className="font-semibold text-sm">Session Preview</h4>
       <div className="space-y-2 text-sm">
         {/* Primary patterns */}
-        {mesocycle.primaryPatterns.map((patternId) => {
+        {mesocycle.primaryPatterns.map((patternId: Id<'patterns'>) => {
           const pattern = patterns.find((p) => p._id === patternId)
           return (
             <div key={patternId} className="flex justify-between">

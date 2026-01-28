@@ -1,5 +1,5 @@
+import { WorkoutOverview } from './WorkoutOverview'
 import type { Doc } from '../../../../convex/_generated/dataModel'
-import { WorkoutOverview } from '@/components/workout/WorkoutOverview'
 
 interface WorkoutOverviewWrapperProps {
   workoutSets: Array<Doc<'sets'>>
