@@ -11,7 +11,8 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "format": "prettier",
-    "check": "tsc --noEmit && prettier --write . && eslint --fix"
+    "qg": "tsc --noEmit && prettier . && eslint",
+    "qgf": "tsc --noEmit && prettier --write . && eslint --fix"
   },
   "dependencies": {
     "@convex-dev/better-auth": "^0.10.10",
