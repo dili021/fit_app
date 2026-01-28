@@ -4,7 +4,7 @@ import {
   getWorkoutDuration,
 } from '../utils/dateFormatters'
 import { ExpandedSetsDisplay } from './ExpandedSetsDisplay'
-import type { Doc } from '../../../../convex/_generated/dataModel'
+import type { Doc } from '@db/_generated/dataModel'
 import {
   Dialog,
   DialogContent,

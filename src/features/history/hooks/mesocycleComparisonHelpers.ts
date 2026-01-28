@@ -1,4 +1,4 @@
-import type { Doc, Id } from '../../../../convex/_generated/dataModel'
+import type { Doc, Id } from '@db/_generated/dataModel'
 
 /**
  * Get sets for a specific mesocycle

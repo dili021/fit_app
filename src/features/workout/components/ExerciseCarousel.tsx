@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from 'convex/react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { api } from '../../../../convex/_generated/api'
-import type { Id } from '../../../../convex/_generated/dataModel'
+import { api } from '@db/_generated/api'
+import type { Id } from '@db/_generated/dataModel'
 import { Card, CardContent } from '@/components/ui/card'
 
 interface ExerciseCarouselProps {

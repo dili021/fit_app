@@ -1,5 +1,5 @@
 import { ExerciseGroupCard } from './ExerciseGroupCard'
-import type { Id } from '../../../../convex/_generated/dataModel'
+import type { Id } from '@db/_generated/dataModel'
 
 interface Set {
   _id: Id<'sets'>

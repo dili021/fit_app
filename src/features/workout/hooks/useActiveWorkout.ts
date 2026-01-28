@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from 'convex/react'
-import { api } from '../../../../convex/_generated/api'
+import { api } from '@db/_generated/api'
 import { useActiveWorkoutQueries } from './api/useActiveWorkoutQueries'
 import { useSessionTimer } from './useSessionTimer'
 import { usePatternProgress } from './usePatternProgress'
 import { useWorkoutCompletion } from './useWorkoutCompletion'
 import { usePatternNavigation } from './usePatternNavigation'
-import type { Id } from '../../../../convex/_generated/dataModel'
+import type { Id } from '@db/_generated/dataModel'
 
 interface UseActiveWorkoutProps {
   userId: string
@@ -44,8 +44,6 @@ export function useActiveWorkout({ userId, workoutId }: UseActiveWorkoutProps) {
     userId,
     workoutId,
     currentWorkout,
-    workoutTemplate: null, // Will be fetched based on mesocycle
-    currentPatternIndex,
     selectedExerciseId,
   })
 

@@ -1,5 +1,5 @@
 import { SetLogger } from './SetLogger'
-import type { Id } from '../../../../convex/_generated/dataModel'
+import type { Doc, Id } from '@db/_generated/dataModel'
 
 interface SetLoggerSectionProps {
   currentPattern: {
@@ -10,6 +10,7 @@ interface SetLoggerSectionProps {
   currentSetNumber: number
   workoutId: Id<'workouts'>
   userId: string
+  workoutSets: Array<Doc<'sets'>> | undefined
   restTimeMinutes: number
   onSetComplete: () => void
   onTimerStart: () => void
@@ -29,6 +30,7 @@ export function SetLoggerSection({
   currentSetNumber,
   workoutId,
   userId,
+  workoutSets,
   restTimeMinutes,
   onSetComplete,
   onTimerStart,
@@ -73,6 +75,7 @@ export function SetLoggerSection({
         patternId={currentPattern.patternId}
         exerciseId={selectedExerciseId}
         userId={userId}
+        workoutSets={workoutSets}
         setNumber={currentSetNumber}
         totalSets={currentPattern.sets}
         onSetComplete={onSetComplete}

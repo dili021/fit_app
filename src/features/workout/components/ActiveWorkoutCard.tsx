@@ -1,6 +1,6 @@
 import { Calendar } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
-import type { Doc } from '../../../../convex/_generated/dataModel'
+import type { Doc } from '@db/_generated/dataModel'
 import {
   Card,
   CardContent,

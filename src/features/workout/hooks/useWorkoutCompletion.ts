@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useMutation } from 'convex/react'
 import { useNavigate } from '@tanstack/react-router'
-import { api } from '../../../../convex/_generated/api'
-import type { Doc, Id } from '../../../../convex/_generated/dataModel'
+import { api } from '@db/_generated/api'
+import type { Doc, Id } from '@db/_generated/dataModel'
 
 interface UseWorkoutCompletionProps {
   currentWorkout: Doc<'workouts'> | null | undefined

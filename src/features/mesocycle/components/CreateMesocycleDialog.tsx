@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useMutation, useQuery } from 'convex/react'
 import { ArrowRight, Check } from 'lucide-react'
-import { api } from '../../../../convex/_generated/api'
+import { api } from '@db/_generated/api'
 import { DurationStep } from './steps/DurationStep'
 import { PatternSelectionStep } from './steps/PatternSelectionStep'
-import type { Id } from '../../../../convex/_generated/dataModel'
+import type { Id } from '@db/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,

@@ -4,7 +4,7 @@ import {
   getWorkoutsInSelectedMonth,
   groupWorkoutsByDate,
 } from '../utils/workoutGrouping'
-import type { Doc } from '../../../../convex/_generated/dataModel'
+import type { Doc } from '@db/_generated/dataModel'
 
 interface UseHistoryCalendarDataProps {
   allWorkouts: Array<Doc<'workouts'>> | undefined

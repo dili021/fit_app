@@ -16,9 +16,9 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
-import { api } from '../../../../convex/_generated/api'
+import { api } from '@db/_generated/api'
 import { MesocycleCard } from './MesocycleCard'
-import type { Doc, Id } from '../../../../convex/_generated/dataModel'
+import type { Doc, Id } from '@db/_generated/dataModel'
 import type { DragEndEvent } from '@dnd-kit/core'
 
 interface MesocycleListProps {

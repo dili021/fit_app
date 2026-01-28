@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { AlertCircle, CheckCircle2, Play } from 'lucide-react'
-import type { Doc } from '../../../../convex/_generated/dataModel'
+import type { Doc } from '@db/_generated/dataModel'
 import {
   Card,
   CardContent,

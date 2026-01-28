@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from 'convex/react'
-import { api } from '../../../../convex/_generated/api'
+import { api } from '@db/_generated/api'
 import { transformMesocycleToComparisonData } from './mesocycleComparisonHelpers'
-import type { Doc, Id } from '../../../../convex/_generated/dataModel'
+import type { Doc, Id } from '@db/_generated/dataModel'
 
 interface UseChartsDataProps {
   userId: string

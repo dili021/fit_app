@@ -1,5 +1,5 @@
 import { useQuery } from 'convex/react'
-import { api } from '../../../../../convex/_generated/api'
+import { api } from '@db/_generated/api'
 
 export function useDashboardQueries(userId: string) {
   const activeMesocycle = useQuery(api.mesocycles.getActiveMesocycle, {

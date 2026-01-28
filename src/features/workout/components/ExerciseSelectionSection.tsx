@@ -1,5 +1,5 @@
 import { ExerciseCarousel } from './ExerciseCarousel'
-import type { Id } from '../../../../convex/_generated/dataModel'
+import type { Id } from '@db/_generated/dataModel'
 
 interface ExerciseSelectionSectionProps {
   currentPattern: {

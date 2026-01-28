@@ -4,7 +4,7 @@ import {
   formatWorkoutDate,
   getWorkoutDuration,
 } from '../utils/dateFormatters'
-import type { Doc } from '../../../../convex/_generated/dataModel'
+import type { Doc } from '@db/_generated/dataModel'
 import {
   Card,
   CardContent,
@@ -21,7 +21,6 @@ interface WorkoutCardProps {
   isExpanded: boolean
   onToggleExpand: () => void
   workoutSets: Array<Doc<'sets'>> | null
-  exercises: Array<Doc<'exercises'>> | undefined
   expandedContent?: React.ReactNode
 }
 
@@ -32,7 +31,6 @@ export function WorkoutCard({
   isExpanded,
   onToggleExpand,
   workoutSets,
-  exercises: _exercises,
   expandedContent,
 }: WorkoutCardProps) {
   const duration = getWorkoutDuration(workout)

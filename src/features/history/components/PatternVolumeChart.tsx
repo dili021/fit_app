@@ -1,6 +1,6 @@
 import { BarChart3 } from 'lucide-react'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
-import type { Doc, Id } from '../../../../convex/_generated/dataModel'
+import type { Doc, Id } from '@db/_generated/dataModel'
 import {
   Card,
   CardContent,

@@ -2,7 +2,7 @@ import { Check } from 'lucide-react'
 import { WorkoutSummaryStats } from './WorkoutSummaryStats'
 import { PatternGroupSection } from './PatternGroupSection'
 import { groupSetsByPattern } from './utils/workoutGrouping'
-import type { Id } from '../../../../convex/_generated/dataModel'
+import type { Id } from '@db/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 
 interface Set {

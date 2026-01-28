@@ -116,7 +116,6 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
     currentPatternIndex,
     selectedExerciseId,
     setSelectedExerciseId,
-    completedSets,
     currentSetNumber,
     isTimerRunning,
     timerSeconds,
@@ -204,7 +203,6 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
   return (
     <ActiveWorkoutView
       currentPattern={currentPattern}
-      completedSets={completedSets}
       workoutTemplate={workoutTemplate}
       workoutSets={workoutSets}
       currentPatternIndex={currentPatternIndex}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Doc, Id } from '../../../../convex/_generated/dataModel'
+import type { Doc, Id } from '@db/_generated/dataModel'
 
 interface UsePatternNavigationProps {
   workoutSets: Array<Doc<'sets'>> | undefined

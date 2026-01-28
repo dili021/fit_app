@@ -1,6 +1,6 @@
 import { WorkoutCard } from './WorkoutCard'
 import { ExpandedSetsDisplay } from './ExpandedSetsDisplay'
-import type { Doc, Id } from '../../../../convex/_generated/dataModel'
+import type { Doc, Id } from '@db/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 
 interface WorkoutListViewProps {
@@ -45,7 +45,6 @@ export function WorkoutListView({
             isExpanded={isExpanded}
             onToggleExpand={() => onToggleExpand(workout._id)}
             workoutSets={isExpanded ? expandedWorkoutSets || null : null}
-            exercises={exercises}
             expandedContent={
               isExpanded &&
               expandedWorkoutSets &&

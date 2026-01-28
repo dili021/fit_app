@@ -1,4 +1,4 @@
-import type { Doc } from '../../../../convex/_generated/dataModel'
+import type { Doc } from '@db/_generated/dataModel'
 
 interface UseDashboardCalculationsProps {
   activeMesocycle: Doc<'mesocycles'> | null | undefined

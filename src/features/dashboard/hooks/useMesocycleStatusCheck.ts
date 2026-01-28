@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Id } from '../../../../convex/_generated/dataModel'
+import type { Id } from '@db/_generated/dataModel'
 
 interface UseMesocycleStatusCheckOptions {
   mesocycleId: Id<'mesocycles'> | null | undefined

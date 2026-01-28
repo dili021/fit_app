@@ -2,7 +2,7 @@ import { useChartsData } from '../hooks/useChartsData'
 import { PatternVolumeChart } from './PatternVolumeChart'
 import { ExerciseProgressChart } from './ExerciseProgressChart'
 import { MesocycleComparisonChart } from './MesocycleComparisonChart'
-import type { Doc } from '../../../../convex/_generated/dataModel'
+import type { Doc } from '@db/_generated/dataModel'
 
 interface ChartsViewProps {
   userId: string

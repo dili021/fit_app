@@ -118,7 +118,7 @@ export const getLastSetFromLastCompletedWorkout = query({
 
       const sets = await ctx.db
         .query('sets')
-        .withIndex('exerciseId', (q) => q.eq(q.field('exerciseId'), args.exerciseId))
+        .withIndex('exerciseId', (q) => q.eq('exerciseId', args.exerciseId))
         .filter((q) => q.eq(q.field('workoutId'), workout._id))
         .order('desc')
         .first()

@@ -1,4 +1,4 @@
-import type { Doc } from '../../../../convex/_generated/dataModel'
+import type { Doc } from '@db/_generated/dataModel'
 
 /**
  * Group workouts by date for calendar view

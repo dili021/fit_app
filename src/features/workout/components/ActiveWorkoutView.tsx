@@ -5,7 +5,7 @@ import { RestTimerOverlay } from './RestTimerOverlay'
 import { SetLoggerSection } from './SetLoggerSection'
 import { TimerOverlay } from './TimerOverlay'
 import { WorkoutFooter } from './WorkoutFooter'
-import type { Doc, Id } from '../../../../convex/_generated/dataModel'
+import type { Doc, Id } from '@db/_generated/dataModel'
 
 interface ActiveWorkoutViewProps {
   currentPattern: {
@@ -14,7 +14,6 @@ interface ActiveWorkoutViewProps {
     sets: number
     isPrimary: boolean
   }
-  completedSets: number
   workoutTemplate: {
     template: Array<{
       patternId: Id<'patterns'>
@@ -70,9 +69,8 @@ interface ActiveWorkoutViewProps {
 
 export function ActiveWorkoutView({
   currentPattern,
-  completedSets: _completedSets,
   workoutTemplate,
-  workoutSets: _workoutSets,
+  workoutSets,
   currentPatternIndex,
   sessionElapsedSeconds,
   currentWorkout,
@@ -142,7 +140,7 @@ export function ActiveWorkoutView({
           sessionElapsedSeconds={sessionElapsedSeconds}
           getDotClassName={getDotClassName}
         />
-        <div className="flex-1 overflow-y-auto flex flex-col">
+        <div className="flex-1 overflow-y-auto flex flex-col pb-20">
           <ExerciseSelectionSection
             currentPattern={currentPattern}
             selectedExerciseId={selectedExerciseId}
@@ -156,6 +154,7 @@ export function ActiveWorkoutView({
               currentSetNumber={currentSetNumber}
               workoutId={currentWorkout._id}
               userId={userId}
+              workoutSets={workoutSets}
               restTimeMinutes={restTimeMinutes}
               onSetComplete={onSetComplete}
               onTimerStart={onTimerStart}
@@ -169,17 +168,17 @@ export function ActiveWorkoutView({
               getDotClassName={getDotClassName}
             />
           )}
-        </div>
 
-        <WorkoutFooter
-          currentPatternIndex={currentPatternIndex}
-          isLastPattern={isLastPattern}
-          isNextPatternDisabled={isNextPatternDisabled}
-          allSetsCompleted={allSetsCompleted}
-          onPreviousPattern={onPreviousPattern}
-          onNextPattern={onNextPattern}
-          onConcludeSession={onConcludeSession}
-        />
+          <WorkoutFooter
+            currentPatternIndex={currentPatternIndex}
+            isLastPattern={isLastPattern}
+            isNextPatternDisabled={isNextPatternDisabled}
+            allSetsCompleted={allSetsCompleted}
+            onPreviousPattern={onPreviousPattern}
+            onNextPattern={onNextPattern}
+            onConcludeSession={onConcludeSession}
+          />
+        </div>
       </div>
     </>
   )

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Doc } from '../../../../convex/_generated/dataModel'
+import type { Doc } from '@db/_generated/dataModel'
 
 interface UseSessionTimerProps {
   currentWorkout: Doc<'workouts'> | null | undefined

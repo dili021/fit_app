@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Id } from '../../../../convex/_generated/dataModel'
+import type { Id } from '@db/_generated/dataModel'
 
 /**
  * Hook for managing history view state (selected view, expanded workout, date dialog)

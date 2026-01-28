@@ -1,4 +1,4 @@
-import type { Doc } from '../../../../convex/_generated/dataModel'
+import type { Doc } from '@db/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
