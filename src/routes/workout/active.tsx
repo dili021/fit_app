@@ -115,10 +115,10 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
       selectedExerciseId &&
       workoutTemplate.template[currentPatternIndex]
       ? {
-          userId,
-          exerciseId: selectedExerciseId,
-          patternId: workoutTemplate.template[currentPatternIndex].patternId,
-        }
+        userId,
+        exerciseId: selectedExerciseId,
+        patternId: workoutTemplate.template[currentPatternIndex].patternId,
+      }
       : 'skip',
   )
 
@@ -152,16 +152,16 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
   const allSetsCompleted =
     workoutSets && workoutTemplate
       ? (() => {
-          for (const pattern of workoutTemplate.template) {
-            const patternSets = workoutSets.filter(
-              (s) => s.patternId === pattern.patternId,
-            )
-            if (patternSets.length < pattern.sets) {
-              return false
-            }
+        for (const pattern of workoutTemplate.template) {
+          const patternSets = workoutSets.filter(
+            (s) => s.patternId === pattern.patternId,
+          )
+          if (patternSets.length < pattern.sets) {
+            return false
           }
-          return true
-        })()
+        }
+        return true
+      })()
       : false
 
   // Show overview when all sets are completed (only once) - MUST be before early returns
@@ -287,19 +287,19 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
   // Check if all primary pattern sets are completed
   const allPrimarySetsCompleted = workoutSets
     ? (() => {
-        const primaryPatterns = workoutTemplate.template.filter(
-          (p) => p.isPrimary,
+      const primaryPatterns = workoutTemplate.template.filter(
+        (p) => p.isPrimary,
+      )
+      for (const pattern of primaryPatterns) {
+        const patternSets = workoutSets.filter(
+          (s) => s.patternId === pattern.patternId,
         )
-        for (const pattern of primaryPatterns) {
-          const patternSets = workoutSets.filter(
-            (s) => s.patternId === pattern.patternId,
-          )
-          if (patternSets.length < pattern.sets) {
-            return false
-          }
+        if (patternSets.length < pattern.sets) {
+          return false
         }
-        return true
-      })()
+      }
+      return true
+    })()
     : false
 
   // Check if Next Pattern button should be disabled
@@ -475,10 +475,10 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
     // Calculate total session time from workout start to now (or completedAt if completed)
     const totalSessionTime = currentWorkout.startedAt
       ? Math.floor(
-          ((currentWorkout.completedAt || Date.now()) -
-            currentWorkout.startedAt) /
-            1000,
-        )
+        ((currentWorkout.completedAt || Date.now()) -
+          currentWorkout.startedAt) /
+        1000,
+      )
       : 0
 
     return (
@@ -585,13 +585,12 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
                       return (
                         <div
                           key={index}
-                          className={`w-1.5 h-1.5 rounded-full transition-all ${
-                            isCurrent
-                              ? 'bg-primary'
-                              : isCompleted
-                                ? 'bg-green-500'
-                                : 'bg-muted'
-                          }`}
+                          className={`w-1.5 h-1.5 rounded-full transition-all ${isCurrent
+                            ? 'bg-primary'
+                            : isCompleted
+                              ? 'bg-green-500'
+                              : 'bg-muted'
+                            }`}
                           aria-label={`Pattern ${index + 1}: ${pattern.patternName}`}
                         />
                       )
@@ -659,13 +658,12 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
                     return (
                       <div
                         key={setNumber}
-                        className={`w-1.5 h-1.5 rounded-full transition-all ${
-                          isCurrent
-                            ? 'bg-primary'
-                            : isCompleted
-                              ? 'bg-green-500'
-                              : 'bg-muted'
-                        }`}
+                        className={`w-1.5 h-1.5 rounded-full transition-all ${isCurrent
+                          ? 'bg-primary'
+                          : isCompleted
+                            ? 'bg-green-500'
+                            : 'bg-muted'
+                          }`}
                         aria-label={`Set ${setNumber}`}
                       />
                     )

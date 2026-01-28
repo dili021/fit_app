@@ -130,9 +130,7 @@ function MesocyclesContent({ userId }: { userId: string }) {
             return null
           }
 
-          const completionDate =
-            startDate + totalWeeks * 7 * 24 * 60 * 60 * 1000
-          return completionDate
+          return startDate + totalWeeks * 7 * 24 * 60 * 60 * 1000
         })()
       : null
 

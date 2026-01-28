@@ -1080,7 +1080,7 @@ function ChartsView({
     // Sort by date to ensure chronological order
     const sorted = [...exerciseProgress].sort((a, b) => a.date - b.date)
 
-    const chartData = sorted.map((item) => {
+    return sorted.map((item) => {
       const dateObj = new Date(item.date)
       return {
         date: dateObj.toLocaleDateString('en-US', {
@@ -1094,8 +1094,6 @@ function ChartsView({
         sets: item.setCount,
       }
     })
-
-    return chartData
   }, [exerciseProgress])
 
   // Prepare pattern volume chart data

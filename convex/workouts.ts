@@ -267,7 +267,7 @@ export const createWorkout = mutation({
   },
   handler: async (ctx, args) => {
     const now = Date.now()
-    const workoutId = await ctx.db.insert('workouts', {
+    return await ctx.db.insert('workouts', {
       userId: args.userId,
       mesocycleId: args.mesocycleId,
       date: now,
@@ -275,8 +275,6 @@ export const createWorkout = mutation({
       completed: false,
       startedAt: now,
     })
-
-    return workoutId
   },
 })
 

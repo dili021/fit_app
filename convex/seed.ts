@@ -8,8 +8,7 @@ export const getUserIds = query({
   handler: async (ctx) => {
     // Get unique user IDs from mesocycles
     const mesocycles = await ctx.db.query('mesocycles').collect()
-    const userIds = [...new Set(mesocycles.map((m) => m.userId))]
-    return userIds
+    return [...new Set(mesocycles.map((m) => m.userId))]
   },
 })
 

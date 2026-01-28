@@ -82,15 +82,13 @@ export const createMesocycle = mutation({
       inactiveOrders.length > 0 ? Math.max(...inactiveOrders) + 1 : 0
 
     // Create new mesocycle with "planned" status
-    const mesocycleId = await ctx.db.insert('mesocycles', {
+    return await ctx.db.insert('mesocycles', {
       userId: args.userId,
       durationWeeks: args.durationWeeks,
       primaryPatterns: args.primaryPatterns,
       status: 'planned',
       order: nextOrder,
     })
-
-    return mesocycleId
   },
 })
 

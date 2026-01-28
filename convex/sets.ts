@@ -340,7 +340,7 @@ export const createSet = mutation({
       suggestedWeightChange = 'maintain'
     }
 
-    const setId = await ctx.db.insert('sets', {
+    return await ctx.db.insert('sets', {
       workoutId: args.workoutId,
       patternId: args.patternId,
       exerciseId: args.exerciseId,
@@ -352,7 +352,5 @@ export const createSet = mutation({
       duration: args.duration,
       suggestedWeightChange,
     })
-
-    return setId
   },
 })
