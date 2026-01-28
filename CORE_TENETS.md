@@ -120,6 +120,13 @@ The app controls for scientifically-backed training variables, leaving only exer
 - All non-primary patterns get 1 set/session for maintenance
 - Ensures balanced development
 
+## 16. Diagnostic Flow Onboarding
+
+- Discover a person's 1RM (one-rep max) to establish optimal hypertrophy parameters for intensity
+- Enables precise weight recommendations based on individual strength levels
+- Ensures users start with appropriate training loads for the 8-12 rep range
+- Foundation for accurate auto-progression system
+
 ---
 
 ## Summary

@@ -51,6 +51,7 @@ All demo files have been removed:
 - Improve radio buttons UI during meso setup
 - Info project - add helpful info throughout the app: why the set ranges are as they are, how progression is handled, etc. Basically explain the core tenants to the user and other potential helpful info
 - Improve exercise library and resolution: add variants (e.g. bench press - incline/decline/flat, barbell/dumbbell, etc.)
+- Diagnostic flow onboarding - discover a person's 1rm to establish optimal hypertrophy parameters for intensity
 
 ## Refactoring Tasks
 
