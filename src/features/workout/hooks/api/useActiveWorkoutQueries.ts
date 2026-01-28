@@ -1,16 +1,13 @@
+import { useMemo } from 'react'
 import { useQuery } from 'convex/react'
-import { api } from '../../../../../convex/_generated/api'
-import type { Doc, Id } from '../../../../../convex/_generated/dataModel'
+import { api } from '@db/_generated/api'
+import { calculateProgressionSuggestion } from '../utils/calculateProgressionSuggestion'
+import type { Doc, Id } from '@db/_generated/dataModel'
 
 interface UseActiveWorkoutQueriesProps {
   userId: string
   workoutId?: string
   currentWorkout: Doc<'workouts'> | null | undefined
-  workoutTemplate:
-    | { template: Array<{ patternId: Id<'patterns'> }> }
-    | null
-    | undefined
-  currentPatternIndex: number
   selectedExerciseId: Id<'exercises'> | null
 }
 
@@ -21,8 +18,6 @@ export function useActiveWorkoutQueries({
   userId,
   workoutId,
   currentWorkout,
-  workoutTemplate,
-  currentPatternIndex,
   selectedExerciseId,
 }: UseActiveWorkoutQueriesProps) {
   const activeWorkout = useQuery(api.workouts.getActiveWorkout, { userId })
@@ -49,18 +44,41 @@ export function useActiveWorkoutQueries({
     currentWorkout ? { workoutId: currentWorkout._id } : 'skip',
   )
 
-  const progressionSuggestion = useQuery(
-    api.progression.getSuggestedWeight,
-    workoutTemplate &&
-      selectedExerciseId &&
-      workoutTemplate.template[currentPatternIndex]
+  // Get last set from last completed workout (for fallback when no sets in current workout)
+  const lastCompletedWorkoutSet = useQuery(
+    api.progression.getLastSetFromLastCompletedWorkout,
+    selectedExerciseId && currentWorkout
       ? {
           userId,
           exerciseId: selectedExerciseId,
-          patternId: workoutTemplate.template[currentPatternIndex].patternId,
+          excludeWorkoutId: currentWorkout._id,
         }
       : 'skip',
   )
+
+  // Calculate suggestion from current workout's sets first (immediate updates)
+  // Fall back to last completed workout's set if no sets in current workout
+  const progressionSuggestion = useMemo(() => {
+    // First priority: current workout's last set for this exercise
+    const currentWorkoutSuggestion = calculateProgressionSuggestion(
+      workoutSets,
+      selectedExerciseId,
+    )
+
+    if (currentWorkoutSuggestion) {
+      return currentWorkoutSuggestion
+    }
+
+    // Second priority: last completed workout's last set for this exercise
+    if (lastCompletedWorkoutSet) {
+      return calculateProgressionSuggestion(
+        [lastCompletedWorkoutSet],
+        selectedExerciseId,
+      )
+    }
+
+    return null
+  }, [workoutSets, selectedExerciseId, lastCompletedWorkoutSet])
 
   return {
     activeWorkout,

@@ -1,16 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useQuery } from 'convex/react'
+import { api } from '@db/_generated/api'
 import { useSetQueries } from './api/useSetQueries'
 import { useSetMutations } from './api/useSetMutations'
 import { useWorkoutTimer } from './useWorkoutTimer'
 import { useRestTimer } from './useRestTimer'
 import { useNotificationPermission } from './useNotificationPermission'
-import type { Id } from '../../../../convex/_generated/dataModel'
+import { calculateProgressionSuggestion } from './utils/calculateProgressionSuggestion'
+import { getLastSetFromWorkout } from './utils/getLastSetFromWorkout'
+import type { Doc, Id } from '@db/_generated/dataModel'
 
 interface UseSetLoggerOptions {
   workoutId: Id<'workouts'>
   patternId: Id<'patterns'>
   exerciseId: Id<'exercises'>
   userId: string
+  workoutSets: Array<Doc<'sets'>> | undefined
   setNumber: number
   restTimeMinutes: number
   onSetComplete: () => void
@@ -28,6 +33,7 @@ export function useSetLogger({
   patternId,
   exerciseId,
   userId,
+  workoutSets,
   setNumber,
   restTimeMinutes,
   onSetComplete,
@@ -42,12 +48,61 @@ export function useSetLogger({
   const [weight, setWeight] = useState<string>('')
   const [reps, setReps] = useState<string>('')
 
-  // Convex queries
-  const { lastSet, suggestedWeight } = useSetQueries(
+  // Convex queries (for fallback when no sets in current workout)
+  const { lastSet: fallbackLastSet } = useSetQueries(
     exerciseId,
     userId,
     patternId,
   )
+
+  // Get last set from last completed workout (for fallback)
+  const lastCompletedWorkoutSet = useQuery(
+    api.progression.getLastSetFromLastCompletedWorkout,
+    exerciseId && workoutId
+      ? {
+          userId,
+          exerciseId,
+          excludeWorkoutId: workoutId,
+        }
+      : 'skip',
+  )
+
+  // Get last set from current workout first (most up-to-date)
+  // Fall back to last completed workout's set, then historical query
+  const lastSet = useMemo(() => {
+    const currentWorkoutLastSet = getLastSetFromWorkout(workoutSets, exerciseId)
+    if (currentWorkoutLastSet) {
+      return currentWorkoutLastSet
+    }
+    if (lastCompletedWorkoutSet) {
+      return lastCompletedWorkoutSet
+    }
+    return fallbackLastSet ?? null
+  }, [workoutSets, exerciseId, lastCompletedWorkoutSet, fallbackLastSet])
+
+  // Calculate suggestion from current workout's sets first (immediate updates)
+  // Fall back to last completed workout's set if no sets in current workout
+  const suggestedWeight = useMemo(() => {
+    // First priority: current workout's last set for this exercise
+    const currentWorkoutSuggestion = calculateProgressionSuggestion(
+      workoutSets,
+      exerciseId,
+    )
+
+    if (currentWorkoutSuggestion) {
+      return currentWorkoutSuggestion
+    }
+
+    // Second priority: last completed workout's last set for this exercise
+    if (lastCompletedWorkoutSet) {
+      return calculateProgressionSuggestion(
+        [lastCompletedWorkoutSet],
+        exerciseId,
+      )
+    }
+
+    return null
+  }, [workoutSets, exerciseId, lastCompletedWorkoutSet])
   const { createSet } = useSetMutations()
 
   // Notification permission
