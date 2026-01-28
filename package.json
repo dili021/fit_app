@@ -11,7 +11,7 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "format": "prettier --check .",
-    "qg": "tsc --noEmit && prettier . && eslint",
+    "qg": "tsc --noEmit && prettier . --check && eslint",
     "qgf": "tsc --noEmit && prettier --write . && eslint --fix",
     "qg:errors-only": "tsc --noEmit && prettier . && eslint --max-warnings=999999"
   },

@@ -1,5 +1,26 @@
 import { v } from 'convex/values'
 import { mutation, query } from './_generated/server'
+import {
+  calculateCurrentWeekFromStart,
+  shouldCompleteDeloadWeek,
+  shouldEnterDeloadWeek,
+  shouldUpdateCurrentWeek,
+} from './mesocycleStatusHelpers'
+import { compareMesocycles } from './mesocycleSortHelpers'
+import {
+  activateMesocycleWithParams,
+  canActivateMesocycle,
+  hasActiveMesocycle,
+} from './mesocycleActivationHelpers'
+import {
+  buildUserIdQuery,
+  buildUserIdStatusQuery,
+} from './mesocycleQueryHelpers'
+import {
+  getStatusInfoBeforeStart,
+  getStatusInfoForActiveMesocycle,
+  getStatusInfoWithoutStartDate,
+} from './mesocycleStatusInfoHelpers'
 
 const ERROR_MESOCYCLE_NOT_FOUND = 'Mesocycle not found'
 
@@ -9,12 +30,11 @@ const ERROR_MESOCYCLE_NOT_FOUND = 'Mesocycle not found'
 export const getActiveMesocycle = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db
-      .query('mesocycles')
-      .withIndex('userId_status', (q) =>
-        q.eq('userId', args.userId).eq('status', 'active'),
-      )
-      .first()
+    const mesocycleQuery = ctx.db.query('mesocycles')
+    const indexedQuery = mesocycleQuery.withIndex('userId_status', (q) =>
+      buildUserIdStatusQuery(q, args.userId, 'active'),
+    )
+    return await indexedQuery.first()
   },
 })
 
@@ -35,27 +55,14 @@ export const getMesocycleById = query({
 export const getAllMesocycles = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
-    const allMesocycles = await ctx.db
-      .query('mesocycles')
-      .withIndex('userId', (q) => q.eq('userId', args.userId))
-      .collect()
+    const mesocycleQuery = ctx.db.query('mesocycles')
+    const indexedQuery = mesocycleQuery.withIndex('userId', (q) =>
+      buildUserIdQuery(q, args.userId),
+    )
+    const allMesocycles = await indexedQuery.collect()
 
     // Sort: active first, then by order field (ascending), then by creation time
-    return allMesocycles.sort((a, b) => {
-      // Active mesocycle always first
-      if (a.status === 'active' && b.status !== 'active') return -1
-      if (b.status === 'active' && a.status !== 'active') return 1
-
-      // For non-active mesocycles, sort by order field
-      if (a.status !== 'active' && b.status !== 'active') {
-        const orderA = a.order ?? 0
-        const orderB = b.order ?? 0
-        if (orderA !== orderB) return orderA - orderB
-      }
-
-      // Fallback to creation time (descending)
-      return b._creationTime - a._creationTime
-    })
+    return allMesocycles.sort(compareMesocycles)
   },
 })
 
@@ -71,10 +78,11 @@ export const createMesocycle = mutation({
   },
   handler: async (ctx, args) => {
     // Get the highest order value for inactive mesocycles to append new one
-    const inactiveMesocycles = await ctx.db
-      .query('mesocycles')
-      .withIndex('userId', (q) => q.eq('userId', args.userId))
-      .collect()
+    const mesocycleQuery = ctx.db.query('mesocycles')
+    const indexedQuery = mesocycleQuery.withIndex('userId', (q) =>
+      buildUserIdQuery(q, args.userId),
+    )
+    const inactiveMesocycles = await indexedQuery.collect()
 
     const inactiveOrders = inactiveMesocycles
       .filter((m) => m.status !== 'active' && m.order !== undefined)
@@ -113,34 +121,24 @@ export const activateMesocycle = mutation({
       throw new Error(ERROR_MESOCYCLE_NOT_FOUND)
     }
 
-    if (mesocycle.status !== 'planned') {
+    if (!canActivateMesocycle(mesocycle)) {
       throw new Error('Can only activate planned mesocycles')
     }
 
     // Check if there's already an active mesocycle
-    const existingActive = await ctx.db
-      .query('mesocycles')
-      .withIndex('userId_status', (q) =>
-        q.eq('userId', mesocycle.userId).eq('status', 'active'),
-      )
-      .first()
-
-    if (existingActive) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (await hasActiveMesocycle(ctx as any, mesocycle.userId)) {
       throw new Error(
         'Cannot activate a mesocycle while another is active. Please conclude the active mesocycle first.',
       )
     }
 
     // Activate the mesocycle
-    await ctx.db.patch(args.mesocycleId, {
-      status: 'active',
-      startDate: Date.now(),
+    await activateMesocycleWithParams(ctx, args.mesocycleId, {
       sessionsPerWeek: args.sessionsPerWeek,
       targetSetsPerWeek: args.targetSetsPerWeek,
       restTimeMinutes: args.restTimeMinutes,
       wasPreviouslyTraining: args.wasPreviouslyTraining,
-      currentWeek: 1,
-      order: undefined, // Clear order when activated (active is always first)
     })
 
     return args.mesocycleId
@@ -214,10 +212,11 @@ export const reorderMesocycles = mutation({
 export const getPreviousMesocycleRestTime = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
-    const mesocycles = await ctx.db
-      .query('mesocycles')
-      .withIndex('userId', (q) => q.eq('userId', args.userId))
-      .collect()
+    const mesocycleQuery = ctx.db.query('mesocycles')
+    const indexedQuery = mesocycleQuery.withIndex('userId', (q) =>
+      buildUserIdQuery(q, args.userId),
+    )
+    const mesocycles = await indexedQuery.collect()
 
     // Find most recent completed mesocycle with restTimeMinutes
     const completedMesocycles = mesocycles
@@ -315,7 +314,6 @@ export const checkAndUpdateMesocycleStatus = mutation({
       }
     }
 
-    // Can only check status for active or deload mesocycles with startDate
     if (
       !mesocycle.startDate ||
       (mesocycle.status !== 'active' && mesocycle.status !== 'deload')
@@ -327,11 +325,9 @@ export const checkAndUpdateMesocycleStatus = mutation({
       }
     }
 
-    // Calculate current week
     const now = Date.now()
     const elapsed = now - mesocycle.startDate
 
-    // If mesocycle hasn't started yet (startDate is in the future), don't update status
     if (elapsed < 0) {
       return {
         status: mesocycle.status,
@@ -341,13 +337,12 @@ export const checkAndUpdateMesocycleStatus = mutation({
     }
 
     const weeksElapsed = Math.floor(elapsed / (7 * 24 * 60 * 60 * 1000))
-    const currentWeek = Math.min(weeksElapsed + 1, mesocycle.durationWeeks)
+    const currentWeek = calculateCurrentWeekFromStart(
+      mesocycle.startDate,
+      mesocycle.durationWeeks,
+    )
 
-    // Check if we've entered the final week (deload week)
-    if (
-      currentWeek === mesocycle.durationWeeks &&
-      mesocycle.status === 'active'
-    ) {
+    if (shouldEnterDeloadWeek(mesocycle, currentWeek)) {
       await ctx.db.patch(args.mesocycleId, {
         status: 'deload',
         currentWeek,
@@ -355,14 +350,10 @@ export const checkAndUpdateMesocycleStatus = mutation({
       return { status: 'deload', action: 'entered_deload', currentWeek }
     }
 
-    // Check if deload week has ended (more than durationWeeks weeks have passed)
-    // Only mark as completed if we're actually past the end date
-    // Refetch mesocycle to get updated status (in case it was just changed to deload above)
     const updatedMesocycle = await ctx.db.get(args.mesocycleId)
     if (
       updatedMesocycle &&
-      weeksElapsed >= updatedMesocycle.durationWeeks &&
-      updatedMesocycle.status === 'deload'
+      shouldCompleteDeloadWeek(updatedMesocycle, weeksElapsed)
     ) {
       await ctx.db.patch(args.mesocycleId, {
         status: 'completed',
@@ -375,11 +366,7 @@ export const checkAndUpdateMesocycleStatus = mutation({
       }
     }
 
-    // Update current week if still active
-    if (
-      mesocycle.status === 'active' &&
-      currentWeek !== mesocycle.currentWeek
-    ) {
+    if (shouldUpdateCurrentWeek(mesocycle, currentWeek)) {
       await ctx.db.patch(args.mesocycleId, { currentWeek })
       return { status: 'active', action: 'updated_week', currentWeek }
     }
@@ -401,45 +388,17 @@ export const getMesocycleStatusInfo = query({
       throw new Error(ERROR_MESOCYCLE_NOT_FOUND)
     }
 
-    // Calculate current week (only if mesocycle is active)
     if (!mesocycle.startDate) {
-      return {
-        status: mesocycle.status,
-        currentWeek: undefined,
-        durationWeeks: mesocycle.durationWeeks,
-        isDeloadWeek: false,
-        isPastDeload: false,
-        needsCompletion: false,
-      }
+      return getStatusInfoWithoutStartDate(mesocycle)
     }
 
     const now = Date.now()
     const elapsed = now - mesocycle.startDate
 
-    // If mesocycle hasn't started yet (startDate is in the future), return early
     if (elapsed < 0) {
-      return {
-        status: mesocycle.status,
-        currentWeek: 1,
-        durationWeeks: mesocycle.durationWeeks,
-        isDeloadWeek: false,
-        isPastDeload: false,
-        needsCompletion: false,
-      }
+      return getStatusInfoBeforeStart(mesocycle)
     }
 
-    const weeksElapsed = Math.floor(elapsed / (7 * 24 * 60 * 60 * 1000))
-    const currentWeek = Math.min(weeksElapsed + 1, mesocycle.durationWeeks)
-    const isDeloadWeek = currentWeek === mesocycle.durationWeeks
-    const isPastDeload = weeksElapsed >= mesocycle.durationWeeks
-
-    return {
-      status: mesocycle.status,
-      currentWeek,
-      durationWeeks: mesocycle.durationWeeks,
-      isDeloadWeek,
-      isPastDeload,
-      needsCompletion: mesocycle.status === 'deload' && isPastDeload,
-    }
+    return getStatusInfoForActiveMesocycle(mesocycle, elapsed)
   },
 })

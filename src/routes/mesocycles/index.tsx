@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useMutation, useQuery } from 'convex/react'
-import { Calendar, Plus } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
@@ -9,16 +8,12 @@ import { useAuth } from '@/hooks/useAuth'
 import { CreateMesocycleDialog } from '@/components/mesocycle/CreateMesocycleDialog'
 import { ActivateMesocycleDialog } from '@/components/mesocycle/ActivateMesocycleDialog'
 import { MesocycleList } from '@/components/mesocycle/MesocycleList'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { MacrocycleCompletionCard } from '@/features/mesocycle/components/MacrocycleCompletionCard'
+import { MesocycleEmptyState } from '@/features/mesocycle/components/MesocycleEmptyState'
+import { CreateMesocycleButton } from '@/features/mesocycle/components/CreateMesocycleButton'
+import { ConcludeMesocycleDialog } from '@/features/mesocycle/components/ConcludeMesocycleDialog'
+import { MesocyclesLoadingState } from '@/features/mesocycle/components/MesocyclesLoadingState'
+import { useMacrocycleCompletion } from '@/features/mesocycle/hooks/useMacrocycleCompletion'
 
 export const Route = createFileRoute('/mesocycles/')({
   component: MesocyclesPage,
@@ -92,80 +87,21 @@ function MesocyclesContent({ userId }: { userId: string }) {
     }
   }
 
-  // Calculate macrocycle completion time (only for active and planned)
-  const macrocycleCompletion =
-    planningMesocycles.length > 0
-      ? (() => {
-          const activeMesocycle = planningMesocycles.find(
-            (m) => m.status === 'active',
-          )
-          const plannedMesocycles = planningMesocycles.filter(
-            (m) => m.status === 'planned',
-          )
-
-          if (!activeMesocycle && plannedMesocycles.length === 0) {
-            return null
-          }
-
-          let startDate: number
-          let totalWeeks = 0
-
-          if (activeMesocycle?.startDate) {
-            // If there's an active mesocycle, start from its start date
-            startDate = activeMesocycle.startDate
-            totalWeeks += activeMesocycle.durationWeeks
-
-            // Add planned mesocycles
-            plannedMesocycles.forEach((m) => {
-              totalWeeks += m.durationWeeks
-            })
-          } else if (plannedMesocycles.length > 0) {
-            // If no active mesocycle, estimate from today
-            startDate = Date.now()
-            plannedMesocycles.forEach((m) => {
-              totalWeeks += m.durationWeeks
-            })
-          } else {
-            return null
-          }
-
-          return startDate + totalWeeks * 7 * 24 * 60 * 60 * 1000
-        })()
-      : null
-
-  const formatCompletionDate = (timestamp: number) => {
-    const date = new Date(timestamp)
-    return date.toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  }
+  const macrocycleCompletion = useMacrocycleCompletion(planningMesocycles)
 
   const isLoading = mesocycles === undefined || patterns === undefined
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
-        </div>
-      </div>
-    )
+    return <MesocyclesLoadingState />
   }
 
   const hasMesocycles = planningMesocycles.length > 0
   const activeMesocycle = planningMesocycles.find((m) => m.status === 'active')
   const hasActiveMesocycle = !!activeMesocycle
 
-  // Check if mesocycle to conclude is finished
   const mesocycleToConcludeData = mesocycleToConclude
     ? planningMesocycles.find((m) => m._id === mesocycleToConclude)
     : null
-  const isMesocycleFinished = mesocycleToConcludeData
-    ? (mesocycleToConcludeData.currentWeek ?? 0) >=
-      mesocycleToConcludeData.durationWeeks
-    : false
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -176,49 +112,13 @@ function MesocyclesContent({ userId }: { userId: string }) {
         </p>
       </div>
 
-      {/* Macrocycle Completion Time */}
       {macrocycleCompletion && (
-        <Card className="mb-6 border-primary/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <Calendar className="h-5 w-5 text-primary" />
-              <div>
-                <div className="font-semibold">Macrocycle Completion</div>
-                <div className="text-sm text-muted-foreground">
-                  Estimated completion:{' '}
-                  {formatCompletionDate(macrocycleCompletion)}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <MacrocycleCompletionCard completionDate={macrocycleCompletion} />
       )}
 
-      {/* Empty State */}
-      {!hasMesocycles && (
-        <Card className="border-2 border-dashed">
-          <CardContent className="pt-12 pb-12 text-center">
-            <div className="space-y-4">
-              <div className="text-4xl">📋</div>
-              <div>
-                <h3 className="text-xl font-semibold mb-2">
-                  Create your first mesocycle
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  Start planning your training cycle by creating a mesocycle
-                </p>
-                <Button onClick={() => setCreateDialogOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Mesocycle
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Single or Multiple Mesocycles State */}
-      {hasMesocycles && (
+      {!hasMesocycles ? (
+        <MesocycleEmptyState onCreateClick={() => setCreateDialogOpen(true)} />
+      ) : (
         <div className="space-y-6">
           <MesocycleList
             mesocycles={planningMesocycles}
@@ -228,20 +128,9 @@ function MesocyclesContent({ userId }: { userId: string }) {
             userId={userId}
             hasActiveMesocycle={hasActiveMesocycle}
           />
-
-          {/* Create New Mesocycle Section */}
-          <Card className="border-2 border-dashed">
-            <CardContent className="pt-6 pb-6 text-center">
-              <Button
-                variant="outline"
-                onClick={() => setCreateDialogOpen(true)}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Create New Mesocycle
-              </Button>
-            </CardContent>
-          </Card>
+          <CreateMesocycleButton
+            onCreateClick={() => setCreateDialogOpen(true)}
+          />
         </div>
       )}
 
@@ -263,50 +152,17 @@ function MesocyclesContent({ userId }: { userId: string }) {
         />
       )}
 
-      {/* Conclude Confirmation Dialog */}
-      <Dialog open={concludeDialogOpen} onOpenChange={setConcludeDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {isMesocycleFinished
-                ? 'Conclude Mesocycle?'
-                : 'Conclude Mesocycle Early?'}
-            </DialogTitle>
-            <DialogDescription>
-              {isMesocycleFinished ? (
-                'This mesocycle has completed its duration. Conclude it to mark it as completed?'
-              ) : (
-                <>
-                  This mesocycle is not yet finished (Week{' '}
-                  {mesocycleToConcludeData?.currentWeek ?? 0} of{' '}
-                  {mesocycleToConcludeData?.durationWeeks ?? 0}).
-                  <br />
-                  <strong>Are you sure you want to conclude it early?</strong>
-                </>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setConcludeDialogOpen(false)
-                setMesocycleToConclude(null)
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                void handleConcludeConfirm()
-              }}
-            >
-              Conclude Mesocycle
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConcludeMesocycleDialog
+        open={concludeDialogOpen}
+        onOpenChange={(open) => {
+          setConcludeDialogOpen(open)
+          if (!open) setMesocycleToConclude(null)
+        }}
+        mesocycle={mesocycleToConcludeData ?? null}
+        onConfirm={() => {
+          void handleConcludeConfirm()
+        }}
+      />
     </div>
   )
 }

@@ -1,6 +1,6 @@
 {
-    "editor.codeActionsOnSave": {
-        "source.organizeImports": "always",
-        "source.addMissingImports": "always"
-    }
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "always",
+    "source.addMissingImports": "always"
+  }
 }

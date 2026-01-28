@@ -1,7 +1,11 @@
 import { v } from 'convex/values'
 import { paginationOptsValidator } from 'convex/server'
 import { mutation, query } from './_generated/server'
-import type { Id } from './_generated/dataModel'
+import {
+  buildCurrentWeekTemplate,
+  buildWeek1Template,
+  calculateSetsMultiplier,
+} from './workoutTemplateHelpers'
 
 /**
  * Get recent workouts for a user (last N workouts)
@@ -124,47 +128,22 @@ export const generateWorkoutTemplate = query({
     const now = Date.now()
     const elapsed = now - startDate
 
+    // Get all patterns (needed for both paths)
+    const allPatterns = await ctx.db.query('patterns').order('asc').collect()
+
     // If mesocycle hasn't started yet, return week 1 template
     if (elapsed < 0) {
-      const numPrimaryPatterns = mesocycle.primaryPatterns.length
-      const setsPerPrimaryPatternPerWeek = Math.round(
-        targetSetsPerWeek / numPrimaryPatterns,
+      const template = buildWeek1Template(
+        mesocycle,
+        allPatterns,
+        targetSetsPerWeek,
+        sessionsPerWeek,
       )
+
       const setsPerPrimaryPatternPerSession = Math.floor(
-        setsPerPrimaryPatternPerWeek / sessionsPerWeek,
+        Math.round(targetSetsPerWeek / mesocycle.primaryPatterns.length) /
+          sessionsPerWeek,
       )
-
-      const allPatterns = await ctx.db.query('patterns').order('asc').collect()
-      const template: Array<{
-        patternId: Id<'patterns'>
-        patternName: string
-        sets: number
-        isPrimary: boolean
-      }> = []
-
-      for (const patternId of mesocycle.primaryPatterns) {
-        const pattern = allPatterns.find((p) => p._id === patternId)
-        if (pattern) {
-          template.push({
-            patternId,
-            patternName: pattern.displayName,
-            sets: setsPerPrimaryPatternPerSession,
-            isPrimary: true,
-          })
-        }
-      }
-
-      const maintenancePatterns = allPatterns.filter(
-        (p) => !mesocycle.primaryPatterns.includes(p._id),
-      )
-      for (const pattern of maintenancePatterns) {
-        template.push({
-          patternId: pattern._id,
-          patternName: pattern.displayName,
-          sets: 1,
-          isPrimary: false,
-        })
-      }
 
       return {
         template,
@@ -175,76 +154,34 @@ export const generateWorkoutTemplate = query({
       }
     }
 
+    // Calculate current week
     const weeksElapsed = Math.floor(elapsed / (7 * 24 * 60 * 60 * 1000))
     const currentWeek = Math.min(weeksElapsed + 1, mesocycle.durationWeeks)
-
-    // Check if it's the final week (deload week)
     const isDeloadWeek = currentWeek === mesocycle.durationWeeks
 
-    // Calculate build-up percentage if needed
-    let setsMultiplier = 1.0
-    if (mesocycle.wasPreviouslyTraining === false) {
-      if (currentWeek <= 2) {
-        setsMultiplier = 0.5
-      } else if (currentWeek <= 4) {
-        setsMultiplier = 0.75
-      }
-      // Week 5+ uses 1.0 (full volume)
-    }
+    // Calculate sets multiplier
+    const setsMultiplier = calculateSetsMultiplier(
+      mesocycle.wasPreviouslyTraining ?? true,
+      currentWeek,
+      isDeloadWeek,
+    )
 
-    // Apply deload reduction (50% of current volume) in final week
-    if (isDeloadWeek) {
-      setsMultiplier *= 0.5
-    }
+    // Build template for current week
+    const template = buildCurrentWeekTemplate({
+      mesocycle,
+      allPatterns,
+      targetSetsPerWeek,
+      sessionsPerWeek,
+      setsMultiplier,
+    })
 
-    // Calculate sets per primary pattern per week (with build-up)
     const numPrimaryPatterns = mesocycle.primaryPatterns.length
     const setsPerPrimaryPatternPerWeek = Math.round(
       (targetSetsPerWeek / numPrimaryPatterns) * setsMultiplier,
     )
-
-    // Calculate sets per primary pattern per session
     const setsPerPrimaryPatternPerSession = Math.floor(
       setsPerPrimaryPatternPerWeek / sessionsPerWeek,
     )
-
-    // Get all patterns
-    const allPatterns = await ctx.db.query('patterns').order('asc').collect()
-
-    // Build template: primary patterns first, then maintenance patterns
-    const template: Array<{
-      patternId: Id<'patterns'>
-      patternName: string
-      sets: number
-      isPrimary: boolean
-    }> = []
-
-    // Add primary patterns
-    for (const patternId of mesocycle.primaryPatterns) {
-      const pattern = allPatterns.find((p) => p._id === patternId)
-      if (pattern) {
-        template.push({
-          patternId,
-          patternName: pattern.displayName,
-          sets: setsPerPrimaryPatternPerSession,
-          isPrimary: true,
-        })
-      }
-    }
-
-    // Add maintenance patterns (all other patterns)
-    const maintenancePatterns = allPatterns.filter(
-      (p) => !mesocycle.primaryPatterns.includes(p._id),
-    )
-    // Maintenance patterns get 1-2 sets per session (simplified for now)
-    for (const pattern of maintenancePatterns) {
-      template.push({
-        patternId: pattern._id,
-        patternName: pattern.displayName,
-        sets: 1, // Maintenance sets
-        isPrimary: false,
-      })
-    }
 
     return {
       template,

@@ -13,7 +13,7 @@ function MesocycleSetupRedirect() {
 
   useEffect(() => {
     if (!isPending) {
-      navigate({ to: '/mesocycles' })
+      void navigate({ to: '/mesocycles' })
     }
   }, [navigate, isPending])
 

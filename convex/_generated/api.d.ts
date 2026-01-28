@@ -11,11 +11,23 @@
 import type * as auth from "../auth.js";
 import type * as exercises from "../exercises.js";
 import type * as http from "../http.js";
+import type * as mesocycleActivationHelpers from "../mesocycleActivationHelpers.js";
+import type * as mesocycleQueryHelpers from "../mesocycleQueryHelpers.js";
+import type * as mesocycleSortHelpers from "../mesocycleSortHelpers.js";
+import type * as mesocycleStatusHelpers from "../mesocycleStatusHelpers.js";
+import type * as mesocycleStatusInfoHelpers from "../mesocycleStatusInfoHelpers.js";
 import type * as mesocycles from "../mesocycles.js";
 import type * as patterns from "../patterns.js";
 import type * as progression from "../progression.js";
 import type * as seed from "../seed.js";
+import type * as seedHelpers from "../seedHelpers.js";
+import type * as seedManyWorkoutsHelpers from "../seedManyWorkoutsHelpers.js";
+import type * as seedManyWorkoutsSetupHelpers from "../seedManyWorkoutsSetupHelpers.js";
+import type * as seedMesocycleHelpers from "../seedMesocycleHelpers.js";
+import type * as seedWorkoutCreationHelpers from "../seedWorkoutCreationHelpers.js";
+import type * as seedWorkoutHelpers from "../seedWorkoutHelpers.js";
 import type * as sets from "../sets.js";
+import type * as workoutTemplateHelpers from "../workoutTemplateHelpers.js";
 import type * as workouts from "../workouts.js";
 
 import type {
@@ -28,11 +40,23 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   exercises: typeof exercises;
   http: typeof http;
+  mesocycleActivationHelpers: typeof mesocycleActivationHelpers;
+  mesocycleQueryHelpers: typeof mesocycleQueryHelpers;
+  mesocycleSortHelpers: typeof mesocycleSortHelpers;
+  mesocycleStatusHelpers: typeof mesocycleStatusHelpers;
+  mesocycleStatusInfoHelpers: typeof mesocycleStatusInfoHelpers;
   mesocycles: typeof mesocycles;
   patterns: typeof patterns;
   progression: typeof progression;
   seed: typeof seed;
+  seedHelpers: typeof seedHelpers;
+  seedManyWorkoutsHelpers: typeof seedManyWorkoutsHelpers;
+  seedManyWorkoutsSetupHelpers: typeof seedManyWorkoutsSetupHelpers;
+  seedMesocycleHelpers: typeof seedMesocycleHelpers;
+  seedWorkoutCreationHelpers: typeof seedWorkoutCreationHelpers;
+  seedWorkoutHelpers: typeof seedWorkoutHelpers;
   sets: typeof sets;
+  workoutTemplateHelpers: typeof workoutTemplateHelpers;
   workouts: typeof workouts;
 }>;
 

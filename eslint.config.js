@@ -15,7 +15,7 @@ export default [
   },
   {
     plugins: {
-      sonarjs
+      sonarjs,
     },
     rules: {
       // Default rules
@@ -58,8 +58,18 @@ export default [
         },
       ],
       '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-floating-promises': 'error',
-      '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/no-floating-promises': [
+        'error',
+        {
+          ignoreVoid: true,
+        },
+      ],
+      '@typescript-eslint/no-misused-promises': [
+        'error',
+        {
+          checksVoidReturn: false,
+        },
+      ],
       '@typescript-eslint/explicit-function-return-type': 'off',
     },
   },
@@ -70,7 +80,7 @@ export default [
       'sonarjs/cognitive-complexity': ['error', 12],
       'max-lines-per-function': ['error', 200],
       'max-params': ['error', 3],
-    }
+    },
   },
   // Hook rules
   {

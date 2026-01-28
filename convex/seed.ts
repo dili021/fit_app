@@ -1,7 +1,21 @@
+/* eslint-disable max-lines */
 import { v } from 'convex/values'
 import { mutation, query } from './_generated/server'
+import {
+  buildExerciseMap,
+  createMesocycle1,
+  createMesocycle2,
+  createMesocycle3,
+  validatePatterns,
+} from './seedMesocycleHelpers'
+import {
+  createMesocycle1Workouts,
+  createMesocycle2Workouts,
+  createMesocycle3Workouts,
+} from './seedWorkoutCreationHelpers'
+import { setupSeedManyWorkoutsData } from './seedManyWorkoutsSetupHelpers'
+import { createManyWorkouts } from './seedManyWorkoutsHelpers'
 import type { Id } from './_generated/dataModel'
-import type { Doc } from './_generated/dataModel'
 
 /**
  * Get all user IDs (for seeding purposes)
@@ -382,32 +396,9 @@ export const seedUserWorkoutData = mutation({
     }
 
     const patternMap = new Map(patterns.map((p) => [p.name, p._id]))
-
-    // Validate required patterns exist
-    const pushPatternId = patternMap.get('push')
-    const pullPatternId = patternMap.get('pull')
-    const squatPatternId = patternMap.get('squat')
-    const hingePatternId = patternMap.get('hinge')
-
-    if (
-      !pushPatternId ||
-      !pullPatternId ||
-      !squatPatternId ||
-      !hingePatternId
-    ) {
-      throw new Error(
-        `Missing required patterns. Found: ${Array.from(patternMap.keys()).join(', ')}`,
-      )
-    }
-
-    const exerciseMap = new Map<string, Doc<'exercises'>>()
-    exercises.forEach((e) => {
-      const pattern = patterns.find((p) => p._id === e.patternId)
-      if (pattern) {
-        const key = `${pattern.name}:${e.name}`
-        exerciseMap.set(key, e)
-      }
-    })
+    const { pushPatternId, pullPatternId, squatPatternId, hingePatternId } =
+      validatePatterns(patternMap)
+    const exerciseMap = buildExerciseMap(exercises, patterns)
 
     const now = Date.now()
     const oneWeekMs = 7 * 24 * 60 * 60 * 1000
@@ -415,235 +406,72 @@ export const seedUserWorkoutData = mutation({
 
     // Mesocycle 1: Push + Pull (6 weeks, completed)
     const meso1Start = now - 8 * oneWeekMs // Started 8 weeks ago
-    const meso1Id = await ctx.db.insert('mesocycles', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const meso1Id = await createMesocycle1(ctx as any, {
       userId: args.userId,
-      name: 'Push + Pull Focus',
-      startDate: meso1Start,
-      durationWeeks: 6,
-      primaryPatterns: [pushPatternId, pullPatternId],
-      targetSetsPerWeek: 15,
-      sessionsPerWeek: 3,
-      wasPreviouslyTraining: true,
-      restTimeMinutes: 3,
-      status: 'completed',
-      currentWeek: 6,
+      meso1Start,
+      pushPatternId,
+      pullPatternId,
     })
 
     // Create workouts for mesocycle 1 (3 sessions/week for 6 weeks = 18 workouts)
     // Reduced to 2 weeks for faster seeding (6 workouts)
-    const meso1Workouts = []
-    for (let week = 1; week <= 2; week++) {
-      for (let session = 0; session < 3; session++) {
-        const workoutDate =
-          meso1Start + (week - 1) * oneWeekMs + session * 2 * oneDayMs
-        const startedAt = workoutDate
-        const completedAt = startedAt + (45 + Math.random() * 30) * 60 * 1000 // 45-75 min workouts
-
-        const workoutId = await ctx.db.insert('workouts', {
-          userId: args.userId,
-          mesocycleId: meso1Id,
-          date: workoutDate,
-          weekNumber: week,
-          completed: true,
-          startedAt,
-          completedAt,
-        })
-
-        // Add sets for Push pattern (Bench Press)
-        const benchPress = exerciseMap.get('push:Bench Press')
-        if (benchPress) {
-          const baseWeight = 80 + week * 2.5 // Progressive overload
-          for (let set = 1; set <= 5; set++) {
-            const weight = baseWeight + (set === 1 ? -5 : 0) // First set lighter
-            const reps = 8 + Math.floor(Math.random() * 3) // 8-10 reps
-            const setStart = startedAt + set * 3 * 60 * 1000 // 3 min between sets
-            const setEnd = setStart + (30 + Math.random() * 20) * 1000 // 30-50 sec per set
-
-            await ctx.db.insert('sets', {
-              workoutId,
-              patternId: pushPatternId,
-              exerciseId: benchPress._id,
-              weight: Math.round(weight * 10) / 10,
-              reps,
-              orderInWorkout: (set - 1) * 2 + 1,
-              startTime: setStart,
-              endTime: setEnd,
-              duration: Math.floor((setEnd - setStart) / 1000),
-            })
-          }
-        }
-
-        // Add sets for Pull pattern (Pull-ups)
-        const pullUps = exerciseMap.get('pull:Pull-ups')
-        if (pullUps) {
-          const baseReps = 8 + week // Progressive overload
-          for (let set = 1; set <= 4; set++) {
-            const reps = baseReps + Math.floor(Math.random() * 2)
-            const setStart = startedAt + (5 + set) * 3 * 60 * 1000
-            const setEnd = setStart + (20 + Math.random() * 15) * 1000
-
-            await ctx.db.insert('sets', {
-              workoutId,
-              patternId: pullPatternId,
-              exerciseId: pullUps._id,
-              weight: 0, // Bodyweight
-              reps,
-              orderInWorkout: set * 2,
-              startTime: setStart,
-              endTime: setEnd,
-              duration: Math.floor((setEnd - setStart) / 1000),
-            })
-          }
-        }
-
-        meso1Workouts.push(workoutId)
-      }
-    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const meso1Workouts = await createMesocycle1Workouts(ctx as any, {
+      userId: args.userId,
+      meso1Id,
+      meso1Start,
+      oneWeekMs,
+      oneDayMs,
+      exerciseMap,
+      pushPatternId,
+      pullPatternId,
+    })
 
     // Mesocycle 2: Squat + Hinge (4 weeks, completed)
     const meso2Start = now - 4 * oneWeekMs // Started 4 weeks ago
-    const meso2Id = await ctx.db.insert('mesocycles', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const meso2Id = await createMesocycle2(ctx as any, {
       userId: args.userId,
-      name: 'Leg Strength Focus',
-      startDate: meso2Start,
-      durationWeeks: 4,
-      primaryPatterns: [squatPatternId, hingePatternId],
-      targetSetsPerWeek: 12,
-      sessionsPerWeek: 2,
-      wasPreviouslyTraining: true,
-      restTimeMinutes: 4,
-      status: 'completed',
-      currentWeek: 4,
+      meso2Start,
+      squatPatternId,
+      hingePatternId,
     })
 
     // Create workouts for mesocycle 2 (2 sessions/week for 4 weeks = 8 workouts)
     // Reduced to 2 weeks for faster seeding (4 workouts)
-    for (let week = 1; week <= 2; week++) {
-      for (let session = 0; session < 2; session++) {
-        const workoutDate =
-          meso2Start + (week - 1) * oneWeekMs + session * 3 * oneDayMs
-        const startedAt = workoutDate
-        const completedAt = startedAt + (50 + Math.random() * 25) * 60 * 1000
-
-        const workoutId = await ctx.db.insert('workouts', {
-          userId: args.userId,
-          mesocycleId: meso2Id,
-          date: workoutDate,
-          weekNumber: week,
-          completed: true,
-          startedAt,
-          completedAt,
-        })
-
-        // Add sets for Squat pattern (Back Squat)
-        const backSquat = exerciseMap.get('squat:Back Squat')
-        if (backSquat) {
-          const baseWeight = 100 + week * 5
-          for (let set = 1; set <= 4; set++) {
-            const weight = baseWeight + (set === 1 ? -10 : 0)
-            const reps = 6 + Math.floor(Math.random() * 2)
-            const setStart = startedAt + set * 4 * 60 * 1000 // 4 min rest
-            const setEnd = setStart + (40 + Math.random() * 20) * 1000
-
-            await ctx.db.insert('sets', {
-              workoutId,
-              patternId: squatPatternId,
-              exerciseId: backSquat._id,
-              weight: Math.round(weight * 10) / 10,
-              reps,
-              orderInWorkout: set,
-              startTime: setStart,
-              endTime: setEnd,
-              duration: Math.floor((setEnd - setStart) / 1000),
-            })
-          }
-        }
-
-        // Add sets for Hinge pattern (Deadlift)
-        const deadlift = exerciseMap.get('hinge:Deadlift')
-        if (deadlift) {
-          const baseWeight = 140 + week * 5
-          for (let set = 1; set <= 3; set++) {
-            const weight = baseWeight + (set === 1 ? -10 : 0)
-            const reps = 5 + Math.floor(Math.random() * 2)
-            const setStart = startedAt + (4 + set) * 4 * 60 * 1000
-            const setEnd = setStart + (45 + Math.random() * 25) * 1000
-
-            await ctx.db.insert('sets', {
-              workoutId,
-              patternId: hingePatternId,
-              exerciseId: deadlift._id,
-              weight: Math.round(weight * 10) / 10,
-              reps,
-              orderInWorkout: 4 + set,
-              startTime: setStart,
-              endTime: setEnd,
-              duration: Math.floor((setEnd - setStart) / 1000),
-            })
-          }
-        }
-      }
-    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await createMesocycle2Workouts(ctx as any, {
+      userId: args.userId,
+      meso2Id,
+      meso2Start,
+      oneWeekMs,
+      oneDayMs,
+      exerciseMap,
+      squatPatternId,
+      hingePatternId,
+    })
 
     // Mesocycle 3: Push (6 weeks, active - in progress)
     const meso3Start = now - 2 * oneWeekMs // Started 2 weeks ago
-    const meso3Id = await ctx.db.insert('mesocycles', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const meso3Id = await createMesocycle3(ctx as any, {
       userId: args.userId,
-      name: 'Upper Body Hypertrophy',
-      startDate: meso3Start,
-      durationWeeks: 6,
-      primaryPatterns: [pushPatternId],
-      targetSetsPerWeek: 18,
-      sessionsPerWeek: 3,
-      wasPreviouslyTraining: true,
-      restTimeMinutes: 2,
-      status: 'active',
-      currentWeek: 2,
+      meso3Start,
+      pushPatternId,
     })
 
     // Create workouts for mesocycle 3 (3 sessions/week, 2 weeks completed = 6 workouts)
-    for (let week = 1; week <= 2; week++) {
-      for (let session = 0; session < 3; session++) {
-        const workoutDate =
-          meso3Start + (week - 1) * oneWeekMs + session * 2 * oneDayMs
-        const startedAt = workoutDate
-        const completedAt = startedAt + (40 + Math.random() * 20) * 60 * 1000
-
-        const workoutId = await ctx.db.insert('workouts', {
-          userId: args.userId,
-          mesocycleId: meso3Id,
-          date: workoutDate,
-          weekNumber: week,
-          completed: true,
-          startedAt,
-          completedAt,
-        })
-
-        // Add sets for Push pattern (Incline Bench Press)
-        const inclineBench = exerciseMap.get('push:Incline Bench Press')
-        if (inclineBench) {
-          const baseWeight = 70 + week * 2
-          for (let set = 1; set <= 6; set++) {
-            const weight = baseWeight
-            const reps = 10 + Math.floor(Math.random() * 3)
-            const setStart = startedAt + set * 2 * 60 * 1000 // 2 min rest
-            const setEnd = setStart + (25 + Math.random() * 15) * 1000
-
-            await ctx.db.insert('sets', {
-              workoutId,
-              patternId: pushPatternId,
-              exerciseId: inclineBench._id,
-              weight: Math.round(weight * 10) / 10,
-              reps,
-              orderInWorkout: set,
-              startTime: setStart,
-              endTime: setEnd,
-              duration: Math.floor((setEnd - setStart) / 1000),
-            })
-          }
-        }
-      }
-    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await createMesocycle3Workouts(ctx as any, {
+      userId: args.userId,
+      meso3Id,
+      meso3Start,
+      oneWeekMs,
+      oneDayMs,
+      exerciseMap,
+      pushPatternId,
+    })
 
     return {
       mesocyclesCreated: 3,
@@ -662,126 +490,26 @@ export const seedUserWorkoutData = mutation({
 export const seedManyWorkouts = mutation({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
-    // Get patterns and exercises
-    const patterns = await ctx.db.query('patterns').collect()
-    const exercises = await ctx.db.query('exercises').collect()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const setupData = await setupSeedManyWorkoutsData(ctx as any)
 
-    if (patterns.length === 0 || exercises.length === 0) {
-      throw new Error(
-        'Patterns and exercises must be seeded first. Run seed:seedAll',
-      )
-    }
+    // Update mesocycle with correct userId
+    await ctx.db.patch(setupData.mesoId, { userId: args.userId })
 
-    const patternMap = new Map(patterns.map((p) => [p.name, p._id]))
-    const pushPatternId = patternMap.get('push')
-    const pullPatternId = patternMap.get('pull')
-
-    if (!pushPatternId || !pullPatternId) {
-      throw new Error('Missing required patterns')
-    }
-
-    const exerciseMap = new Map<string, Doc<'exercises'>>()
-    exercises.forEach((e) => {
-      const pattern = patterns.find((p) => p._id === e.patternId)
-      if (pattern) {
-        const key = `${pattern.name}:${e.name}`
-        exerciseMap.set(key, e)
-      }
-    })
-
-    const now = Date.now()
-    const oneWeekMs = 7 * 24 * 60 * 60 * 1000
-    const oneDayMs = 24 * 60 * 60 * 1000
-
-    // Create a completed mesocycle for these workouts
-    const mesoStart = now - 20 * oneWeekMs // Started 20 weeks ago
-    const mesoId = await ctx.db.insert('mesocycles', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const workoutsCreated = await createManyWorkouts(ctx as any, {
       userId: args.userId,
-      name: 'Pagination Test Mesocycle',
-      startDate: mesoStart,
-      durationWeeks: 20,
-      primaryPatterns: [pushPatternId, pullPatternId],
-      targetSetsPerWeek: 15,
-      sessionsPerWeek: 3,
-      wasPreviouslyTraining: true,
-      restTimeMinutes: 3,
-      status: 'completed',
-      currentWeek: 20,
+      mesoId: setupData.mesoId,
+      mesoStart: setupData.mesoStart,
+      oneWeekMs: setupData.oneWeekMs,
+      oneDayMs: setupData.oneDayMs,
+      exerciseMap: setupData.exerciseMap,
+      pushPatternId: setupData.pushPatternId,
+      pullPatternId: setupData.pullPatternId,
     })
-
-    // Create 50+ workouts (3 sessions/week for 20 weeks = 60 workouts)
-    let workoutsCreated = 0
-    const benchPress = exerciseMap.get('push:Bench Press')
-    const pullUps = exerciseMap.get('pull:Pull-ups')
-
-    for (let week = 1; week <= 20; week++) {
-      for (let session = 0; session < 3; session++) {
-        const workoutDate =
-          mesoStart + (week - 1) * oneWeekMs + session * 2 * oneDayMs
-        const startedAt = workoutDate
-        const completedAt = startedAt + (45 + Math.random() * 30) * 60 * 1000
-
-        const workoutId = await ctx.db.insert('workouts', {
-          userId: args.userId,
-          mesocycleId: mesoId,
-          date: workoutDate,
-          weekNumber: week,
-          completed: true,
-          startedAt,
-          completedAt,
-        })
-
-        // Add sets for Push pattern
-        if (benchPress) {
-          const baseWeight = 80 + week * 2.5
-          for (let set = 1; set <= 5; set++) {
-            const weight = baseWeight + (set === 1 ? -5 : 0)
-            const reps = 8 + Math.floor(Math.random() * 3)
-            const setStart = startedAt + set * 3 * 60 * 1000
-            const setEnd = setStart + (30 + Math.random() * 20) * 1000
-
-            await ctx.db.insert('sets', {
-              workoutId,
-              patternId: pushPatternId,
-              exerciseId: benchPress._id,
-              weight: Math.round(weight * 10) / 10,
-              reps,
-              orderInWorkout: (set - 1) * 2 + 1,
-              startTime: setStart,
-              endTime: setEnd,
-              duration: Math.floor((setEnd - setStart) / 1000),
-            })
-          }
-        }
-
-        // Add sets for Pull pattern
-        if (pullUps) {
-          const baseReps = 8 + week
-          for (let set = 1; set <= 4; set++) {
-            const reps = baseReps + Math.floor(Math.random() * 2)
-            const setStart = startedAt + (5 + set) * 3 * 60 * 1000
-            const setEnd = setStart + (20 + Math.random() * 15) * 1000
-
-            await ctx.db.insert('sets', {
-              workoutId,
-              patternId: pullPatternId,
-              exerciseId: pullUps._id,
-              weight: 0,
-              reps,
-              orderInWorkout: set * 2,
-              startTime: setStart,
-              endTime: setEnd,
-              duration: Math.floor((setEnd - setStart) / 1000),
-            })
-          }
-        }
-
-        workoutsCreated++
-      }
-    }
 
     return {
-      mesocycleId: mesoId,
+      mesocycleId: setupData.mesoId,
       workoutsCreated,
     }
   },

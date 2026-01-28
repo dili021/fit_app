@@ -1,0 +1,294 @@
+---
+description: React best practices for writing clean, maintainable React code
+globs: **/*.{tsx,jsx}
+alwaysApply: true
+---
+
+# React Best Practices
+
+**Always follow these practices when writing React code. These ensure clean, maintainable, and performant components.**
+
+## Core Principles
+
+1. **Keep JSX clean** - Extract complex logic outside JSX
+2. **Use early returns** - Prefer early returns over nested conditionals
+3. **Extract helper functions** - Don't inline complex logic in JSX
+4. **Avoid IIFEs in JSX** - Never use `(() => { ... })()` inside JSX
+5. **Prefer variables over ternaries** - Extract ternary logic to variables or functions
+
+## JSX Clarity Rules
+
+### ❌ BAD: IIFE in JSX
+
+```tsx
+<button>
+  {(() => {
+    if (loading) return 'Loading...'
+    return isSignUp ? 'Sign Up' : 'Sign In'
+  })()}
+</button>
+```
+
+**Why it's bad**: IIFEs in JSX are hard to read, create unnecessary function calls on every render, and violate React's declarative nature.
+
+### ✅ GOOD: Extract to Helper Function
+
+```tsx
+function SignIn() {
+  const getButtonText = () => {
+    if (loading) return 'Loading...'
+    return isSignUp ? 'Sign Up' : 'Sign In'
+  }
+
+  return (
+    <button>
+      {getButtonText()}
+    </button>
+  )
+}
+```
+
+### ✅ BETTER: Extract to Variable
+
+```tsx
+function SignIn() {
+  const buttonText = loading
+    ? 'Loading...'
+    : isSignUp
+      ? 'Sign Up'
+      : 'Sign In'
+
+  return (
+    <button>
+      {buttonText}
+    </button>
+  )
+}
+```
+
+### ✅ BEST: Early Return Pattern
+
+```tsx
+function SignIn() {
+  if (loading) {
+    return <button disabled>Loading...</button>
+  }
+
+  return (
+    <button>
+      {isSignUp ? 'Sign Up' : 'Sign In'}
+    </button>
+  )
+}
+```
+
+## Conditional Rendering
+
+### ❌ BAD: Nested Ternaries in JSX
+
+```tsx
+<div>
+  {isLoading ? (
+    <Spinner />
+  ) : hasError ? (
+    <Error />
+  ) : data ? (
+    <Content data={data} />
+  ) : (
+    <Empty />
+  )}
+</div>
+```
+
+### ✅ GOOD: Early Returns or Helper Components
+
+```tsx
+function DataDisplay({ isLoading, hasError, data }) {
+  if (isLoading) return <Spinner />
+  if (hasError) return <Error />
+  if (!data) return <Empty />
+  return <Content data={data} />
+}
+```
+
+### ✅ GOOD: Extract to Variable
+
+```tsx
+function DataDisplay({ isLoading, hasError, data }) {
+  const content = (() => {
+    if (isLoading) return <Spinner />
+    if (hasError) return <Error />
+    if (!data) return <Empty />
+    return <Content data={data} />
+  })()
+
+  return <div>{content}</div>
+}
+```
+
+**Note**: While this uses an IIFE, it's acceptable when extracting complex conditional rendering logic to a variable before JSX, as it's only evaluated once per render and keeps JSX clean.
+
+## Complex Calculations
+
+### ❌ BAD: Complex Logic in JSX
+
+```tsx
+<div>
+  {items
+    .filter(item => item.active)
+    .map(item => item.price * item.quantity)
+    .reduce((sum, total) => sum + total, 0)
+    .toFixed(2)}
+</div>
+```
+
+### ✅ GOOD: Extract to Variable or useMemo
+
+```tsx
+function OrderSummary({ items }) {
+  const total = useMemo(() => {
+    return items
+      .filter(item => item.active)
+      .map(item => item.price * item.quantity)
+      .reduce((sum, total) => sum + total, 0)
+      .toFixed(2)
+  }, [items])
+
+  return <div>{total}</div>
+}
+```
+
+## Event Handlers
+
+### ❌ BAD: Inline Complex Logic
+
+```tsx
+<button
+  onClick={() => {
+    if (isValid) {
+      setLoading(true)
+      api.submit(data).then(result => {
+        if (result.success) {
+          navigate('/success')
+        } else {
+          setError(result.error)
+        }
+        setLoading(false)
+      })
+    }
+  }}
+>
+  Submit
+</button>
+```
+
+### ✅ GOOD: Extract to Named Function
+
+```tsx
+function Form() {
+  const handleSubmit = async () => {
+    if (!isValid) return
+
+    setLoading(true)
+    try {
+      const result = await api.submit(data)
+      if (result.success) {
+        navigate('/success')
+      } else {
+        setError(result.error)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <button onClick={handleSubmit}>
+      Submit
+    </button>
+  )
+}
+```
+
+## Component Structure
+
+### ✅ GOOD: Clean Component Structure
+
+```tsx
+function MyComponent({ prop1, prop2 }) {
+  // 1. Hooks
+  const [state, setState] = useState()
+  const data = useQuery(...)
+
+  // 2. Derived values / calculations
+  const computedValue = useMemo(() => {
+    // complex calculation
+  }, [deps])
+
+  // 3. Helper functions
+  const handleAction = () => {
+    // handler logic
+  }
+
+  const getDisplayValue = () => {
+    // helper logic
+  }
+
+  // 4. Early returns for loading/error states
+  if (data === undefined) return <Loading />
+  if (error) return <Error />
+
+  // 5. Main JSX
+  return (
+    <div>
+      {getDisplayValue()}
+      <button onClick={handleAction}>Action</button>
+    </div>
+  )
+}
+```
+
+## Rules Summary
+
+1. **Never use IIFEs in JSX** - Extract logic to variables or helper functions
+2. **Extract complex conditionals** - Use early returns or helper components
+3. **Keep JSX declarative** - Move imperative logic outside JSX
+4. **Use helper functions** - Extract repeated or complex logic
+5. **Prefer variables over inline calculations** - Calculate before JSX
+6. **Early returns for conditional rendering** - Cleaner than nested ternaries
+
+## Anti-Patterns to Avoid
+
+```tsx
+// ❌ BAD: IIFE in JSX
+<div>{(() => { /* logic */ })()}</div>
+
+// ❌ BAD: Complex inline calculations
+<div>{items.filter(...).map(...).reduce(...)}</div>
+
+// ❌ BAD: Nested ternaries beyond 2 levels
+<div>{a ? b : c ? d : e ? f : g}</div>
+
+// ❌ BAD: Inline async handlers
+<button onClick={async () => { await doSomething() }}>Click</button>
+```
+
+## When IIFEs Are Acceptable
+
+IIFEs are acceptable **only** when:
+- Used to extract complex conditional rendering to a variable **before** JSX
+- The variable is used once in JSX
+- It improves readability over nested ternaries
+
+```tsx
+// ✅ ACCEPTABLE: Extracting complex conditional to variable
+const content = (() => {
+  if (loading) return <Spinner />
+  if (error) return <Error />
+  return <Data data={data} />
+})()
+
+return <div>{content}</div>
+```
+
+**But prefer**: Early returns or helper components over this pattern.

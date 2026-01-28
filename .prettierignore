@@ -5,3 +5,10 @@ yarn.lock
 # Generated files
 convex/_generated/**
 public/sw.js
+
+# Documentation and skill files
+.cursor/**
+.agents/**
+*.md
+*.mdc
+plans/**

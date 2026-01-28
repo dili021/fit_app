@@ -2,7 +2,10 @@ import { useState } from 'react'
 import { useMutation, useQuery } from 'convex/react'
 import { ArrowRight, Check } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
+import { DurationStep } from './steps/DurationStep'
+import { PatternSelectionStep } from './steps/PatternSelectionStep'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -10,10 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 
 interface CreateMesocycleDialogProps {
@@ -122,84 +121,19 @@ export function CreateMesocycleDialog({
         </DialogHeader>
 
         <div className="space-y-6 overflow-y-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {/* Step 1: Duration */}
           {currentStep === 1 && (
-            <div>
-              <Label className="text-base font-semibold mb-4 block">
-                Duration
-              </Label>
-              <RadioGroup
-                value={durationWeeks?.toString() || ''}
-                onValueChange={(value) => setDurationWeeks(parseInt(value))}
-              >
-                <div className="space-y-3">
-                  {[4, 6, 8].map((weeks) => (
-                    <div key={weeks} className="flex items-center space-x-3">
-                      <RadioGroupItem
-                        value={weeks.toString()}
-                        id={`duration-${weeks}`}
-                      />
-                      <Label
-                        htmlFor={`duration-${weeks}`}
-                        className="cursor-pointer flex-1"
-                      >
-                        <div className="font-medium">{weeks} weeks</div>
-                        <div className="text-sm text-muted-foreground">
-                          {weeks === 4 && 'Quick cycle'}
-                          {weeks === 6 && 'Standard cycle (recommended)'}
-                          {weeks === 8 && 'Extended cycle'}
-                        </div>
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </RadioGroup>
-            </div>
+            <DurationStep
+              durationWeeks={durationWeeks}
+              onDurationChange={setDurationWeeks}
+            />
           )}
 
-          {/* Step 2: Primary Patterns */}
           {currentStep === 2 && (
-            <div>
-              <Label className="text-base font-semibold mb-4 block">
-                Primary Patterns
-              </Label>
-              <p className="text-sm text-muted-foreground mb-4">
-                Select 1-2 movement patterns to focus on
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {patterns?.map((pattern) => {
-                  const isSelected = primaryPatterns.includes(pattern._id)
-                  return (
-                    <Card
-                      key={pattern._id}
-                      className={`cursor-pointer transition-colors ${
-                        isSelected ? 'border-primary bg-primary/5' : ''
-                      }`}
-                      onClick={() => togglePattern(pattern._id)}
-                    >
-                      <CardContent className="p-3 flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm">
-                            {pattern.displayName}
-                          </div>
-                          {pattern.description && (
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {pattern.description}
-                            </div>
-                          )}
-                        </div>
-                        {isSelected && (
-                          <Check className="h-4 w-4 text-primary shrink-0 ml-2" />
-                        )}
-                      </CardContent>
-                    </Card>
-                  )
-                })}
-              </div>
-              <p className="text-sm text-muted-foreground mt-3">
-                Selected: {primaryPatterns.length} of 2
-              </p>
-            </div>
+            <PatternSelectionStep
+              patterns={patterns}
+              primaryPatterns={primaryPatterns}
+              onTogglePattern={togglePattern}
+            />
           )}
         </div>
 

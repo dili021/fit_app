@@ -1,11 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
-import { useMutation, useQuery } from 'convex/react'
 import { Check, Play } from 'lucide-react'
-import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useSetLogger } from '@/features/workout/hooks/useSetLogger'
 
 interface SetLoggerProps {
   workoutId: Id<'workouts'>
@@ -42,204 +40,34 @@ export function SetLogger({
   onRestTimerComplete,
   restTimerStopped = false,
 }: SetLoggerProps) {
-  const [weight, setWeight] = useState<string>('')
-  const [reps, setReps] = useState<string>('')
-  const [isTimerRunning, setIsTimerRunning] = useState(false)
-  const [restSecondsRemaining, setRestSecondsRemaining] = useState<
-    number | null
-  >(null)
-  const timerIntervalRef = useRef<number | null>(null)
-  const restIntervalRef = useRef<number | null>(null)
-  const startTimeRef = useRef<number | null>(null)
-  const restTimerUpdateRef = useRef(onRestTimerUpdate)
-  const restTimerCompleteRef = useRef(onRestTimerComplete)
-  const timerUpdateRef = useRef(onTimerUpdate)
-
-  // Update refs when callbacks change
-  useEffect(() => {
-    restTimerUpdateRef.current = onRestTimerUpdate
-    restTimerCompleteRef.current = onRestTimerComplete
-    timerUpdateRef.current = onTimerUpdate
-  }, [onRestTimerUpdate, onRestTimerComplete, onTimerUpdate])
-
-  // Stop rest timer when parent signals to stop
-  useEffect(() => {
-    if (restTimerStopped && restSecondsRemaining !== null) {
-      // Clear the interval
-      if (restIntervalRef.current) {
-        clearInterval(restIntervalRef.current)
-        restIntervalRef.current = null
-      }
-      // Reset rest timer state
-      setRestSecondsRemaining(null)
-      setIsTimerRunning(false)
-      startTimeRef.current = null
-    }
-  }, [restTimerStopped, restSecondsRemaining])
-
-  const lastSet = useQuery(api.sets.getLastSetForExercise, {
-    exerciseId,
-    userId,
-  })
-  const suggestedWeight = useQuery(api.progression.getSuggestedWeight, {
-    userId,
-    exerciseId,
+  const {
+    weight,
+    setWeight,
+    reps,
+    setReps,
+    lastSet,
+    suggestedWeight,
+    isTimerRunning,
+    restSecondsRemaining,
+    canComplete,
+    handleStartTimer,
+    handleCompleteSet,
+  } = useSetLogger({
+    workoutId,
     patternId,
+    exerciseId,
+    userId,
+    setNumber,
+    restTimeMinutes,
+    onSetComplete,
+    onTimerStart,
+    onTimerUpdate,
+    onTimerReset,
+    onRestTimerStart,
+    onRestTimerUpdate,
+    onRestTimerComplete,
+    restTimerStopped,
   })
-  const createSet = useMutation(api.sets.createSet)
-
-  // Request notification permission on mount
-  useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission()
-    }
-  }, [])
-
-  // Load last weight/reps when exercise changes
-  // Component remounts when exerciseId changes (via key prop), so this will populate fresh state
-  // Weight/reps persist when completing sets on the same exercise (key doesn't change)
-  // NOTE: We don't auto-fill suggested weight - user may not have the exact plates available
-  useEffect(() => {
-    if (lastSet) {
-      setWeight(lastSet.weight.toString())
-      setReps(lastSet.reps.toString())
-    } else {
-      setWeight('')
-      setReps('')
-    }
-  }, [lastSet, exerciseId])
-
-  // Timer logic - sync with parent overlay
-  useEffect(() => {
-    if (isTimerRunning) {
-      let elapsed = 0
-      timerIntervalRef.current = window.setInterval(() => {
-        elapsed += 1
-        // Use ref to avoid calling during render
-        setTimeout(() => {
-          timerUpdateRef.current?.(elapsed)
-        }, 0)
-      }, 1000)
-    } else {
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current)
-        timerIntervalRef.current = null
-      }
-    }
-
-    return () => {
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current)
-      }
-    }
-  }, [isTimerRunning])
-
-  // Rest timer logic - sync with parent overlay
-  useEffect(() => {
-    if (restSecondsRemaining !== null && restSecondsRemaining > 0) {
-      restIntervalRef.current = window.setInterval(() => {
-        setRestSecondsRemaining((prev) => {
-          if (prev === null || prev <= 1) {
-            // Rest complete - show notification
-            if (
-              'Notification' in window &&
-              Notification.permission === 'granted'
-            ) {
-              new Notification('Rest Complete', {
-                body: 'Time to start your next set!',
-              })
-            }
-            // Reset timer state when rest completes FIRST
-            setIsTimerRunning(false)
-            startTimeRef.current = null
-            // Use ref to avoid calling during render - call after state reset
-            setTimeout(() => {
-              restTimerCompleteRef.current?.()
-            }, 0)
-            return null
-          }
-          const newValue = prev - 1
-          // Use ref to avoid calling during render
-          setTimeout(() => {
-            restTimerUpdateRef.current?.(newValue)
-          }, 0)
-          return newValue
-        })
-      }, 1000)
-    } else {
-      if (restIntervalRef.current) {
-        clearInterval(restIntervalRef.current)
-        restIntervalRef.current = null
-      }
-      // Ensure timer is reset when rest completes or is cleared
-      if (restSecondsRemaining === null) {
-        setIsTimerRunning(false)
-        startTimeRef.current = null
-      }
-    }
-
-    return () => {
-      if (restIntervalRef.current) {
-        clearInterval(restIntervalRef.current)
-      }
-    }
-  }, [restSecondsRemaining])
-
-  const handleStartTimer = () => {
-    setIsTimerRunning(true)
-    startTimeRef.current = Date.now()
-    onTimerStart?.() // This will show the overlay
-  }
-
-  // Sync local timer state with parent when timer updates
-  useEffect(() => {
-    if (isTimerRunning && onTimerUpdate) {
-      // Timer is managed by parent, but we keep local state for display
-      // Parent will call onTimerUpdate with the current seconds
-    }
-  }, [isTimerRunning, onTimerUpdate])
-
-  const handleCompleteSet = async () => {
-    if (!weight || !reps) return
-
-    const endTime = Date.now()
-    const startTime = startTimeRef.current || endTime
-    const duration = Math.floor((endTime - startTime) / 1000)
-
-    try {
-      await createSet({
-        workoutId,
-        patternId,
-        exerciseId,
-        weight: parseFloat(weight),
-        reps: parseInt(reps),
-        orderInWorkout: setNumber,
-        startTime,
-        endTime,
-        duration,
-      })
-
-      // Reset timer state FIRST (before starting rest)
-      setIsTimerRunning(false)
-      startTimeRef.current = null
-      // Call reset callback to sync parent state
-      onTimerReset?.()
-
-      // Start rest timer
-      const restSeconds = restTimeMinutes * 60
-      setRestSecondsRemaining(restSeconds)
-      onRestTimerStart?.(restSeconds)
-
-      // Call completion callback
-      // Note: Convex queries will automatically refetch after mutation,
-      // so suggestedWeight and lastSet will update with the new set
-      onSetComplete()
-    } catch {
-      alert('Failed to save set. Please try again.')
-    }
-  }
-
-  const canComplete = weight && reps
 
   return (
     <div className="w-full space-y-6">
