@@ -1,0 +1,437 @@
+---
+description: Extract logic from components into feature-sliced hooks, group useEffect/useQuery calls logically
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Hook Organization and Logic Placement
+
+**Components should be thin presentation layers. All logic, side effects, and data fetching must be extracted into custom hooks organized by feature.**
+
+## Core Principle
+
+**Components should only contain JSX and minimal local UI state. All `useEffect`, `useQuery`, `useMutation`, and complex logic belong in custom hooks.**
+
+## Feature-Sliced Hook Structure
+
+Organize hooks by feature domain using feature slicing:
+
+```
+src/
+  hooks/
+    index.ts                    # Re-export all hooks
+    useAuth.ts                  # Auth hooks (shared)
+    useConvexQuery.ts           # Convex query adapter (shared)
+    useConvexMutation.ts        # Convex mutation adapter (shared)
+    
+  features/
+    workout/
+      hooks/
+        useWorkoutTimer.ts      # Timer logic for workouts
+        useRestTimer.ts         # Rest timer logic
+        useSetLogger.ts         # Set logging logic (queries + mutations)
+        useWorkoutData.ts       # Workout queries grouped
+        api/
+          useWorkoutQueries.ts  # Convex workout queries
+          useWorkoutMutations.ts # Convex workout mutations
+    
+    mesocycle/
+      hooks/
+        useMesocycleData.ts     # Mesocycle queries grouped
+        useMesocycleStatus.ts   # Status checking logic
+        api/
+          useMesocycleQueries.ts  # Convex mesocycle queries
+          useMesocycleMutations.ts # Convex mesocycle mutations
+    
+    dashboard/
+      hooks/
+        useDashboardData.ts     # All dashboard queries grouped
+        useMesocycleStatusCheck.ts # Status check effect
+```
+
+## Rules
+
+### 1. Extract useEffect Logic to Hooks
+
+**❌ BAD: Multiple useEffect calls in component**
+
+```tsx
+function SetLogger({ exerciseId, userId }: SetLoggerProps) {
+  const [isTimerRunning, setIsTimerRunning] = useState(false)
+  const [restSecondsRemaining, setRestSecondsRemaining] = useState<number | null>(null)
+  
+  // ❌ Timer logic mixed in component
+  useEffect(() => {
+    if (isTimerRunning) {
+      timerIntervalRef.current = window.setInterval(() => {
+        // timer logic...
+      }, 1000)
+    }
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current)
+      }
+    }
+  }, [isTimerRunning])
+  
+  // ❌ Rest timer logic mixed in component
+  useEffect(() => {
+    if (restSecondsRemaining !== null && restSecondsRemaining > 0) {
+      restIntervalRef.current = window.setInterval(() => {
+        // rest timer logic...
+      }, 1000)
+    }
+  }, [restSecondsRemaining])
+  
+  // ❌ Notification permission mixed in component
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      void Notification.requestPermission()
+    }
+  }, [])
+  
+  return <div>...</div>
+}
+```
+
+**✅ GOOD: Extract to feature hooks**
+
+```tsx
+// features/workout/hooks/useWorkoutTimer.ts
+export function useWorkoutTimer(onUpdate?: (seconds: number) => void) {
+  const [isTimerRunning, setIsTimerRunning] = useState(false)
+  const timerIntervalRef = useRef<number | null>(null)
+  
+  useEffect(() => {
+    if (isTimerRunning) {
+      let elapsed = 0
+      timerIntervalRef.current = window.setInterval(() => {
+        elapsed += 1
+        onUpdate?.(elapsed)
+      }, 1000)
+    }
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current)
+      }
+    }
+  }, [isTimerRunning, onUpdate])
+  
+  return {
+    isTimerRunning,
+    startTimer: () => setIsTimerRunning(true),
+    stopTimer: () => setIsTimerRunning(false),
+  }
+}
+
+// features/workout/hooks/useRestTimer.ts
+export function useRestTimer(
+  restTimeMinutes: number,
+  onComplete?: () => void,
+  onUpdate?: (seconds: number) => void,
+) {
+  const [restSecondsRemaining, setRestSecondsRemaining] = useState<number | null>(null)
+  // ... rest timer logic
+  
+  return {
+    restSecondsRemaining,
+    startRest: () => setRestSecondsRemaining(restTimeMinutes * 60),
+    // ...
+  }
+}
+
+// features/workout/hooks/useNotificationPermission.ts
+export function useNotificationPermission() {
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      void Notification.requestPermission()
+    }
+  }, [])
+}
+
+// Component is now thin
+function SetLogger({ exerciseId, userId }: SetLoggerProps) {
+  const timer = useWorkoutTimer(onTimerUpdate)
+  const restTimer = useRestTimer(restTimeMinutes, onRestTimerComplete, onRestTimerUpdate)
+  useNotificationPermission()
+  
+  return <div>...</div>
+}
+```
+
+### 2. Extract useQuery Calls to Feature Hooks
+
+**❌ BAD: Multiple useQuery calls in component**
+
+```tsx
+function DashboardContent({ userId }: { userId: string }) {
+  // ❌ Queries scattered in component
+  const activeMesocycle = useQuery(api.mesocycles.getActiveMesocycle, { userId })
+  const activeWorkout = useQuery(api.workouts.getActiveWorkout, { userId })
+  const recentWorkouts = useQuery(api.workouts.getRecentWorkouts, { userId, limit: 3 })
+  const patterns = useQuery(api.patterns.getAll)
+  const mesocycleSets = useQuery(
+    api.sets.getSetsForMesocycle,
+    activeMesocycle ? { mesocycleId: activeMesocycle._id } : 'skip',
+  )
+  const mesocycleStatusInfo = useQuery(
+    api.mesocycles.getMesocycleStatusInfo,
+    activeMesocycle ? { mesocycleId: activeMesocycle._id } : 'skip',
+  )
+  
+  return <div>...</div>
+}
+```
+
+**✅ GOOD: Group queries in feature hook**
+
+```tsx
+// features/dashboard/hooks/useDashboardData.ts
+export function useDashboardData(userId: string) {
+  const activeMesocycle = useQuery(api.mesocycles.getActiveMesocycle, { userId })
+  const activeWorkout = useQuery(api.workouts.getActiveWorkout, { userId })
+  const recentWorkouts = useQuery(api.workouts.getRecentWorkouts, { userId, limit: 3 })
+  const patterns = useQuery(api.patterns.getAll)
+  
+  const mesocycleSets = useQuery(
+    api.sets.getSetsForMesocycle,
+    activeMesocycle ? { mesocycleId: activeMesocycle._id } : 'skip',
+  )
+  
+  const mesocycleStatusInfo = useQuery(
+    api.mesocycles.getMesocycleStatusInfo,
+    activeMesocycle ? { mesocycleId: activeMesocycle._id } : 'skip',
+  )
+  
+  return {
+    activeMesocycle,
+    activeWorkout,
+    recentWorkouts,
+    patterns,
+    mesocycleSets,
+    mesocycleStatusInfo,
+  }
+}
+
+// Component is now thin
+function DashboardContent({ userId }: { userId: string }) {
+  const {
+    activeMesocycle,
+    activeWorkout,
+    recentWorkouts,
+    patterns,
+    mesocycleSets,
+    mesocycleStatusInfo,
+  } = useDashboardData(userId)
+  
+  return <div>...</div>
+}
+```
+
+### 3. Convex Hooks Under api/ Folder
+
+**All Convex-specific hooks (queries/mutations) must be scoped under `api/` or `convex/` subfolder:**
+
+```
+features/
+  workout/
+    hooks/
+      api/
+        useWorkoutQueries.ts    # useQuery(api.workouts.*)
+        useWorkoutMutations.ts  # useMutation(api.workouts.*)
+      useWorkoutTimer.ts         # UI logic hooks (no Convex)
+      useRestTimer.ts            # UI logic hooks (no Convex)
+```
+
+**❌ BAD: Convex hooks mixed with UI hooks**
+
+```tsx
+// features/workout/hooks/useSetLogger.ts
+export function useSetLogger() {
+  // ❌ Convex queries mixed with UI logic
+  const lastSet = useQuery(api.sets.getLastSetForExercise, { exerciseId, userId })
+  const suggestedWeight = useQuery(api.progression.getSuggestedWeight, { userId, exerciseId })
+  const createSet = useMutation(api.sets.createSet)
+  
+  const [weight, setWeight] = useState('')
+  // UI state...
+}
+```
+
+**✅ GOOD: Separate Convex hooks**
+
+```tsx
+// features/workout/hooks/api/useSetQueries.ts
+export function useSetQueries(exerciseId: Id<'exercises'>, userId: string) {
+  const lastSet = useQuery(api.sets.getLastSetForExercise, { exerciseId, userId })
+  const suggestedWeight = useQuery(api.progression.getSuggestedWeight, {
+    userId,
+    exerciseId,
+    patternId,
+  })
+  
+  return { lastSet, suggestedWeight }
+}
+
+// features/workout/hooks/api/useSetMutations.ts
+export function useSetMutations() {
+  const createSet = useMutation(api.sets.createSet)
+  
+  return { createSet }
+}
+
+// features/workout/hooks/useSetLogger.ts (UI logic only)
+export function useSetLogger(exerciseId: Id<'exercises'>, userId: string) {
+  const { lastSet, suggestedWeight } = useSetQueries(exerciseId, userId)
+  const { createSet } = useSetMutations()
+  const [weight, setWeight] = useState('')
+  
+  // UI logic...
+  
+  return {
+    weight,
+    setWeight,
+    lastSet,
+    suggestedWeight,
+    handleCompleteSet: async () => {
+      await createSet({ /* ... */ })
+    },
+  }
+}
+```
+
+### 4. Group Related Logic Together
+
+**Hooks should group related functionality:**
+
+```tsx
+// ✅ GOOD: Related timer logic grouped
+export function useWorkoutTimers(
+  restTimeMinutes: number,
+  onTimerUpdate?: (seconds: number) => void,
+  onRestComplete?: () => void,
+) {
+  const workoutTimer = useWorkoutTimer(onTimerUpdate)
+  const restTimer = useRestTimer(restTimeMinutes, onRestComplete)
+  
+  return {
+    workoutTimer,
+    restTimer,
+  }
+}
+
+// ✅ GOOD: Related data queries grouped
+export function useMesocycleData(mesocycleId: Id<'mesocycles'> | null) {
+  const mesocycle = useQuery(
+    api.mesocycles.getMesocycleById,
+    mesocycleId ? { id: mesocycleId } : 'skip',
+  )
+  const statusInfo = useQuery(
+    api.mesocycles.getMesocycleStatusInfo,
+    mesocycleId ? { mesocycleId } : 'skip',
+  )
+  const sets = useQuery(
+    api.sets.getSetsForMesocycle,
+    mesocycleId ? { mesocycleId } : 'skip',
+  )
+  
+  return { mesocycle, statusInfo, sets }
+}
+```
+
+## Hook Naming Conventions
+
+- **Data hooks**: `use[Feature]Data` (e.g., `useDashboardData`, `useMesocycleData`)
+- **Query hooks**: `use[Feature]Queries` (e.g., `useWorkoutQueries`, `useSetQueries`)
+- **Mutation hooks**: `use[Feature]Mutations` (e.g., `useWorkoutMutations`)
+- **Logic hooks**: `use[Feature][Action]` (e.g., `useWorkoutTimer`, `useRestTimer`, `useSetLogger`)
+- **Effect hooks**: `use[Feature][Effect]` (e.g., `useNotificationPermission`, `useMesocycleStatusCheck`)
+
+## File Organization Checklist
+
+When creating a component with logic:
+
+- [ ] **Extract all `useEffect` calls** → Feature hook (e.g., `useWorkoutTimer.ts`)
+- [ ] **Extract all `useQuery` calls** → Feature data hook (e.g., `useDashboardData.ts`)
+- [ ] **Extract all `useMutation` calls** → Feature mutation hook (e.g., `useWorkoutMutations.ts`)
+- [ ] **Group related queries** → Single hook (e.g., `useMesocycleData` groups mesocycle queries)
+- [ ] **Separate Convex hooks** → Place in `api/` subfolder
+- [ ] **Keep component thin** → Component only has JSX and calls hooks
+- [ ] **Export from index** → Add to `hooks/index.ts` for easy imports
+
+## Example: Complete Refactor
+
+**Before:**
+
+```tsx
+function SetLogger({ exerciseId, userId }: SetLoggerProps) {
+  const [weight, setWeight] = useState('')
+  const [isTimerRunning, setIsTimerRunning] = useState(false)
+  
+  const lastSet = useQuery(api.sets.getLastSetForExercise, { exerciseId, userId })
+  const createSet = useMutation(api.sets.createSet)
+  
+  useEffect(() => {
+    if (isTimerRunning) {
+      // timer logic...
+    }
+  }, [isTimerRunning])
+  
+  useEffect(() => {
+    if (lastSet) {
+      setWeight(lastSet.weight.toString())
+    }
+  }, [lastSet])
+  
+  return <div>...</div>
+}
+```
+
+**After:**
+
+```tsx
+// features/workout/hooks/api/useSetQueries.ts
+export function useSetQueries(exerciseId: Id<'exercises'>, userId: string) {
+  return useQuery(api.sets.getLastSetForExercise, { exerciseId, userId })
+}
+
+// features/workout/hooks/api/useSetMutations.ts
+export function useSetMutations() {
+  return useMutation(api.sets.createSet)
+}
+
+// features/workout/hooks/useSetLogger.ts
+export function useSetLogger(exerciseId: Id<'exercises'>, userId: string) {
+  const lastSet = useSetQueries(exerciseId, userId)
+  const createSet = useSetMutations()
+  const timer = useWorkoutTimer()
+  
+  const [weight, setWeight] = useState('')
+  
+  useEffect(() => {
+    if (lastSet) {
+      setWeight(lastSet.weight.toString())
+    }
+  }, [lastSet])
+  
+  return {
+    weight,
+    setWeight,
+    lastSet,
+    timer,
+    handleCompleteSet: async (data) => {
+      await createSet(data)
+    },
+  }
+}
+
+// Component is now thin
+function SetLogger({ exerciseId, userId }: SetLoggerProps) {
+  const { weight, setWeight, lastSet, timer, handleCompleteSet } = useSetLogger(
+    exerciseId,
+    userId,
+  )
+  
+  return <div>...</div>
+}
+```
