@@ -1,6 +1,12 @@
-import { useQuery } from 'convex/react'
+import { useMutation, useQuery } from 'convex/react'
+import { useNavigate } from '@tanstack/react-router'
 import { Calendar, CheckCircle2, Play, Target } from 'lucide-react'
 import { api } from '@db/_generated/api'
+import {
+  formatMesocycleDate,
+  getPrimaryPatternNames,
+  getStatusBadge,
+} from './utils/mesocycleCardHelpers'
 import type { Doc } from '@db/_generated/dataModel'
 import {
   Card,
@@ -9,7 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
 interface MesocycleCardProps {
@@ -18,6 +23,9 @@ interface MesocycleCardProps {
   onActivate?: () => void
   onConclude?: () => void
   hasActiveMesocycle?: boolean
+  userId?: string
+  activeWorkout?: Doc<'workouts'> | null
+  currentWeek?: number
 }
 
 export function MesocycleCard({
@@ -26,47 +34,60 @@ export function MesocycleCard({
   onActivate,
   onConclude,
   hasActiveMesocycle,
+  userId,
+  activeWorkout,
+  currentWeek,
 }: MesocycleCardProps) {
+  const navigate = useNavigate()
+  const createWorkout = useMutation(api.workouts.createWorkout)
   const patternsData = patterns || useQuery(api.patterns.getAll)
 
-  const primaryPatternNames = patternsData
-    ? mesocycle.primaryPatterns
-        .map((id) => patternsData.find((p) => p._id === id)?.displayName)
-        .filter(Boolean)
-        .join(' and ')
-    : 'Mesocycle'
+  const mesocycleStatusInfo = useQuery(
+    api.mesocycles.getMesocycleStatusInfo,
+    mesocycle.status === 'active' && mesocycle._id
+      ? { mesocycleId: mesocycle._id }
+      : 'skip',
+  )
 
-  const getStatusBadge = () => {
-    switch (mesocycle.status) {
-      case 'active':
-        return (
-          <Badge variant="default" className="bg-green-500">
-            Active
-          </Badge>
-        )
-      case 'planned':
-        return <Badge variant="secondary">Planned</Badge>
-      case 'completed':
-        return <Badge variant="outline">Completed</Badge>
-      case 'deload':
-        return (
-          <Badge variant="outline" className="bg-yellow-500/20">
-            Deload
-          </Badge>
-        )
-      default:
-        return <Badge variant="outline">{mesocycle.status}</Badge>
+  const calculatedCurrentWeek =
+    currentWeek ??
+    mesocycleStatusInfo?.currentWeek ??
+    (mesocycle.startDate
+      ? Math.floor(
+          (Date.now() - mesocycle.startDate) / (7 * 24 * 60 * 60 * 1000),
+        ) + 1
+      : 1)
+
+  const primaryPatternNames = getPrimaryPatternNames(mesocycle, patternsData)
+
+  const handleStartWorkout = async () => {
+    if (!userId || mesocycle.status !== 'active') return
+
+    // If there's an active workout, navigate to it
+    if (activeWorkout && !activeWorkout.completed) {
+      void navigate({
+        to: '/workout/active',
+        search: { workoutId: activeWorkout._id },
+      })
+      return
+    }
+
+    // Otherwise, create a new workout
+    try {
+      const workoutId = await createWorkout({
+        userId,
+        mesocycleId: mesocycle._id,
+        weekNumber: calculatedCurrentWeek,
+      })
+
+      // Navigate directly to active workout page
+      void navigate({ to: '/workout/active', search: { workoutId } })
+    } catch {
+      alert('Failed to start workout. Please try again.')
     }
   }
 
-  const formatDate = (timestamp?: number) => {
-    if (!timestamp) return 'Not started'
-    return new Date(timestamp).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  }
+  const hasActiveWorkout = activeWorkout && !activeWorkout.completed
 
   return (
     <Card className={mesocycle.status === 'active' ? 'border-primary' : ''}>
@@ -80,7 +101,7 @@ export function MesocycleCard({
               {mesocycle.durationWeeks} weeks
             </CardDescription>
           </div>
-          {getStatusBadge()}
+          {getStatusBadge(mesocycle)}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -90,7 +111,7 @@ export function MesocycleCard({
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="h-4 w-4" />
-                <span>Started: {formatDate(mesocycle.startDate)}</span>
+                <span>Started: {formatMesocycleDate(mesocycle.startDate)}</span>
               </div>
               {mesocycle.currentWeek && (
                 <div className="flex items-center gap-2 text-muted-foreground">
@@ -107,16 +128,28 @@ export function MesocycleCard({
                 </div>
               )}
             </div>
-            {onConclude && (
-              <Button
-                onClick={onConclude}
-                variant="destructive"
-                className="w-full"
-              >
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-                Conclude Mesocycle
-              </Button>
-            )}
+            <div className="space-y-2">
+              {userId && (
+                <Button
+                  onClick={handleStartWorkout}
+                  className="w-full"
+                  disabled={!mesocycle}
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  {hasActiveWorkout ? 'Continue Workout' : 'Start Workout'}
+                </Button>
+              )}
+              {onConclude && (
+                <Button
+                  onClick={onConclude}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Conclude Mesocycle
+                </Button>
+              )}
+            </div>
           </div>
         )}
 
@@ -147,7 +180,7 @@ export function MesocycleCard({
         {mesocycle.status === 'completed' && mesocycle.startDate && (
           <div className="text-sm text-muted-foreground">
             Completed{' '}
-            {formatDate(
+            {formatMesocycleDate(
               mesocycle.startDate +
                 mesocycle.durationWeeks * 7 * 24 * 60 * 60 * 1000,
             )}

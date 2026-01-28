@@ -33,6 +33,7 @@ interface ActiveMesocycleCardProps {
   } | null
   hasActiveWorkout: boolean
   onStartWorkout: () => void
+  onConclude?: () => void
 }
 
 export function ActiveMesocycleCard({
@@ -46,6 +47,7 @@ export function ActiveMesocycleCard({
   workoutTemplate,
   hasActiveWorkout,
   onStartWorkout,
+  onConclude,
 }: ActiveMesocycleCardProps) {
   return (
     <Card>
@@ -136,16 +138,24 @@ export function ActiveMesocycleCard({
           </div>
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex flex-col gap-2">
         {!isCompleted ? (
-          <Button
-            onClick={onStartWorkout}
-            className="w-full"
-            disabled={!mesocycle}
-          >
-            <Play className="h-4 w-4 mr-2" />
-            {hasActiveWorkout ? 'Continue Workout' : 'Start Workout'}
-          </Button>
+          <>
+            <Button
+              onClick={onStartWorkout}
+              className="w-full"
+              disabled={!mesocycle}
+            >
+              <Play className="h-4 w-4 mr-2" />
+              {hasActiveWorkout ? 'Continue Workout' : 'Start Workout'}
+            </Button>
+            {onConclude && (
+              <Button onClick={onConclude} variant="outline" className="w-full">
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                Conclude Mesocycle
+              </Button>
+            )}
+          </>
         ) : (
           <Button asChild className="w-full" variant="outline">
             <Link to="/mesocycles">Mesocycles</Link>

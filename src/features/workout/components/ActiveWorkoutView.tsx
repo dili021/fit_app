@@ -140,7 +140,7 @@ export function ActiveWorkoutView({
           sessionElapsedSeconds={sessionElapsedSeconds}
           getDotClassName={getDotClassName}
         />
-        <div className="flex-1 overflow-y-auto flex flex-col pb-20">
+        <div className="flex-1 pb-16 overflow-y-auto flex flex-col">
           <ExerciseSelectionSection
             currentPattern={currentPattern}
             selectedExerciseId={selectedExerciseId}

@@ -1,4 +1,5 @@
 import { Check, Play } from 'lucide-react'
+import { ProgressionSuggestionDisplay } from './ProgressionSuggestionDisplay'
 import type { Doc, Id } from '@db/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -98,35 +99,12 @@ export function SetLogger({
             placeholder={lastSet?.weight.toString() || '0'}
             className="mt-2 text-lg"
           />
-          {suggestedWeight?.suggestion && (
-            <div className="mt-1 space-y-0.5">
-              {suggestedWeight.suggestion === 'increase' && (
-                <p className="text-xs text-green-600 font-medium">
-                  ↑ Suggested: {suggestedWeight.suggestedWeight}kg (last:{' '}
-                  {suggestedWeight.lastReps} reps @ {suggestedWeight.lastWeight}
-                  kg)
-                </p>
-              )}
-              {suggestedWeight.suggestion === 'decrease' && (
-                <p className="text-xs text-orange-600 font-medium">
-                  ↓ Suggested: {suggestedWeight.suggestedWeight}kg (last:{' '}
-                  {suggestedWeight.lastReps} reps @ {suggestedWeight.lastWeight}
-                  kg)
-                </p>
-              )}
-              {suggestedWeight.suggestion === 'maintain' && (
-                <p className="text-xs text-blue-600 font-medium">
-                  → Maintain: {suggestedWeight.suggestedWeight}kg (in 8-12 rep
-                  zone)
-                </p>
-              )}
-            </div>
-          )}
-          {!suggestedWeight?.suggestion && lastSet && (
-            <p className="text-xs text-muted-foreground mt-1">
-              Last: {lastSet.weight}kg
-            </p>
-          )}
+          <ProgressionSuggestionDisplay
+            suggestion={suggestedWeight}
+            lastSet={lastSet}
+            fallbackLabel="Last"
+            fallbackValue={`${lastSet?.weight ?? 0}kg`}
+          />
         </div>
         <div>
           <Label htmlFor="reps">Reps</Label>
@@ -138,11 +116,12 @@ export function SetLogger({
             placeholder={lastSet?.reps.toString() || '0'}
             className="mt-2 text-lg"
           />
-          {lastSet && (
-            <p className="text-xs text-muted-foreground mt-1">
-              Last: {lastSet.reps} reps
-            </p>
-          )}
+          <ProgressionSuggestionDisplay
+            suggestion={null}
+            lastSet={lastSet}
+            fallbackLabel="Last"
+            fallbackValue={`${lastSet?.reps ?? 0} reps`}
+          />
         </div>
       </div>
 

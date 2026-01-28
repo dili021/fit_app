@@ -14,7 +14,7 @@
     "format": "prettier --check .",
     "qg": "tsc --noEmit && prettier . --check && eslint",
     "qgf": "tsc --noEmit && prettier --write . && eslint --fix",
-    "qg:errors-only": "tsc --noEmit && prettier . --check && eslint --max-warnings=999999"
+    "qg:errors-only": "tsc --noEmit && eslint --max-warnings=999999"
   },
   "dependencies": {
     "@convex-dev/better-auth": "^0.10.10",

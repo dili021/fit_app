@@ -12,15 +12,15 @@ export default function Header() {
     <>
       {/* Bottom Header - Menu and Logo */}
       <header className="fixed bottom-0 left-0 right-0 z-40 border-t bg-sidebar-accent/95 backdrop-blur supports-[backdrop-filter]:bg-sidebar-accent/60">
-        <div className="container flex h-16 items-center justify-between px-4">
+        <div className="container grid h-16 grid-cols-3 items-center px-4">
           <button
             onClick={() => setIsOpen(true)}
-            className="min-h-[48px] min-w-[48px] text-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80 transition-colors rounded-md flex items-center justify-center"
+            className="min-h-[48px] min-w-[48px] text-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80 transition-colors rounded-md flex items-center justify-center justify-self-start"
             aria-label="Open menu"
           >
             <Menu className="h-6 w-6" />
           </button>
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2 justify-self-center">
             <span
               className="text-2xl font-bold"
               style={{ fontFamily: "'Bungee', cursive" }}
@@ -28,7 +28,7 @@ export default function Header() {
               Gainz
             </span>
           </Link>
-          <div className="w-12" /> {/* Spacer for balance */}
+          <div className="w-12" />
         </div>
       </header>
 

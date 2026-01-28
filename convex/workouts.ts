@@ -8,7 +8,7 @@ import {
 } from './workoutTemplateHelpers'
 
 /**
- * Get recent workouts for a user (last N workouts)
+ * Get recent completed workouts for a user (last N workouts)
  */
 export const getRecentWorkouts = query({
   args: { userId: v.string(), limit: v.optional(v.number()) },
@@ -17,6 +17,7 @@ export const getRecentWorkouts = query({
     return await ctx.db
       .query('workouts')
       .withIndex('userId_date', (q) => q.eq('userId', args.userId))
+      .filter((q) => q.eq(q.field('completed'), true))
       .order('desc')
       .take(limit)
   },

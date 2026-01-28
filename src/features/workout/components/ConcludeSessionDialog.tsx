@@ -29,8 +29,12 @@ export function ConcludeSessionDialog({
             want to conclude the session?
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="w-full sm:w-auto"
+          >
             Cancel
           </Button>
           <Button
@@ -39,6 +43,7 @@ export function ConcludeSessionDialog({
               onOpenChange(false)
               onConfirm()
             }}
+            className="w-full sm:w-auto"
           >
             Conclude Session
           </Button>

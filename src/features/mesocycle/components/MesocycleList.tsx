@@ -28,6 +28,7 @@ interface MesocycleListProps {
   onConclude?: (mesocycleId: Id<'mesocycles'>) => void
   userId: string
   hasActiveMesocycle?: boolean
+  activeWorkout?: Doc<'workouts'> | null
 }
 
 function SortableMesocycleCard({
@@ -84,6 +85,7 @@ export function MesocycleList({
   onConclude,
   userId,
   hasActiveMesocycle,
+  activeWorkout,
 }: MesocycleListProps) {
   const reorderMesocycles = useMutation(api.mesocycles.reorderMesocycles)
 
@@ -140,6 +142,8 @@ export function MesocycleList({
           onConclude={
             onConclude ? () => onConclude(activeMesocycle._id) : undefined
           }
+          userId={userId}
+          activeWorkout={activeWorkout}
         />
       )}
 

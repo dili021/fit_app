@@ -48,6 +48,7 @@ function MesocyclesContent({ userId }: { userId: string }) {
 
   const mesocycles = useQuery(api.mesocycles.getAllMesocycles, { userId })
   const patterns = useQuery(api.patterns.getAll)
+  const activeWorkout = useQuery(api.workouts.getActiveWorkout, { userId })
   const concludeMesocycle = useMutation(api.mesocycles.concludeMesocycle)
 
   // Filter to only show active and planned mesocycles (planning page, not history)
@@ -127,6 +128,7 @@ function MesocyclesContent({ userId }: { userId: string }) {
             onConclude={handleConcludeClick}
             userId={userId}
             hasActiveMesocycle={hasActiveMesocycle}
+            activeWorkout={activeWorkout}
           />
           <CreateMesocycleButton
             onCreateClick={() => setCreateDialogOpen(true)}

@@ -58,7 +58,7 @@ export function ActiveWorkoutHeader({
             {currentPattern.patternName}
           </h2>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs text-muted-foreground">Patterns</span>
+            <span className="text-xs text-muted-foreground">Pattern</span>
             <div className="flex items-center gap-1">
               {workoutTemplate.template.map((pattern, index) => {
                 const status = getPatternCompletionStatus(index)

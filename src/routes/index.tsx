@@ -1,4 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { useMutation } from 'convex/react'
+import { api } from '@db/_generated/api'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { useAuth } from '@/hooks/useAuth'
 import { useDashboardData } from '@/features/dashboard/hooks/useDashboardData'
@@ -9,13 +12,19 @@ import { ActiveMesocycleCard } from '@/features/dashboard/components/ActiveMesoc
 import { DeloadNotification } from '@/features/dashboard/components/DeloadNotification'
 import { CompletionPrompt } from '@/features/dashboard/components/CompletionPrompt'
 import { RecentWorkoutsCard } from '@/features/dashboard/components/RecentWorkoutsCard'
+import { ConcludeMesocycleDialog } from '@/features/mesocycle/components/ConcludeMesocycleDialog'
 
 export const Route = createFileRoute('/')({ component: Dashboard })
 
 function Dashboard() {
   const { userId, isPending } = useAuth()
+  const [isClient, setIsClient] = useState(false)
 
-  if (isPending) {
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  if (!isClient || isPending) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
@@ -25,13 +34,14 @@ function Dashboard() {
 
   return (
     <ProtectedRoute>
-      <DashboardContent userId={userId!} />
+      {userId ? <DashboardContent userId={userId} /> : null}
     </ProtectedRoute>
   )
 }
 
 function DashboardContent({ userId }: { userId: string }) {
   const navigate = useNavigate()
+  const [concludeDialogOpen, setConcludeDialogOpen] = useState(false)
   const {
     activeMesocycle,
     activeWorkout,
@@ -44,6 +54,7 @@ function DashboardContent({ userId }: { userId: string }) {
     showCompletionPrompt,
     setShowCompletionPrompt,
   } = useDashboardData(userId)
+  const concludeMesocycle = useMutation(api.mesocycles.concludeMesocycle)
 
   const {
     currentWeek,
@@ -83,6 +94,21 @@ function DashboardContent({ userId }: { userId: string }) {
       void navigate({ to: '/workout/active', search: { workoutId } })
     } catch {
       alert('Failed to start workout. Please try again.')
+    }
+  }
+
+  const handleConcludeClick = () => {
+    setConcludeDialogOpen(true)
+  }
+
+  const handleConcludeConfirm = async () => {
+    if (!activeMesocycle) return
+
+    try {
+      await concludeMesocycle({ mesocycleId: activeMesocycle._id })
+      setConcludeDialogOpen(false)
+    } catch {
+      alert('Failed to conclude mesocycle. Please try again.')
     }
   }
 
@@ -131,6 +157,7 @@ function DashboardContent({ userId }: { userId: string }) {
           workoutTemplate={workoutTemplate ?? null}
           hasActiveWorkout={!!hasActiveWorkout}
           onStartWorkout={handleStartWorkout}
+          onConclude={handleConcludeClick}
         />
 
         {isDeloadWeek && !isCompleted && <DeloadNotification />}
@@ -144,6 +171,15 @@ function DashboardContent({ userId }: { userId: string }) {
           formatWorkoutDate={formatWorkoutDate}
         />
       </div>
+
+      <ConcludeMesocycleDialog
+        open={concludeDialogOpen}
+        onOpenChange={setConcludeDialogOpen}
+        mesocycle={activeMesocycle}
+        onConfirm={() => {
+          void handleConcludeConfirm()
+        }}
+      />
     </div>
   )
 }
