@@ -7,15 +7,13 @@ export function registerServiceWorker() {
       navigator.serviceWorker
         .register('/sw.js', { updateViaCache: 'none' })
         .then((registration) => {
-          console.log('Service Worker registered:', registration.scope)
-
           // Check for updates immediately and periodically
-          registration.update()
+          void registration.update()
 
           // Check for updates every 5 minutes
           setInterval(
             () => {
-              registration.update()
+              void registration.update()
             },
             5 * 60 * 1000,
           )
@@ -30,15 +28,15 @@ export function registerServiceWorker() {
                   navigator.serviceWorker.controller
                 ) {
                   // New service worker available, reload to activate
-                  console.log('New service worker available, reloading...')
                   window.location.reload()
                 }
               })
             }
           })
         })
-        .catch((error) => {
-          console.error('Service Worker registration failed:', error)
+        .catch(() => {
+          // Service worker registration failed - silently fail
+          // User can still use the app without service worker
         })
     })
   }

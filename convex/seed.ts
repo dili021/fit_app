@@ -1,5 +1,7 @@
 import { v } from 'convex/values'
 import { mutation, query } from './_generated/server'
+import type { Id } from './_generated/dataModel'
+import type { Doc } from './_generated/dataModel'
 
 /**
  * Get all user IDs (for seeding purposes)
@@ -212,7 +214,7 @@ export const seedAll = mutation({
       },
     ]
 
-    const patternIds: Record<string, any> = {}
+    const patternIds: Record<string, Id<'patterns'>> = {}
     let patternsCreated = 0
 
     for (const pattern of patterns) {
@@ -398,7 +400,7 @@ export const seedUserWorkoutData = mutation({
       )
     }
 
-    const exerciseMap = new Map<string, any>()
+    const exerciseMap = new Map<string, Doc<'exercises'>>()
     exercises.forEach((e) => {
       const pattern = patterns.find((p) => p._id === e.patternId)
       if (pattern) {
@@ -678,7 +680,7 @@ export const seedManyWorkouts = mutation({
       throw new Error('Missing required patterns')
     }
 
-    const exerciseMap = new Map<string, any>()
+    const exerciseMap = new Map<string, Doc<'exercises'>>()
     exercises.forEach((e) => {
       const pattern = patterns.find((p) => p._id === e.patternId)
       if (pattern) {

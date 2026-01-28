@@ -1,6 +1,8 @@
 import { v } from 'convex/values'
 import { mutation, query } from './_generated/server'
 
+const ERROR_MESOCYCLE_NOT_FOUND = 'Mesocycle not found'
+
 /**
  * Get the active mesocycle for a user
  */
@@ -108,7 +110,7 @@ export const activateMesocycle = mutation({
   handler: async (ctx, args) => {
     const mesocycle = await ctx.db.get(args.mesocycleId)
     if (!mesocycle) {
-      throw new Error('Mesocycle not found')
+      throw new Error(ERROR_MESOCYCLE_NOT_FOUND)
     }
 
     if (mesocycle.status !== 'planned') {
@@ -155,7 +157,7 @@ export const concludeMesocycle = mutation({
   handler: async (ctx, args) => {
     const mesocycle = await ctx.db.get(args.mesocycleId)
     if (!mesocycle) {
-      throw new Error('Mesocycle not found')
+      throw new Error(ERROR_MESOCYCLE_NOT_FOUND)
     }
 
     if (mesocycle.status !== 'active' && mesocycle.status !== 'deload') {
@@ -246,7 +248,7 @@ export const calculateSetDistribution = query({
   handler: async (ctx, args) => {
     const mesocycle = await ctx.db.get(args.mesocycleId)
     if (!mesocycle) {
-      throw new Error('Mesocycle not found')
+      throw new Error(ERROR_MESOCYCLE_NOT_FOUND)
     }
 
     // Check if it's the final week (deload week)
@@ -302,7 +304,7 @@ export const checkAndUpdateMesocycleStatus = mutation({
   handler: async (ctx, args) => {
     const mesocycle = await ctx.db.get(args.mesocycleId)
     if (!mesocycle) {
-      throw new Error('Mesocycle not found')
+      throw new Error(ERROR_MESOCYCLE_NOT_FOUND)
     }
 
     if (mesocycle.status === 'completed') {
@@ -396,7 +398,7 @@ export const getMesocycleStatusInfo = query({
   handler: async (ctx, args) => {
     const mesocycle = await ctx.db.get(args.mesocycleId)
     if (!mesocycle) {
-      throw new Error('Mesocycle not found')
+      throw new Error(ERROR_MESOCYCLE_NOT_FOUND)
     }
 
     // Calculate current week (only if mesocycle is active)

@@ -86,11 +86,15 @@ function DashboardContent({ userId }: { userId: string }) {
   // Check and update mesocycle status on load
   useEffect(() => {
     if (activeMesocycle) {
-      checkStatus({ mesocycleId: activeMesocycle._id }).then((result) => {
-        if (result.status === 'completed' && result.action === 'completed') {
-          setShowCompletionPrompt(true)
-        }
-      })
+      void checkStatus({ mesocycleId: activeMesocycle._id })
+        .then((result) => {
+          if (result.status === 'completed' && result.action === 'completed') {
+            setShowCompletionPrompt(true)
+          }
+        })
+        .catch(() => {
+          // Silently handle errors - status check is not critical
+        })
     }
   }, [activeMesocycle?._id, checkStatus])
 
@@ -166,8 +170,7 @@ function DashboardContent({ userId }: { userId: string }) {
 
       // Navigate directly to active workout page
       navigate({ to: '/workout/active', search: { workoutId } })
-    } catch (error) {
-      console.error('Failed to create workout:', error)
+    } catch {
       alert('Failed to start workout. Please try again.')
     }
   }
@@ -349,7 +352,9 @@ function DashboardContent({ userId }: { userId: string }) {
             <CardFooter>
               {!isCompleted ? (
                 <Button
-                  onClick={handleStartWorkout}
+                  onClick={() => {
+                    void handleStartWorkout()
+                  }}
                   className="w-full"
                   disabled={!activeMesocycle}
                 >

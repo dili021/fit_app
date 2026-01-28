@@ -20,8 +20,10 @@ const normalizeUrl = (url: string): string => {
   return normalized
 }
 
+const DEFAULT_LOCALHOST_URL = 'http://localhost:3000'
+
 const siteUrlRaw =
-  process.env.SITE_URL || process.env.VITE_SITE_URL || 'http://localhost:3000'
+  process.env.SITE_URL || process.env.VITE_SITE_URL || DEFAULT_LOCALHOST_URL
 const siteUrl = normalizeUrl(siteUrlRaw)
 
 // Build trusted origins list - supports multiple origins
@@ -44,18 +46,12 @@ const getTrustedOrigins = (): Array<string> => {
   }
 
   // Always include localhost for development
-  if (!origins.includes('http://localhost:3000')) {
-    origins.push('http://localhost:3000')
+  if (!origins.includes(DEFAULT_LOCALHOST_URL)) {
+    origins.push(DEFAULT_LOCALHOST_URL)
   }
 
   // Remove duplicates
-  const uniqueOrigins = [...new Set(origins)]
-
-  // Debug logging (remove in production if needed)
-  console.log('[Better Auth] SITE_URL:', siteUrl)
-  console.log('[Better Auth] Trusted Origins:', uniqueOrigins)
-
-  return uniqueOrigins
+  return [...new Set(origins)]
 }
 
 // The component client has methods needed for integrating Convex with Better Auth,

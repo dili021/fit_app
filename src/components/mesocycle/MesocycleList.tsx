@@ -125,8 +125,7 @@ export function MesocycleList({
         userId,
         mesocycleOrders,
       })
-    } catch (error) {
-      console.error('Failed to reorder mesocycles:', error)
+    } catch {
       alert('Failed to reorder mesocycles. Please try again.')
     }
   }
@@ -149,7 +148,9 @@ export function MesocycleList({
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
+          onDragEnd={(event) => {
+            void handleDragEnd(event)
+          }}
         >
           <SortableContext
             items={inactiveMesocycles.map((m) => m._id)}

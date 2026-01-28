@@ -50,12 +50,12 @@ export function useConvexMutation<
   const [error, setError] = useState<string | null>(null)
 
   const mutate = useCallback(
-    async (...args: Array<unknown>) => {
+    async (args: TMutation['_args']) => {
       setError(null)
       setIsLoading(true)
 
       try {
-        const result = await (convexMutation as any)(...args)
+        const result = await convexMutation(args)
         options?.onSuccess?.(result)
         return result
       } catch (err) {

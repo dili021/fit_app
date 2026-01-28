@@ -83,8 +83,7 @@ export function CreateMesocycleDialog({
 
       onOpenChange(false)
       onSuccess?.()
-    } catch (error) {
-      console.error('Failed to create mesocycle:', error)
+    } catch {
       alert('Failed to create mesocycle. Please try again.')
     }
   }
@@ -219,7 +218,12 @@ export function CreateMesocycleDialog({
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           ) : (
-            <Button onClick={handleSubmit} disabled={!canProceed()}>
+            <Button
+              onClick={() => {
+                void handleSubmit()
+              }}
+              disabled={!canProceed()}
+            >
               Create Mesocycle
               <Check className="h-4 w-4 ml-2" />
             </Button>

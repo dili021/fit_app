@@ -28,7 +28,9 @@ export default function BetterAuthHeader() {
         </span>
         <ThemeToggle />
         <button
-          onClick={() => authClient.signOut()}
+          onClick={() => {
+            void authClient.signOut()
+          }}
           className="h-9 px-4 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80 transition-colors rounded-md min-h-[48px] shrink-0 whitespace-nowrap"
         >
           Sign out

@@ -45,7 +45,7 @@ function SignIn() {
           navigate({ to: '/' })
         }
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred')
     } finally {
       setLoading(false)
@@ -66,7 +66,13 @@ function SignIn() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            void handleSubmit(e)
+          }}
+          className="mt-8 space-y-6"
+        >
           {isSignUp && (
             <div>
               <label
@@ -168,7 +174,7 @@ function SignIn() {
                       setError(result.error.message || 'Google sign in failed')
                       setLoading(false)
                     }
-                  } catch (err) {
+                  } catch {
                     setError('An unexpected error occurred')
                     setLoading(false)
                   }

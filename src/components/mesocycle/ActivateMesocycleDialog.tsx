@@ -117,7 +117,6 @@ export function ActivateMesocycleDialog({
       onOpenChange(false)
       onSuccess?.()
     } catch (error) {
-      console.error('Failed to activate mesocycle:', error)
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -373,7 +372,12 @@ export function ActivateMesocycleDialog({
 
         {/* Submit Button */}
         <div className="flex justify-end pt-4 border-t mt-4">
-          <Button onClick={handleSubmit} disabled={!canSubmit}>
+          <Button
+            onClick={() => {
+              void handleSubmit()
+            }}
+            disabled={!canSubmit}
+          >
             Activate Mesocycle
             <Check className="h-4 w-4 ml-2" />
           </Button>

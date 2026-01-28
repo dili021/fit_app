@@ -10,9 +10,10 @@
     "test": "vitest run",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "format": "prettier",
+    "format": "prettier --check .",
     "qg": "tsc --noEmit && prettier . && eslint",
-    "qgf": "tsc --noEmit && prettier --write . && eslint --fix"
+    "qgf": "tsc --noEmit && prettier --write . && eslint --fix",
+    "qg:errors-only": "tsc --noEmit && prettier . && eslint --max-warnings=999999"
   },
   "dependencies": {
     "@convex-dev/better-auth": "^0.10.10",

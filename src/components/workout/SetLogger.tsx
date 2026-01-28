@@ -234,8 +234,7 @@ export function SetLogger({
       // Note: Convex queries will automatically refetch after mutation,
       // so suggestedWeight and lastSet will update with the new set
       onSetComplete()
-    } catch (error) {
-      console.error('Failed to save set:', error)
+    } catch {
       alert('Failed to save set. Please try again.')
     }
   }
@@ -318,7 +317,9 @@ export function SetLogger({
 
       {/* Complete Set Button */}
       <Button
-        onClick={handleCompleteSet}
+        onClick={() => {
+          void handleCompleteSet()
+        }}
         size="lg"
         className="w-full"
         disabled={!canComplete}

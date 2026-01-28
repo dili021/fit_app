@@ -98,8 +98,7 @@ function WorkoutIndexContent({ userId }: { userId: string }) {
 
       // Navigate to active workout page
       navigate({ to: '/workout/active', search: { workoutId } })
-    } catch (error) {
-      console.error('Failed to create workout:', error)
+    } catch {
       alert('Failed to start workout. Please try again.')
     }
   }
@@ -190,7 +189,9 @@ function WorkoutIndexContent({ userId }: { userId: string }) {
             </Card>
           ) : (
             <Button
-              onClick={handleStartWorkout}
+              onClick={() => {
+                void handleStartWorkout()
+              }}
               size="lg"
               className="w-full"
               disabled={!activeMesocycle}

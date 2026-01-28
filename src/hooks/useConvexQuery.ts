@@ -21,10 +21,9 @@ import type { FunctionReference } from 'convex/server'
  */
 export function useConvexQuery<TQuery extends FunctionReference<'query'>>(
   query: TQuery,
-
-  ...args: Array<any>
+  args: TQuery['_args'],
 ) {
-  const data = useQuery(query, ...(args as any))
+  const data = useQuery(query, args)
 
   const isLoading = data === undefined
   const isEmpty = data === null || (Array.isArray(data) && data.length === 0)

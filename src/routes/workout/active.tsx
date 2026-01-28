@@ -454,8 +454,7 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
       }
 
       navigate({ to: '/' })
-    } catch (error) {
-      console.error('Failed to conclude workout:', error)
+    } catch {
       alert('Failed to conclude workout. Please try again.')
     }
   }
@@ -464,8 +463,7 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
     try {
       await completeWorkout({ workoutId: currentWorkout._id })
       navigate({ to: '/' })
-    } catch (error) {
-      console.error('Failed to complete workout:', error)
+    } catch {
       alert('Failed to complete workout. Please try again.')
     }
   }

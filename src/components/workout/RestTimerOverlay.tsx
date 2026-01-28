@@ -31,6 +31,26 @@ export function RestTimerOverlay({
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
+  const getSuggestionBgClass = (suggestion: string | null) => {
+    if (suggestion === 'increase') {
+      return 'bg-green-50 dark:bg-green-950/20'
+    }
+    if (suggestion === 'decrease') {
+      return 'bg-orange-50 dark:bg-orange-950/20'
+    }
+    return 'bg-blue-50 dark:bg-blue-950/20'
+  }
+
+  const getSuggestionTextClass = (suggestion: string | null) => {
+    if (suggestion === 'increase') {
+      return 'text-green-700 dark:text-green-400'
+    }
+    if (suggestion === 'decrease') {
+      return 'text-orange-700 dark:text-orange-400'
+    }
+    return 'text-blue-700 dark:text-blue-400'
+  }
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <Card className="w-full max-w-md mx-4">
@@ -62,13 +82,9 @@ export function RestTimerOverlay({
                   Next Set Suggestion:
                 </p>
                 <div
-                  className={`flex items-center justify-center gap-2 p-3 rounded-lg ${
-                    progressionSuggestion.suggestion === 'increase'
-                      ? 'bg-green-50 dark:bg-green-950/20'
-                      : progressionSuggestion.suggestion === 'decrease'
-                        ? 'bg-orange-50 dark:bg-orange-950/20'
-                        : 'bg-blue-50 dark:bg-blue-950/20'
-                  }`}
+                  className={`flex items-center justify-center gap-2 p-3 rounded-lg ${getSuggestionBgClass(
+                    progressionSuggestion.suggestion,
+                  )}`}
                 >
                   {progressionSuggestion.suggestion === 'increase' && (
                     <TrendingUp className="h-5 w-5 text-green-600" />
@@ -81,13 +97,9 @@ export function RestTimerOverlay({
                   )}
                   <div className="text-left">
                     <p
-                      className={`font-semibold ${
-                        progressionSuggestion.suggestion === 'increase'
-                          ? 'text-green-700 dark:text-green-400'
-                          : progressionSuggestion.suggestion === 'decrease'
-                            ? 'text-orange-700 dark:text-orange-400'
-                            : 'text-blue-700 dark:text-blue-400'
-                      }`}
+                      className={`font-semibold ${getSuggestionTextClass(
+                        progressionSuggestion.suggestion,
+                      )}`}
                     >
                       {progressionSuggestion.suggestion === 'increase' &&
                         `Increase to ${progressionSuggestion.suggestedWeight}kg`}

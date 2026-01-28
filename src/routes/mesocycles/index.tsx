@@ -87,8 +87,7 @@ function MesocyclesContent({ userId }: { userId: string }) {
       await concludeMesocycle({ mesocycleId: mesocycleToConclude })
       setConcludeDialogOpen(false)
       setMesocycleToConclude(null)
-    } catch (error) {
-      console.error('Failed to conclude mesocycle:', error)
+    } catch {
       alert('Failed to conclude mesocycle. Please try again.')
     }
   }
@@ -297,7 +296,12 @@ function MesocyclesContent({ userId }: { userId: string }) {
             >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleConcludeConfirm}>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                void handleConcludeConfirm()
+              }}
+            >
               Conclude Mesocycle
             </Button>
           </DialogFooter>
