@@ -1,5 +1,5 @@
-import { query } from "./_generated/server";
-import { v } from "convex/values";
+import { v } from 'convex/values'
+import { query } from './_generated/server'
 
 /**
  * Get all patterns
@@ -7,16 +7,16 @@ import { v } from "convex/values";
 export const getAll = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("patterns").order("asc").collect();
+    return await ctx.db.query('patterns').order('asc').collect()
   },
-});
+})
 
 /**
  * Get pattern by ID
  */
 export const getById = query({
-  args: { id: v.id("patterns") },
+  args: { id: v.id('patterns') },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.id);
+    return await ctx.db.get(args.id)
   },
-});
+})

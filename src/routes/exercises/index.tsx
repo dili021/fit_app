@@ -7,7 +7,7 @@ export const Route = createFileRoute('/exercises/')({
 })
 
 function Exercises() {
-  const { userId, isPending } = useAuth()
+  const { isPending } = useAuth()
 
   if (isPending) {
     return (
@@ -19,12 +19,12 @@ function Exercises() {
 
   return (
     <ProtectedRoute>
-      <ExercisesContent userId={userId!} />
+      <ExercisesContent />
     </ProtectedRoute>
   )
 }
 
-function ExercisesContent({ userId }: { userId: string }) {
+function ExercisesContent() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Exercises</h1>

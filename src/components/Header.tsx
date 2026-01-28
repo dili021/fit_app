@@ -1,16 +1,9 @@
 import { Link } from '@tanstack/react-router'
 
+import { useState } from 'react'
+import { Home, Menu, SquareFunction, StickyNote, X } from 'lucide-react'
 import BetterAuthHeader from '../integrations/better-auth/header-user.tsx'
 import { cn } from '@/lib/utils'
-
-import { useState } from 'react'
-import {
-  Home,
-  Menu,
-  SquareFunction,
-  StickyNote,
-  X,
-} from 'lucide-react'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
@@ -28,7 +21,10 @@ export default function Header() {
             <Menu className="h-6 w-6" />
           </button>
           <Link to="/" className="flex items-center gap-2">
-            <span className="text-2xl font-bold" style={{ fontFamily: "'Bungee', cursive" }}>
+            <span
+              className="text-2xl font-bold"
+              style={{ fontFamily: "'Bungee', cursive" }}
+            >
               Gainz
             </span>
           </Link>
@@ -50,7 +46,7 @@ export default function Header() {
         className={cn(
           'fixed top-0 left-0 z-50 h-full w-80 border-r bg-sidebar text-sidebar-foreground shadow-lg transition-transform duration-300 ease-in-out',
           'flex flex-col',
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          isOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
         {/* Sidebar Header */}
@@ -77,9 +73,9 @@ export default function Header() {
           {/* Routes */}
           <div className="my-4 space-y-1 border-t border-sidebar-border pt-4">
             <NavLink
-              to="/mesocycle/setup"
+              to="/mesocycles"
               icon={SquareFunction}
-              label="Setup Mesocycle"
+              label="Mesocycles"
               onClick={() => setIsOpen(false)}
             />
             <NavLink
@@ -125,14 +121,14 @@ function NavLink({
       className={cn(
         'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
         'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring'
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring',
       )}
       activeProps={{
         className: cn(
           'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
           'bg-sidebar-primary text-sidebar-primary-foreground',
           'hover:bg-sidebar-primary/90',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring'
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring',
         ),
       }}
     >

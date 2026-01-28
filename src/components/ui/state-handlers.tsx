@@ -1,9 +1,9 @@
-import { ReactNode } from 'react'
 import { Button } from './button'
+import type { ReactNode } from 'react'
 
 /**
  * Loading spinner component for full-page loading states
- * 
+ *
  * @example
  * ```tsx
  * if (isLoading) {
@@ -11,10 +11,10 @@ import { Button } from './button'
  * }
  * ```
  */
-export function LoadingSpinner({ 
-  className = "flex items-center justify-center min-h-screen" 
-}: { 
-  className?: string 
+export function LoadingSpinner({
+  className = 'flex items-center justify-center min-h-screen',
+}: {
+  className?: string
 }) {
   return (
     <div className={className}>
@@ -25,25 +25,25 @@ export function LoadingSpinner({
 
 /**
  * Empty state component for when data is loaded but empty
- * 
+ *
  * @example
  * ```tsx
  * if (isEmpty) {
  *   return (
- *     <EmptyState 
- *       message="No workouts yet" 
+ *     <EmptyState
+ *       message="No workouts yet"
  *       action={<Button onClick={handleCreate}>Create First Workout</Button>}
  *     />
  *   )
  * }
  * ```
  */
-export function EmptyState({ 
-  message, 
-  action 
-}: { 
+export function EmptyState({
+  message,
+  action,
+}: {
   message: string
-  action?: ReactNode 
+  action?: ReactNode
 }) {
   return (
     <div className="text-center py-12">
@@ -55,11 +55,11 @@ export function EmptyState({
 
 /**
  * Error display component for mutation errors
- * 
+ *
  * @example
  * ```tsx
  * const { error, resetError } = useConvexMutation(api.workouts.createWorkout)
- * 
+ *
  * return (
  *   <div>
  *     {error && <ErrorDisplay error={error} onDismiss={resetError} />}
@@ -68,12 +68,12 @@ export function EmptyState({
  * )
  * ```
  */
-export function ErrorDisplay({ 
-  error, 
-  onDismiss 
-}: { 
+export function ErrorDisplay({
+  error,
+  onDismiss,
+}: {
   error: string
-  onDismiss?: () => void 
+  onDismiss?: () => void
 }) {
   return (
     <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 text-red-800 dark:text-red-200">
@@ -96,13 +96,13 @@ export function ErrorDisplay({
 
 /**
  * Query state handler component that handles loading, empty, and error states.
- * 
+ *
  * This component provides a declarative way to handle all query states in one place.
- * 
+ *
  * @example
  * ```tsx
  * const { data, isLoading, isEmpty } = useConvexQuery(api.workouts.getAllWorkouts, { userId })
- * 
+ *
  * return (
  *   <QueryStateHandler
  *     isLoading={isLoading}
@@ -119,7 +119,7 @@ export function QueryStateHandler({
   isLoading,
   isEmpty,
   error,
-  emptyMessage = "No data available",
+  emptyMessage = 'No data available',
   emptyAction,
   loadingComponent,
   emptyComponent,
@@ -145,7 +145,13 @@ export function QueryStateHandler({
   }
 
   if (isEmpty) {
-    return <>{emptyComponent || <EmptyState message={emptyMessage} action={emptyAction} />}</>
+    return (
+      <>
+        {emptyComponent || (
+          <EmptyState message={emptyMessage} action={emptyAction} />
+        )}
+      </>
+    )
   }
 
   return <>{children}</>

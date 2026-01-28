@@ -1,13 +1,13 @@
 import { useMutation } from 'convex/react'
-import { FunctionReference } from 'convex/server'
-import { useState, useCallback } from 'react'
+import { useCallback, useState } from 'react'
+import type { FunctionReference } from 'convex/server'
 
 /**
  * Adapter hook for Convex mutations that provides consistent error and loading handling.
- * 
+ *
  * Wraps Convex's useMutation with built-in error state and loading tracking.
  * Preserves all Convex features: optimistic updates, real-time sync.
- * 
+ *
  * @example
  * ```tsx
  * const { mutate, isLoading, error, resetError } = useConvexMutation(
@@ -21,11 +21,11 @@ import { useState, useCallback } from 'react'
  *     }
  *   }
  * )
- * 
+ *
  * const handleCreate = () => {
  *   mutate({ userId, mesocycleId })
  * }
- * 
+ *
  * return (
  *   <div>
  *     {error && <ErrorDisplay error={error} onDismiss={resetError} />}
@@ -37,23 +37,25 @@ import { useState, useCallback } from 'react'
  * ```
  */
 export function useConvexMutation<
-  Mutation extends FunctionReference<'mutation'>,
-  Args extends Parameters<Mutation>[0],
->(mutation: Mutation, options?: {
-  onSuccess?: (result: Awaited<ReturnType<Mutation>>) => void
-  onError?: (error: Error) => void
-}) {
+  TMutation extends FunctionReference<'mutation'>,
+>(
+  mutation: TMutation,
+  options?: {
+    onSuccess?: (result: unknown) => void
+    onError?: (error: Error) => void
+  },
+) {
   const convexMutation = useMutation(mutation)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const mutate = useCallback(
-    async (args: Args) => {
+    async (...args: Array<unknown>) => {
       setError(null)
       setIsLoading(true)
 
       try {
-        const result = await convexMutation(args)
+        const result = await (convexMutation as any)(...args)
         options?.onSuccess?.(result)
         return result
       } catch (err) {
@@ -66,7 +68,7 @@ export function useConvexMutation<
         setIsLoading(false)
       }
     },
-    [convexMutation, options]
+    [convexMutation, options],
   )
 
   const resetError = useCallback(() => {

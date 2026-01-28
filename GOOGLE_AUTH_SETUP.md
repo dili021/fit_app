@@ -13,13 +13,14 @@ Google OAuth is **configured** in the code but **not yet activated** (requires c
    - Authorized redirect URIs: `http://localhost:3000/api/auth/callback/google`
 
 2. **Add Credentials to `.env.local`**
+
    ```env
    GOOGLE_CLIENT_ID=your_client_id_here
    GOOGLE_CLIENT_SECRET=your_client_secret_here
    VITE_GOOGLE_CLIENT_ID=your_client_id_here
    ```
 
-   **Note**: `VITE_GOOGLE_CLIENT_ID` is needed for client-side access. The secret should NOT have the VITE_ prefix (server-only).
+   **Note**: `VITE_GOOGLE_CLIENT_ID` is needed for client-side access. The secret should NOT have the VITE\_ prefix (server-only).
 
 3. **Restart Dev Server**
    After adding credentials, restart your dev server for changes to take effect.

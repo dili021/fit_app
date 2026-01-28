@@ -10,7 +10,7 @@ export function useAuth() {
   return {
     session,
     user: session?.user,
-    userId: session?.user?.id,
+    userId: session?.user.id,
     isAuthenticated: !!session?.user,
     isPending,
   }

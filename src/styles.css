@@ -142,19 +142,19 @@ code {
 /* Mobile-First Touch Enhancements */
 @media (pointer: coarse) {
   /* Ensure minimum 48px touch targets for all interactive elements */
-  button:not([data-size="xs"]):not([data-size="sm"]),
-  a[role="button"],
-  [role="button"]:not([data-size="xs"]):not([data-size="sm"]),
-  input[type="button"],
-  input[type="submit"] {
+  button:not([data-size='xs']):not([data-size='sm']),
+  a[role='button'],
+  [role='button']:not([data-size='xs']):not([data-size='sm']),
+  input[type='button'],
+  input[type='submit'] {
     min-height: 48px;
     min-width: 48px;
   }
-  
+
   /* Enhanced active/pressed states for touch feedback */
   button:active,
   a:active,
-  [role="button"]:active {
+  [role='button']:active {
     transform: scale(0.98);
     transition: transform 0.1s ease;
   }
@@ -164,7 +164,7 @@ code {
 @media (pointer: coarse) {
   button + button,
   a + a,
-  [role="button"] + [role="button"] {
+  [role='button'] + [role='button'] {
     margin-left: 8px;
   }
 }
@@ -173,24 +173,24 @@ code {
 @media (pointer: fine) {
   button:hover,
   a:hover,
-  [role="button"]:hover {
+  [role='button']:hover {
     /* Hover styles work on mouse/trackpad devices */
   }
 }
 
 /* Gaming-Inspired Visual Enhancements */
-[data-slot="badge"][data-variant="default"] {
+[data-slot='badge'][data-variant='default'] {
   box-shadow: 0 0 8px oklch(0.45 0.22 280 / 0.3);
 }
 
-[data-slot="badge"][data-variant="destructive"] {
+[data-slot='badge'][data-variant='destructive'] {
   box-shadow: 0 0 8px oklch(0.55 0.22 25 / 0.3);
 }
 
-.dark [data-slot="badge"][data-variant="default"] {
+.dark [data-slot='badge'][data-variant='default'] {
   box-shadow: 0 0 12px oklch(0.75 0.18 280 / 0.4);
 }
 
-.dark [data-slot="badge"][data-variant="destructive"] {
+.dark [data-slot='badge'][data-variant='destructive'] {
   box-shadow: 0 0 12px oklch(0.6 0.2 25 / 0.4);
 }

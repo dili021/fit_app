@@ -14,7 +14,10 @@ export default function AppConvexProvider({
   children: React.ReactNode
 }) {
   return (
-    <ConvexBetterAuthProvider client={convexQueryClient.convexClient} authClient={authClient}>
+    <ConvexBetterAuthProvider
+      client={convexQueryClient.convexClient}
+      authClient={authClient}
+    >
       {children}
     </ConvexBetterAuthProvider>
   )

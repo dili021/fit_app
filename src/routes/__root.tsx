@@ -31,7 +31,8 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
       {
         name: 'viewport',
-        content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
+        content:
+          'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
       },
       {
         name: 'description',
@@ -87,13 +88,17 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   }),
 
   shellComponent: RootDocument,
-  
+
   notFoundComponent: () => (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">
         <h1 className="text-2xl font-bold mb-2">404 - Page Not Found</h1>
-        <p className="text-muted-foreground mb-4">The page you're looking for doesn't exist.</p>
-        <a href="/" className="text-primary hover:underline">Go to Home</a>
+        <p className="text-muted-foreground mb-4">
+          The page you're looking for doesn't exist.
+        </p>
+        <a href="/" className="text-primary hover:underline">
+          Go to Home
+        </a>
       </div>
     </div>
   ),
@@ -111,9 +116,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   // Initialize theme on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme')
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const prefersDark = window.matchMedia(
+      '(prefers-color-scheme: dark)',
+    ).matches
     const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light')
-    
+
     if (initialTheme === 'dark') {
       document.documentElement.classList.add('dark')
     } else {

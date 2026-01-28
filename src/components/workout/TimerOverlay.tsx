@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
+import { Play, Square } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Square, Play } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 
 interface TimerOverlayProps {
@@ -33,12 +32,12 @@ export function TimerOverlay({
           <div className="mb-4">
             <h3 className="text-lg font-semibold">Workout Timer</h3>
           </div>
-          
+
           <div className="text-center space-y-6">
             <div className="text-6xl font-mono font-bold">
               {formatTime(elapsedSeconds)}
             </div>
-            
+
             {isRunning ? (
               <Button
                 onClick={onStop}
@@ -50,11 +49,7 @@ export function TimerOverlay({
                 Stop Timer
               </Button>
             ) : (
-              <Button
-                onClick={onStart}
-                size="lg"
-                className="w-full"
-              >
+              <Button onClick={onStart} size="lg" className="w-full">
                 <Play className="h-5 w-5 mr-2" />
                 Start Timer
               </Button>

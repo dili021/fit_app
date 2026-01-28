@@ -69,7 +69,10 @@ function SignIn() {
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           {isSignUp && (
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-foreground">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-foreground"
+              >
                 Name (optional)
               </label>
               <input
@@ -84,7 +87,10 @@ function SignIn() {
           )}
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-foreground">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-foreground"
+            >
               Email
             </label>
             <input
@@ -99,19 +105,22 @@ function SignIn() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-foreground">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-foreground"
+            >
               Password
             </label>
-              <input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring min-h-[48px]"
-                placeholder="••••••••"
-                minLength={8}
-              />
+            <input
+              id="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring min-h-[48px]"
+              placeholder="••••••••"
+              minLength={8}
+            />
           </div>
 
           {error && (
@@ -136,7 +145,9 @@ function SignIn() {
                 <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-card text-muted-foreground">Or continue with</span>
+                <span className="px-2 bg-card text-muted-foreground">
+                  Or continue with
+                </span>
               </div>
             </div>
           )}

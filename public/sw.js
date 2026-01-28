@@ -14,7 +14,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(STATIC_ASSETS)
-    })
+    }),
   )
   self.skipWaiting()
 })
@@ -26,9 +26,9 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames
           .filter((cacheName) => cacheName !== CACHE_NAME)
-          .map((cacheName) => caches.delete(cacheName))
+          .map((cacheName) => caches.delete(cacheName)),
       )
-    })
+    }),
   )
   self.clients.claim()
 })
@@ -49,7 +49,9 @@ self.addEventListener('fetch', (event) => {
   const isHTML = url.pathname === '/' || url.pathname.endsWith('.html')
   const isJS = url.pathname.endsWith('.js')
   const isCSS = url.pathname.endsWith('.css')
-  const isStaticAsset = url.pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/i)
+  const isStaticAsset = url.pathname.match(
+    /\.(png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/i,
+  )
 
   // Network-first for HTML only (to get new JS/CSS references on version change)
   if (isHTML) {
@@ -57,7 +59,11 @@ self.addEventListener('fetch', (event) => {
       fetch(event.request)
         .then((response) => {
           // Only cache successful responses
-          if (response && response.status === 200 && response.type === 'basic') {
+          if (
+            response &&
+            response.status === 200 &&
+            response.type === 'basic'
+          ) {
             const responseToCache = response.clone()
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseToCache)
@@ -68,7 +74,7 @@ self.addEventListener('fetch', (event) => {
         .catch(() => {
           // Network failed, try cache
           return caches.match(event.request)
-        })
+        }),
     )
     return
   }
@@ -83,7 +89,11 @@ self.addEventListener('fetch', (event) => {
 
         return fetch(event.request).then((response) => {
           // Only cache successful responses
-          if (response && response.status === 200 && response.type === 'basic') {
+          if (
+            response &&
+            response.status === 200 &&
+            response.type === 'basic'
+          ) {
             const responseToCache = response.clone()
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseToCache)
@@ -91,7 +101,7 @@ self.addEventListener('fetch', (event) => {
           }
           return response
         })
-      })
+      }),
     )
     return
   }
@@ -106,7 +116,11 @@ self.addEventListener('fetch', (event) => {
 
         return fetch(event.request).then((response) => {
           // Only cache successful responses
-          if (response && response.status === 200 && response.type === 'basic') {
+          if (
+            response &&
+            response.status === 200 &&
+            response.type === 'basic'
+          ) {
             const responseToCache = response.clone()
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseToCache)
@@ -114,7 +128,7 @@ self.addEventListener('fetch', (event) => {
           }
           return response
         })
-      })
+      }),
     )
     return
   }
@@ -133,6 +147,6 @@ self.addEventListener('fetch', (event) => {
       })
       .catch(() => {
         return caches.match(event.request)
-      })
+      }),
   )
 })

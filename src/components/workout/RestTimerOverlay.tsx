@@ -1,12 +1,12 @@
+import { Minus, TrendingDown, TrendingUp, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { X, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 
 interface ProgressionSuggestion {
   suggestedWeight: number | null
   lastWeight: number | null
   lastReps: number | null
-  suggestion: "increase" | "decrease" | "maintain" | null
+  suggestion: 'increase' | 'decrease' | 'maintain' | null
   reason: string
 }
 
@@ -46,7 +46,7 @@ export function RestTimerOverlay({
               <X className="h-4 w-4" />
             </Button>
           </div>
-          
+
           <div className="text-center space-y-6">
             <div className="text-6xl font-mono font-bold text-blue-600">
               {formatTime(secondsRemaining)}
@@ -61,41 +61,48 @@ export function RestTimerOverlay({
                 <p className="text-sm font-medium text-muted-foreground">
                   Next Set Suggestion:
                 </p>
-                <div className={`flex items-center justify-center gap-2 p-3 rounded-lg ${
-                  progressionSuggestion.suggestion === 'increase' ? 'bg-green-50 dark:bg-green-950/20' :
-                  progressionSuggestion.suggestion === 'decrease' ? 'bg-orange-50 dark:bg-orange-950/20' :
-                  'bg-blue-50 dark:bg-blue-950/20'
-                }`}>
+                <div
+                  className={`flex items-center justify-center gap-2 p-3 rounded-lg ${
+                    progressionSuggestion.suggestion === 'increase'
+                      ? 'bg-green-50 dark:bg-green-950/20'
+                      : progressionSuggestion.suggestion === 'decrease'
+                        ? 'bg-orange-50 dark:bg-orange-950/20'
+                        : 'bg-blue-50 dark:bg-blue-950/20'
+                  }`}
+                >
                   {progressionSuggestion.suggestion === 'increase' && (
-                    <TrendingUp className={`h-5 w-5 ${
-                      progressionSuggestion.suggestion === 'increase' ? 'text-green-600' : ''
-                    }`} />
+                    <TrendingUp className="h-5 w-5 text-green-600" />
                   )}
                   {progressionSuggestion.suggestion === 'decrease' && (
-                    <TrendingDown className={`h-5 w-5 ${
-                      progressionSuggestion.suggestion === 'decrease' ? 'text-orange-600' : ''
-                    }`} />
+                    <TrendingDown className="h-5 w-5 text-orange-600" />
                   )}
                   {progressionSuggestion.suggestion === 'maintain' && (
-                    <Minus className={`h-5 w-5 ${
-                      progressionSuggestion.suggestion === 'maintain' ? 'text-blue-600' : ''
-                    }`} />
+                    <Minus className="h-5 w-5 text-blue-600" />
                   )}
                   <div className="text-left">
-                    <p className={`font-semibold ${
-                      progressionSuggestion.suggestion === 'increase' ? 'text-green-700 dark:text-green-400' :
-                      progressionSuggestion.suggestion === 'decrease' ? 'text-orange-700 dark:text-orange-400' :
-                      'text-blue-700 dark:text-blue-400'
-                    }`}>
-                      {progressionSuggestion.suggestion === 'increase' && `Increase to ${progressionSuggestion.suggestedWeight}kg`}
-                      {progressionSuggestion.suggestion === 'decrease' && `Decrease to ${progressionSuggestion.suggestedWeight}kg`}
-                      {progressionSuggestion.suggestion === 'maintain' && `Maintain ${progressionSuggestion.suggestedWeight}kg`}
+                    <p
+                      className={`font-semibold ${
+                        progressionSuggestion.suggestion === 'increase'
+                          ? 'text-green-700 dark:text-green-400'
+                          : progressionSuggestion.suggestion === 'decrease'
+                            ? 'text-orange-700 dark:text-orange-400'
+                            : 'text-blue-700 dark:text-blue-400'
+                      }`}
+                    >
+                      {progressionSuggestion.suggestion === 'increase' &&
+                        `Increase to ${progressionSuggestion.suggestedWeight}kg`}
+                      {progressionSuggestion.suggestion === 'decrease' &&
+                        `Decrease to ${progressionSuggestion.suggestedWeight}kg`}
+                      {progressionSuggestion.suggestion === 'maintain' &&
+                        `Maintain ${progressionSuggestion.suggestedWeight}kg`}
                     </p>
-                    {progressionSuggestion.lastWeight && progressionSuggestion.lastReps && (
-                      <p className="text-xs text-muted-foreground">
-                        Last: {progressionSuggestion.lastReps} reps @ {progressionSuggestion.lastWeight}kg
-                      </p>
-                    )}
+                    {progressionSuggestion.lastWeight &&
+                      progressionSuggestion.lastReps && (
+                        <p className="text-xs text-muted-foreground">
+                          Last: {progressionSuggestion.lastReps} reps @{' '}
+                          {progressionSuggestion.lastWeight}kg
+                        </p>
+                      )}
                   </div>
                 </div>
               </div>

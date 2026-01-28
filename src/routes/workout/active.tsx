@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from 'zod'
+import { useMutation, useQuery } from 'convex/react'
+import { useEffect, useRef, useState } from 'react'
+import { Check, X } from 'lucide-react'
+import { api } from '../../../convex/_generated/api'
+import type { Id } from '../../../convex/_generated/dataModel'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { useAuth } from '@/hooks/useAuth'
-import { useQuery, useMutation } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
-import { Id } from '../../../convex/_generated/dataModel'
-import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -16,7 +17,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { X, Check } from 'lucide-react'
 import { ExerciseCarousel } from '@/components/workout/ExerciseCarousel'
 import { SetLogger } from '@/components/workout/SetLogger'
 import { TimerOverlay } from '@/components/workout/TimerOverlay'
@@ -58,40 +58,41 @@ function ActiveWorkout() {
 function ActiveWorkoutContent({ userId }: { userId: string }) {
   const navigate = useNavigate()
   const { workoutId } = Route.useSearch()
-  
+
   // All hooks must be called unconditionally at the top
-  const activeWorkout = useQuery(
-    api.workouts.getActiveWorkout,
-    { userId }
-  )
+  const activeWorkout = useQuery(api.workouts.getActiveWorkout, { userId })
   const workout = useQuery(
     api.workouts.getWorkoutById,
-    workoutId ? { id: workoutId as Id<"workouts"> } : "skip"
+    workoutId ? { id: workoutId as Id<'workouts'> } : 'skip',
   )
   // Use provided workoutId or fall back to active workout
   const currentWorkout = workout || activeWorkout
 
   const mesocycle = useQuery(
     api.mesocycles.getMesocycleById,
-    currentWorkout?.mesocycleId ? { id: currentWorkout.mesocycleId } : "skip"
+    currentWorkout?.mesocycleId ? { id: currentWorkout.mesocycleId } : 'skip',
   )
   const workoutTemplate = useQuery(
     api.workouts.generateWorkoutTemplate,
-    mesocycle ? { mesocycleId: mesocycle._id } : "skip"
+    mesocycle ? { mesocycleId: mesocycle._id } : 'skip',
   )
   const exercises = useQuery(api.exercises.getAll, {})
   const patterns = useQuery(api.patterns.getAll, {})
 
   const [currentPatternIndex, setCurrentPatternIndex] = useState(0)
-  const [selectedExerciseId, setSelectedExerciseId] = useState<Id<"exercises"> | null>(null)
+  const [selectedExerciseId, setSelectedExerciseId] =
+    useState<Id<'exercises'> | null>(null)
   const [completedSets, setCompletedSets] = useState(0)
   const [currentSetNumber, setCurrentSetNumber] = useState(1)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [timerSeconds, setTimerSeconds] = useState(0)
   const [showTimerOverlay, setShowTimerOverlay] = useState(false)
-  const [restSecondsRemaining, setRestSecondsRemaining] = useState<number | null>(null)
+  const [restSecondsRemaining, setRestSecondsRemaining] = useState<
+    number | null
+  >(null)
   const [restTimerStopped, setRestTimerStopped] = useState(false)
-  const [pendingPatternNavigation, setPendingPatternNavigation] = useState(false)
+  const [pendingPatternNavigation, setPendingPatternNavigation] =
+    useState(false)
   const [showWorkoutOverview, setShowWorkoutOverview] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [sessionElapsedSeconds, setSessionElapsedSeconds] = useState(0)
@@ -100,7 +101,7 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
   // Get sets for this workout to track progress
   const workoutSets = useQuery(
     api.sets.getSetsForWorkout,
-    currentWorkout ? { workoutId: currentWorkout._id } : "skip"
+    currentWorkout ? { workoutId: currentWorkout._id } : 'skip',
   )
 
   const completeWorkout = useMutation(api.workouts.completeWorkout)
@@ -110,13 +111,15 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
   // Must be called unconditionally (before early returns), but can skip when data not available
   const progressionSuggestion = useQuery(
     api.progression.getSuggestedWeight,
-    workoutTemplate && selectedExerciseId && workoutTemplate.template[currentPatternIndex]
+    workoutTemplate &&
+      selectedExerciseId &&
+      workoutTemplate.template[currentPatternIndex]
       ? {
           userId,
           exerciseId: selectedExerciseId,
           patternId: workoutTemplate.template[currentPatternIndex].patternId,
         }
-      : "skip"
+      : 'skip',
   )
 
   // Calculate completed sets for current pattern (across all exercises in the pattern)
@@ -125,7 +128,7 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
       const currentPattern = workoutTemplate.template[currentPatternIndex]
       // Count all sets for this pattern, regardless of exercise
       const patternSets = workoutSets.filter(
-        (s) => s.patternId === currentPattern.patternId
+        (s) => s.patternId === currentPattern.patternId,
       )
       setCompletedSets(patternSets.length)
       setCurrentSetNumber(patternSets.length + 1)
@@ -146,19 +149,29 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
   }, [currentPatternIndex, selectedExerciseId])
 
   // Calculate if all sets are completed for the workout (must be before early returns)
-  const allSetsCompleted = workoutSets && workoutTemplate ? (() => {
-    for (const pattern of workoutTemplate.template) {
-      const patternSets = workoutSets.filter((s) => s.patternId === pattern.patternId)
-      if (patternSets.length < pattern.sets) {
-        return false
-      }
-    }
-    return true
-  })() : false
+  const allSetsCompleted =
+    workoutSets && workoutTemplate
+      ? (() => {
+          for (const pattern of workoutTemplate.template) {
+            const patternSets = workoutSets.filter(
+              (s) => s.patternId === pattern.patternId,
+            )
+            if (patternSets.length < pattern.sets) {
+              return false
+            }
+          }
+          return true
+        })()
+      : false
 
   // Show overview when all sets are completed (only once) - MUST be before early returns
   useEffect(() => {
-    if (allSetsCompleted && workoutSets && workoutSets.length > 0 && !showWorkoutOverview) {
+    if (
+      allSetsCompleted &&
+      workoutSets &&
+      workoutSets.length > 0 &&
+      !showWorkoutOverview
+    ) {
       // Small delay to ensure all data is loaded
       const timer = setTimeout(() => {
         setShowWorkoutOverview(true)
@@ -169,9 +182,15 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
 
   // Session timer - starts when workout starts, runs until workout is concluded - MUST be before early returns
   useEffect(() => {
-    if (currentWorkout?.startedAt && !currentWorkout.completed && !showWorkoutOverview) {
+    if (
+      currentWorkout?.startedAt &&
+      !currentWorkout.completed &&
+      !showWorkoutOverview
+    ) {
       // Calculate initial elapsed time
-      const initialElapsed = Math.floor((Date.now() - currentWorkout.startedAt) / 1000)
+      const initialElapsed = Math.floor(
+        (Date.now() - currentWorkout.startedAt) / 1000,
+      )
       setSessionElapsedSeconds(initialElapsed)
 
       // Update every second
@@ -186,7 +205,9 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
       }
       // Calculate final elapsed time if workout is completed
       if (currentWorkout?.startedAt && currentWorkout.completedAt) {
-        const finalElapsed = Math.floor((currentWorkout.completedAt - currentWorkout.startedAt) / 1000)
+        const finalElapsed = Math.floor(
+          (currentWorkout.completedAt - currentWorkout.startedAt) / 1000,
+        )
         setSessionElapsedSeconds(finalElapsed)
       }
     }
@@ -196,7 +217,12 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
         clearInterval(sessionTimerIntervalRef.current)
       }
     }
-  }, [currentWorkout?.startedAt, currentWorkout?.completed, currentWorkout?.completedAt, showWorkoutOverview])
+  }, [
+    currentWorkout?.startedAt,
+    currentWorkout?.completed,
+    currentWorkout?.completedAt,
+    showWorkoutOverview,
+  ])
 
   // Loading state - check if queries are still loading
   if (activeWorkout === undefined || (workoutId && workout === undefined)) {
@@ -233,14 +259,15 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
     )
   }
 
-  // No mesocycle or template found
-  if (!mesocycle || !workoutTemplate) {
+  // No mesocycle found (after undefined check)
+  // workoutTemplate depends on mesocycle, so if mesocycle exists, template exists
+  if (!mesocycle) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">Workout Data Not Found</h2>
           <p className="text-muted-foreground mb-4">
-            Unable to load workout template. Please start a new workout.
+            Unable to load mesocycle. Please start a new workout.
           </p>
           <Button onClick={() => navigate({ to: '/workout' })}>
             Go to Workout Page
@@ -251,23 +278,32 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
   }
 
   const currentPattern = workoutTemplate.template[currentPatternIndex]
-  const isLastPattern = currentPatternIndex === workoutTemplate.template.length - 1
-  const nextPattern = !isLastPattern ? workoutTemplate.template[currentPatternIndex + 1] : null
+  const isLastPattern =
+    currentPatternIndex === workoutTemplate.template.length - 1
+  const nextPattern = !isLastPattern
+    ? workoutTemplate.template[currentPatternIndex + 1]
+    : null
 
   // Check if all primary pattern sets are completed
-  const allPrimarySetsCompleted = workoutSets && workoutTemplate ? (() => {
-    const primaryPatterns = workoutTemplate.template.filter((p) => p.isPrimary)
-    for (const pattern of primaryPatterns) {
-      const patternSets = workoutSets.filter((s) => s.patternId === pattern.patternId)
-      if (patternSets.length < pattern.sets) {
-        return false
-      }
-    }
-    return true
-  })() : false
+  const allPrimarySetsCompleted = workoutSets
+    ? (() => {
+        const primaryPatterns = workoutTemplate.template.filter(
+          (p) => p.isPrimary,
+        )
+        for (const pattern of primaryPatterns) {
+          const patternSets = workoutSets.filter(
+            (s) => s.patternId === pattern.patternId,
+          )
+          if (patternSets.length < pattern.sets) {
+            return false
+          }
+        }
+        return true
+      })()
+    : false
 
   // Check if Next Pattern button should be disabled
-  const isNextPatternDisabled = nextPattern 
+  const isNextPatternDisabled = nextPattern
     ? !nextPattern.isPrimary && !allPrimarySetsCompleted
     : false
 
@@ -350,44 +386,48 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
     // Use currentSetNumber which represents the set we just completed (before it increments)
     // If currentSetNumber equals totalSets, we just completed the last set
     const justCompletedSetNumber = currentSetNumber
-    
+
     if (justCompletedSetNumber === currentPattern.sets) {
       // We just completed the exact number of sets required - check if we should auto-navigate
       const shouldNav = (() => {
         if (isLastPattern) return false
         if (!nextPattern) return false
-        
+
         // Check if all primary patterns are completed, accounting for the set we just completed
         const allPrimsDone = (() => {
-          if (!workoutTemplate) return false
-          const primaryPatterns = workoutTemplate.template.filter((p) => p.isPrimary)
+          const primaryPatterns = workoutTemplate.template.filter(
+            (p) => p.isPrimary,
+          )
           for (const pattern of primaryPatterns) {
-            const patternSets = workoutSets?.filter((s) => s.patternId === pattern.patternId) || []
+            const patternSets =
+              workoutSets?.filter((s) => s.patternId === pattern.patternId) ||
+              []
             // If this is the current pattern, add 1 to account for the set we just completed
-            const count = pattern.patternId === currentPattern.patternId 
-              ? patternSets.length + 1 
-              : patternSets.length
+            const count =
+              pattern.patternId === currentPattern.patternId
+                ? patternSets.length + 1
+                : patternSets.length
             if (count < pattern.sets) {
               return false
             }
           }
           return true
         })()
-        
+
         // Auto-navigate if: prim->prim, sec->sec, or prim->sec (when all prims done)
         if (currentPattern.isPrimary && nextPattern.isPrimary) return true
         if (!currentPattern.isPrimary && !nextPattern.isPrimary) return true
-        if (currentPattern.isPrimary && !nextPattern.isPrimary && allPrimsDone) return true
-        
+        if (currentPattern.isPrimary && !nextPattern.isPrimary && allPrimsDone)
+          return true
+
         return false
       })()
-      
+
       if (shouldNav) {
         setPendingPatternNavigation(true)
       }
     }
   }
-
 
   const handleConcludeSession = () => {
     // Only show confirmation if not all sets are completed
@@ -412,7 +452,7 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
         // Complete the workout if sets were completed
         await completeWorkout({ workoutId: currentWorkout._id })
       }
-      
+
       navigate({ to: '/' })
     } catch (error) {
       console.error('Failed to conclude workout:', error)
@@ -433,8 +473,12 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
   // Show workout overview if all sets are completed
   if (showWorkoutOverview && workoutSets && exercises && patterns) {
     // Calculate total session time from workout start to now (or completedAt if completed)
-    const totalSessionTime = currentWorkout?.startedAt 
-      ? Math.floor(((currentWorkout.completedAt || Date.now()) - currentWorkout.startedAt) / 1000)
+    const totalSessionTime = currentWorkout.startedAt
+      ? Math.floor(
+          ((currentWorkout.completedAt || Date.now()) -
+            currentWorkout.startedAt) /
+            1000,
+        )
       : 0
 
     return (
@@ -456,7 +500,8 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
           <DialogHeader>
             <DialogTitle>Conclude Session?</DialogTitle>
             <DialogDescription>
-              You haven't completed all sets for this workout. Are you sure you want to conclude the session?
+              You haven't completed all sets for this workout. Are you sure you
+              want to conclude the session?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -495,184 +540,195 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
         onDismiss={handleRestTimerStop}
         progressionSuggestion={progressionSuggestion || null}
       />
-      
+
       <div className="fixed inset-0 bg-background z-50 flex flex-col">
-      {/* Header */}
-      <div className={`flex items-center justify-between p-4 border-b ${completedSets >= currentPattern.sets ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' : ''}`}>
-        <div className="flex items-center gap-3 flex-1">
-          {/* Pattern Name */}
-          <div className="flex items-center gap-2">
-            {completedSets >= currentPattern.sets && (
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500 text-white">
-                <Check className="h-5 w-5" />
+        {/* Header */}
+        <div
+          className={`flex items-center justify-between p-4 border-b ${completedSets >= currentPattern.sets ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800' : ''}`}
+        >
+          <div className="flex items-center gap-3 flex-1">
+            {/* Pattern Name */}
+            <div className="flex items-center gap-2">
+              {completedSets >= currentPattern.sets && (
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500 text-white">
+                  <Check className="h-5 w-5" />
+                </div>
+              )}
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1
+                    className={`text-xl font-semibold ${completedSets >= currentPattern.sets ? 'text-green-700 dark:text-green-400' : ''}`}
+                  >
+                    {currentPattern.patternName}
+                  </h1>
+                  {currentPattern.isPrimary && (
+                    <Badge variant="default" className="text-xs">
+                      Primary
+                    </Badge>
+                  )}
+                </div>
+                {/* Pattern Counter */}
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="text-xs text-muted-foreground">Pattern</span>
+                  <div className="flex items-center gap-1">
+                    {workoutTemplate.template.map((pattern, index) => {
+                      const isCurrent = index === currentPatternIndex
+                      const isCompleted =
+                        workoutSets &&
+                        (() => {
+                          const patternSets = workoutSets.filter(
+                            (s) => s.patternId === pattern.patternId,
+                          )
+                          return patternSets.length >= pattern.sets
+                        })()
+
+                      return (
+                        <div
+                          key={index}
+                          className={`w-1.5 h-1.5 rounded-full transition-all ${
+                            isCurrent
+                              ? 'bg-primary'
+                              : isCompleted
+                                ? 'bg-green-500'
+                                : 'bg-muted'
+                          }`}
+                          aria-label={`Pattern ${index + 1}: ${pattern.patternName}`}
+                        />
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Session Timer - Centered and Larger */}
+          {currentWorkout.startedAt && (
+            <div className="absolute left-1/2 transform -translate-x-1/2 text-2xl font-mono font-bold text-foreground">
+              {Math.floor(sessionElapsedSeconds / 60)}:
+              {(sessionElapsedSeconds % 60).toString().padStart(2, '0')}
+            </div>
+          )}
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate({ to: '/' })}
+            className="ml-auto"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Main Content - Full Screen Pattern View */}
+        <div className="flex-1 overflow-y-auto flex flex-col">
+          <div className="flex-1 flex items-center justify-center p-6">
+            {/* Exercise Carousel - Top Half */}
+            {selectedExerciseId ? (
+              <ExerciseCarousel
+                patternId={currentPattern.patternId}
+                selectedExerciseId={selectedExerciseId}
+                onSelectExercise={setSelectedExerciseId}
+              />
+            ) : (
+              <div className="text-center">
+                <p className="text-muted-foreground mb-4">
+                  Select an exercise to begin
+                </p>
+                <ExerciseCarousel
+                  patternId={currentPattern.patternId}
+                  selectedExerciseId={null}
+                  onSelectExercise={setSelectedExerciseId}
+                />
               </div>
             )}
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className={`text-xl font-semibold ${completedSets >= currentPattern.sets ? 'text-green-700 dark:text-green-400' : ''}`}>
-                  {currentPattern.patternName}
-                </h1>
-                {currentPattern.isPrimary && (
-                  <Badge variant="default" className="text-xs">
-                    Primary
-                  </Badge>
-                )}
-              </div>
-              {/* Pattern Counter */}
-              <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-xs text-muted-foreground">Pattern</span>
+          </div>
+
+          {/* Bottom Half - Set Logger with Set Dots */}
+          {selectedExerciseId && (
+            <div className="border-t p-6 space-y-4">
+              {/* Set Counter */}
+              <div className="flex justify-center items-center gap-1.5">
+                <span className="text-xs text-muted-foreground">Set</span>
                 <div className="flex items-center gap-1">
-                  {workoutTemplate.template.map((pattern, index) => {
-                    const isCurrent = index === currentPatternIndex
-                    const isCompleted = workoutSets && (() => {
-                      const patternSets = workoutSets.filter(s => s.patternId === pattern.patternId)
-                      return patternSets.length >= pattern.sets
-                    })()
-                    
+                  {Array.from({ length: currentPattern.sets }, (_, i) => {
+                    const setNumber = i + 1
+                    const isCurrent = setNumber === currentSetNumber
+                    const isCompleted = setNumber < currentSetNumber
+
                     return (
                       <div
-                        key={index}
+                        key={setNumber}
                         className={`w-1.5 h-1.5 rounded-full transition-all ${
                           isCurrent
                             ? 'bg-primary'
                             : isCompleted
-                            ? 'bg-green-500'
-                            : 'bg-muted'
+                              ? 'bg-green-500'
+                              : 'bg-muted'
                         }`}
-                        aria-label={`Pattern ${index + 1}: ${pattern.patternName}`}
+                        aria-label={`Set ${setNumber}`}
                       />
                     )
                   })}
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Session Timer - Centered and Larger */}
-        {currentWorkout?.startedAt && (
-          <div className="absolute left-1/2 transform -translate-x-1/2 text-2xl font-mono font-bold text-foreground">
-            {Math.floor(sessionElapsedSeconds / 60)}:{(sessionElapsedSeconds % 60).toString().padStart(2, '0')}
-          </div>
-        )}
-        
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate({ to: '/' })}
-          className="ml-auto"
-        >
-          <X className="h-5 w-5" />
-        </Button>
-      </div>
 
-      {/* Main Content - Full Screen Pattern View */}
-      <div className="flex-1 overflow-y-auto flex flex-col">
-        <div className="flex-1 flex items-center justify-center p-6">
-          {/* Exercise Carousel - Top Half */}
-          {selectedExerciseId ? (
-            <ExerciseCarousel
-              patternId={currentPattern.patternId}
-              selectedExerciseId={selectedExerciseId}
-              onSelectExercise={setSelectedExerciseId}
-            />
-          ) : (
-            <div className="text-center">
-              <p className="text-muted-foreground mb-4">Select an exercise to begin</p>
-              <ExerciseCarousel
+              {/* Set Logger */}
+              <SetLogger
+                key={selectedExerciseId}
+                workoutId={currentWorkout._id}
                 patternId={currentPattern.patternId}
-                selectedExerciseId={null}
-                onSelectExercise={setSelectedExerciseId}
+                exerciseId={selectedExerciseId}
+                userId={userId}
+                setNumber={currentSetNumber}
+                totalSets={currentPattern.sets}
+                onSetComplete={handleSetComplete}
+                restTimeMinutes={mesocycle.restTimeMinutes ?? 3}
+                onTimerStart={handleTimerStart}
+                onTimerStop={handleTimerStop}
+                onTimerUpdate={setTimerSeconds}
+                onTimerReset={handleTimerReset}
+                onRestTimerStart={handleRestTimerStart}
+                onRestTimerUpdate={handleRestTimerUpdate}
+                onRestTimerComplete={handleRestTimerComplete}
+                restTimerStopped={restTimerStopped}
               />
             </div>
           )}
         </div>
-        
-        {/* Bottom Half - Set Logger with Set Dots */}
-        {selectedExerciseId && (
-          <div className="border-t p-6 space-y-4">
-            {/* Set Counter */}
-            <div className="flex justify-center items-center gap-1.5">
-              <span className="text-xs text-muted-foreground">Set</span>
-              <div className="flex items-center gap-1">
-                {Array.from({ length: currentPattern.sets }, (_, i) => {
-                  const setNumber = i + 1
-                  const isCurrent = setNumber === currentSetNumber
-                  const isCompleted = setNumber < currentSetNumber
-                  
-                  return (
-                    <div
-                      key={setNumber}
-                      className={`w-1.5 h-1.5 rounded-full transition-all ${
-                        isCurrent
-                          ? 'bg-primary'
-                          : isCompleted
-                          ? 'bg-green-500'
-                          : 'bg-muted'
-                      }`}
-                      aria-label={`Set ${setNumber}`}
-                    />
-                  )
-                })}
-              </div>
-            </div>
-            
-            {/* Set Logger */}
-            <SetLogger
-              key={selectedExerciseId}
-              workoutId={currentWorkout._id}
-              patternId={currentPattern.patternId}
-              exerciseId={selectedExerciseId}
-              userId={userId}
-              setNumber={currentSetNumber}
-              totalSets={currentPattern.sets}
-              onSetComplete={handleSetComplete}
-              restTimeMinutes={mesocycle.restTimeMinutes}
-              onTimerStart={handleTimerStart}
-              onTimerStop={handleTimerStop}
-              onTimerUpdate={setTimerSeconds}
-              onTimerReset={handleTimerReset}
-              onRestTimerStart={handleRestTimerStart}
-              onRestTimerUpdate={handleRestTimerUpdate}
-              onRestTimerComplete={handleRestTimerComplete}
-              restTimerStopped={restTimerStopped}
-            />
-          </div>
-        )}
-      </div>
 
-      {/* Footer Navigation */}
-      <div className="border-t p-4 space-y-2">
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={handlePreviousPattern}
-            disabled={currentPatternIndex === 0}
-            className="flex-1"
-          >
-            Previous
-          </Button>
-          {!isLastPattern ? (
+        {/* Footer Navigation */}
+        <div className="border-t p-4 space-y-2">
+          <div className="flex gap-2">
             <Button
-              onClick={handleNextPattern}
+              variant="outline"
+              onClick={handlePreviousPattern}
+              disabled={currentPatternIndex === 0}
               className="flex-1"
-              disabled={isNextPatternDisabled}
             >
-              Next Pattern
+              Previous
             </Button>
-          ) : (
-            <div className="flex-1" />
-          )}
+            {!isLastPattern ? (
+              <Button
+                onClick={handleNextPattern}
+                className="flex-1"
+                disabled={isNextPatternDisabled}
+              >
+                Next Pattern
+              </Button>
+            ) : (
+              <div className="flex-1" />
+            )}
+          </div>
+          <Button
+            onClick={handleConcludeSession}
+            variant={allSetsCompleted ? 'default' : 'destructive'}
+            className={`w-full ${allSetsCompleted ? '!bg-green-600 hover:!bg-green-700 text-white' : ''}`}
+          >
+            Conclude Session
+          </Button>
         </div>
-        <Button
-          onClick={handleConcludeSession}
-          variant={allSetsCompleted ? "default" : "destructive"}
-          className={`w-full ${allSetsCompleted ? '!bg-green-600 hover:!bg-green-700 text-white' : ''}`}
-        >
-          Conclude Session
-        </Button>
       </div>
-    </div>
     </>
   )
 }

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WorkoutIndexRouteImport } from './routes/workout/index'
+import { Route as MesocyclesIndexRouteImport } from './routes/mesocycles/index'
 import { Route as HistoryIndexRouteImport } from './routes/history/index'
 import { Route as ExercisesIndexRouteImport } from './routes/exercises/index'
 import { Route as WorkoutActiveRouteImport } from './routes/workout/active'
@@ -30,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
 const WorkoutIndexRoute = WorkoutIndexRouteImport.update({
   id: '/workout/',
   path: '/workout/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MesocyclesIndexRoute = MesocyclesIndexRouteImport.update({
+  id: '/mesocycles/',
+  path: '/mesocycles/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HistoryIndexRoute = HistoryIndexRouteImport.update({
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/workout/active': typeof WorkoutActiveRoute
   '/exercises/': typeof ExercisesIndexRoute
   '/history/': typeof HistoryIndexRoute
+  '/mesocycles/': typeof MesocyclesIndexRoute
   '/workout/': typeof WorkoutIndexRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/workout/active': typeof WorkoutActiveRoute
   '/exercises': typeof ExercisesIndexRoute
   '/history': typeof HistoryIndexRoute
+  '/mesocycles': typeof MesocyclesIndexRoute
   '/workout': typeof WorkoutIndexRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/workout/active': typeof WorkoutActiveRoute
   '/exercises/': typeof ExercisesIndexRoute
   '/history/': typeof HistoryIndexRoute
+  '/mesocycles/': typeof MesocyclesIndexRoute
   '/workout/': typeof WorkoutIndexRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/workout/active'
     | '/exercises/'
     | '/history/'
+    | '/mesocycles/'
     | '/workout/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/workout/active'
     | '/exercises'
     | '/history'
+    | '/mesocycles'
     | '/workout'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/workout/active'
     | '/exercises/'
     | '/history/'
+    | '/mesocycles/'
     | '/workout/'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   WorkoutActiveRoute: typeof WorkoutActiveRoute
   ExercisesIndexRoute: typeof ExercisesIndexRoute
   HistoryIndexRoute: typeof HistoryIndexRoute
+  MesocyclesIndexRoute: typeof MesocyclesIndexRoute
   WorkoutIndexRoute: typeof WorkoutIndexRoute
 }
 
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/workout'
       fullPath: '/workout/'
       preLoaderRoute: typeof WorkoutIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mesocycles/': {
+      id: '/mesocycles/'
+      path: '/mesocycles'
+      fullPath: '/mesocycles/'
+      preLoaderRoute: typeof MesocyclesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/history/': {
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   WorkoutActiveRoute: WorkoutActiveRoute,
   ExercisesIndexRoute: ExercisesIndexRoute,
   HistoryIndexRoute: HistoryIndexRoute,
+  MesocyclesIndexRoute: MesocyclesIndexRoute,
   WorkoutIndexRoute: WorkoutIndexRoute,
 }
 export const routeTree = rootRouteImport

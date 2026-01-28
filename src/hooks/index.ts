@@ -3,5 +3,9 @@
  */
 
 export { useAuth } from './useAuth'
-export { useConvexQuery, useQueriesLoading, useQueriesReady } from './useConvexQuery'
+export {
+  useConvexQuery,
+  useQueriesLoading,
+  useQueriesReady,
+} from './useConvexQuery'
 export { useConvexMutation } from './useConvexMutation'

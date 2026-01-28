@@ -1,13 +1,20 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useMutation, useQuery } from 'convex/react'
+import { useEffect } from 'react'
+import { AlertCircle, Calendar, Dumbbell, Play } from 'lucide-react'
+import { api } from '../../../convex/_generated/api'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { useAuth } from '@/hooks/useAuth'
-import { useQuery, useMutation } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
-import { useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Dumbbell, Play, Calendar, AlertCircle } from 'lucide-react'
 
 export const Route = createFileRoute('/workout/')({
   component: WorkoutIndex,
@@ -16,7 +23,10 @@ export const Route = createFileRoute('/workout/')({
 /**
  * Calculate current week number based on start date
  */
-function calculateCurrentWeek(startDate: number, durationWeeks: number): number {
+function calculateCurrentWeek(
+  startDate: number,
+  durationWeeks: number,
+): number {
   const now = Date.now()
   const elapsed = now - startDate
   const weeksElapsed = Math.floor(elapsed / (7 * 24 * 60 * 60 * 1000))
@@ -43,11 +53,13 @@ function WorkoutIndex() {
 
 function WorkoutIndexContent({ userId }: { userId: string }) {
   const navigate = useNavigate()
-  const activeMesocycle = useQuery(api.mesocycles.getActiveMesocycle, { userId })
+  const activeMesocycle = useQuery(api.mesocycles.getActiveMesocycle, {
+    userId,
+  })
   const activeWorkout = useQuery(api.workouts.getActiveWorkout, { userId })
   const mesocycleStatusInfo = useQuery(
     api.mesocycles.getMesocycleStatusInfo,
-    activeMesocycle ? { mesocycleId: activeMesocycle._id } : "skip"
+    activeMesocycle ? { mesocycleId: activeMesocycle._id } : 'skip',
   )
   const createWorkout = useMutation(api.workouts.createWorkout)
   const checkStatus = useMutation(api.mesocycles.checkAndUpdateMesocycleStatus)
@@ -60,12 +72,19 @@ function WorkoutIndexContent({ userId }: { userId: string }) {
   }, [activeMesocycle?._id, checkStatus])
 
   // Calculate current week if mesocycle exists
-  const currentWeek = mesocycleStatusInfo?.currentWeek ?? (activeMesocycle
-    ? calculateCurrentWeek(activeMesocycle.startDate, activeMesocycle.durationWeeks)
-    : 0)
-  
+  const currentWeek =
+    mesocycleStatusInfo?.currentWeek ??
+    (activeMesocycle && activeMesocycle.startDate
+      ? calculateCurrentWeek(
+          activeMesocycle.startDate,
+          activeMesocycle.durationWeeks,
+        )
+      : 0)
+
   const isDeloadWeek = mesocycleStatusInfo?.isDeloadWeek ?? false
-  const isCompleted = activeMesocycle?.status === "completed" || mesocycleStatusInfo?.status === "completed"
+  const isCompleted =
+    activeMesocycle?.status === 'completed' ||
+    mesocycleStatusInfo?.status === 'completed'
 
   const handleStartWorkout = async () => {
     if (!activeMesocycle) return
@@ -99,7 +118,7 @@ function WorkoutIndexContent({ userId }: { userId: string }) {
               Create a mesocycle to start tracking your workouts
             </p>
             <Button asChild>
-              <Link to="/mesocycle/setup">Set Up Mesocycle</Link>
+              <Link to="/mesocycles">Mesocycles</Link>
             </Button>
           </CardContent>
         </Card>
@@ -113,7 +132,9 @@ function WorkoutIndexContent({ userId }: { userId: string }) {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2">Start Workout</h1>
-            <p className="text-muted-foreground">Week {currentWeek} of {activeMesocycle.durationWeeks}</p>
+            <p className="text-muted-foreground">
+              Week {currentWeek} of {activeMesocycle.durationWeeks}
+            </p>
           </div>
           {isDeloadWeek && !isCompleted && (
             <Badge variant="destructive" className="flex items-center gap-1">
@@ -139,7 +160,10 @@ function WorkoutIndexContent({ userId }: { userId: string }) {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
                 <span>
-                  Started {new Date(activeWorkout.startedAt || activeWorkout.date).toLocaleString()}
+                  Started{' '}
+                  {new Date(
+                    activeWorkout.startedAt || activeWorkout.date,
+                  ).toLocaleString()}
                 </span>
               </div>
             </div>
@@ -156,10 +180,11 @@ function WorkoutIndexContent({ userId }: { userId: string }) {
             <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
               <CardContent className="py-6 text-center">
                 <p className="text-green-900 dark:text-green-100 mb-4">
-                  This mesocycle has been completed. Set up a new mesocycle to continue training.
+                  This mesocycle has been completed. Set up a new mesocycle to
+                  continue training.
                 </p>
                 <Button asChild>
-                  <Link to="/mesocycle/setup">Set Up New Mesocycle</Link>
+                  <Link to="/mesocycles">Mesocycles</Link>
                 </Button>
               </CardContent>
             </Card>

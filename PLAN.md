@@ -15,7 +15,7 @@ todos:
     content: Configure Better Auth for required authentication and user data syncing
     status: completed
   - id: routing-structure
-    content: "Set up TanStack Router routes: /, /mesocycle/setup, /workout, /history, /exercises"
+    content: 'Set up TanStack Router routes: /, /mesocycle/setup, /workout, /history, /exercises'
     status: completed
   - id: mesocycle-wizard
     content: Build 4-step mesocycle setup wizard with reactive session duration calculation and divisibility logic
@@ -190,7 +190,7 @@ This app focuses on mesocycle-based training with movement patterns rather than 
 ```
 Session Template:
 • Push: 6 sets
-• Pull: 6 sets  
+• Pull: 6 sets
 • Squat: 1 set (maintenance)
 • Hinge: 1 set (maintenance)
 • Lunge: 1 set (maintenance)
@@ -256,13 +256,11 @@ User just shows up and follows the flow. Don't like an exercise? Swipe it. Syste
 
 1. **Start Session** → creates workout record
 2. **Pattern-by-Pattern Full-Screen Experience**:
-
    - One pattern at a time, full screen
    - Start with primary patterns ("biggest rocks first")
    - For each pattern, show progress: "Push - Set 1 of 6"
 
 3. **Per-Set Flow** (within a pattern):
-
    - **Exercise selection**: Swipeable carousel (horizontal swipe to change)
    - **Weight input**: Number input, shows "Last: 60kg" for this exercise
    - **Large Start/Stop button**: Easy to tap during workout
@@ -272,7 +270,6 @@ User just shows up and follows the flow. Don't like an exercise? Swipe it. Syste
    - **Next set**: Automatically moves to next set in current pattern
 
 4. **Pattern Transitions**:
-
    - When all sets for current pattern complete → move to next pattern
    - **During primary patterns**: User is locked into sequence (can't skip to non-primary)
    - **After primary patterns**: User can choose which maintenance pattern to do next
@@ -292,7 +289,7 @@ User just shows up and follows the flow. Don't like an exercise? Swipe it. Syste
 **Auto-progression Logic** (after logging):
 
 - If reps ≥ 12 → suggest weight increase for next time (+5 lbs / +2.5 kg)
-- If reps < 8 → suggest weight decrease for next time (-5 lbs / -2.5 kg)  
+- If reps < 8 → suggest weight decrease for next time (-5 lbs / -2.5 kg)
 - If 8-12 → maintain weight (in the hypertrophy sweet spot)
 - System automatically adjusts suggested weight for that specific exercise next time user selects it
 
@@ -376,13 +373,13 @@ User just shows up and follows the flow. Don't like an exercise? Swipe it. Syste
 
 ```typescript
 const patterns = [
-  { name: "push", displayName: "Push", order: 1 },
-  { name: "pull", displayName: "Pull", order: 2 },
-  { name: "squat", displayName: "Squat", order: 3 },
-  { name: "hinge", displayName: "Hinge", order: 4 },
-  { name: "lunge", displayName: "Lunge", order: 5 },
-  { name: "twist", displayName: "Twist", order: 6 },
-];
+  { name: 'push', displayName: 'Push', order: 1 },
+  { name: 'pull', displayName: 'Pull', order: 2 },
+  { name: 'squat', displayName: 'Squat', order: 3 },
+  { name: 'hinge', displayName: 'Hinge', order: 4 },
+  { name: 'lunge', displayName: 'Lunge', order: 5 },
+  { name: 'twist', displayName: 'Twist', order: 6 },
+]
 ```
 
 **Exercises** (placeholder examples, 3-5 per pattern):
@@ -432,12 +429,10 @@ const patterns = [
 ### Phase 0: Tech Stack Setup
 
 1. Set up Convex deployment and environment variables
-
    - Run `npx convex init` to configure `VITE_CONVEX_URL` and `CONVEX_DEPLOYMENT`
    - Start Convex dev server: `npx convex dev`
 
 2. Configure Better Auth
-
    - Generate `BETTER_AUTH_SECRET`: `npx @better-auth/cli secret`
    - Set environment variables in `.env.local`
 
@@ -559,7 +554,7 @@ const patterns = [
 The app controls for scientifically-backed training variables:
 
 - **Choice**: User swipes to pick exercises they prefer
-- **Order**: Primary patterns enforced first ("biggest rocks first") 
+- **Order**: Primary patterns enforced first ("biggest rocks first")
 - **Frequency**: User sets during initial setup
 - **Volume**: System ensures target sets are completed
 - **Intensity**: 8-12 rep range keeps user in hypertrophy zone

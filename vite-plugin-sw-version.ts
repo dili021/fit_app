@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync } from 'fs'
-import { join } from 'path'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import type { Plugin } from 'vite'
 
 /**
@@ -23,7 +23,7 @@ export function swVersionPlugin(): Plugin {
       const cacheName = `training-tracker-${version}`
       swContent = swContent.replace(
         /const CACHE_NAME = ['"].*?['"]/,
-        `const CACHE_NAME = '${cacheName}'`
+        `const CACHE_NAME = '${cacheName}'`,
       )
 
       // Write the modified service worker (Vite will copy it from public/)

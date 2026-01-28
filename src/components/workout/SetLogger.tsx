@@ -1,17 +1,16 @@
-import { useState, useEffect, useRef } from 'react'
-import { Id } from '../../../convex/_generated/dataModel'
-import { useQuery, useMutation } from 'convex/react'
+import { useEffect, useRef, useState } from 'react'
+import { useMutation, useQuery } from 'convex/react'
+import { Check, Play } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
+import type { Id } from '../../../convex/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Play, Square, Check } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
 
 interface SetLoggerProps {
-  workoutId: Id<"workouts">
-  patternId: Id<"patterns">
-  exerciseId: Id<"exercises">
+  workoutId: Id<'workouts'>
+  patternId: Id<'patterns'>
+  exerciseId: Id<'exercises'>
   userId: string
   setNumber: number
   totalSets: number
@@ -36,7 +35,6 @@ export function SetLogger({
   onSetComplete,
   restTimeMinutes,
   onTimerStart,
-  onTimerStop,
   onTimerUpdate,
   onTimerReset,
   onRestTimerStart,
@@ -47,8 +45,9 @@ export function SetLogger({
   const [weight, setWeight] = useState<string>('')
   const [reps, setReps] = useState<string>('')
   const [isTimerRunning, setIsTimerRunning] = useState(false)
-  const [elapsedSeconds, setElapsedSeconds] = useState(0)
-  const [restSecondsRemaining, setRestSecondsRemaining] = useState<number | null>(null)
+  const [restSecondsRemaining, setRestSecondsRemaining] = useState<
+    number | null
+  >(null)
   const timerIntervalRef = useRef<number | null>(null)
   const restIntervalRef = useRef<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
@@ -74,7 +73,6 @@ export function SetLogger({
       // Reset rest timer state
       setRestSecondsRemaining(null)
       setIsTimerRunning(false)
-      setElapsedSeconds(0)
       startTimeRef.current = null
     }
   }, [restTimerStopped, restSecondsRemaining])
@@ -114,15 +112,13 @@ export function SetLogger({
   // Timer logic - sync with parent overlay
   useEffect(() => {
     if (isTimerRunning) {
+      let elapsed = 0
       timerIntervalRef.current = window.setInterval(() => {
-        setElapsedSeconds((prev) => {
-          const newValue = prev + 1
-          // Use ref to avoid calling during render
-          setTimeout(() => {
-            timerUpdateRef.current?.(newValue)
-          }, 0)
-          return newValue
-        })
+        elapsed += 1
+        // Use ref to avoid calling during render
+        setTimeout(() => {
+          timerUpdateRef.current?.(elapsed)
+        }, 0)
       }, 1000)
     } else {
       if (timerIntervalRef.current) {
@@ -145,14 +141,16 @@ export function SetLogger({
         setRestSecondsRemaining((prev) => {
           if (prev === null || prev <= 1) {
             // Rest complete - show notification
-            if ('Notification' in window && Notification.permission === 'granted') {
+            if (
+              'Notification' in window &&
+              Notification.permission === 'granted'
+            ) {
               new Notification('Rest Complete', {
                 body: 'Time to start your next set!',
               })
             }
             // Reset timer state when rest completes FIRST
             setIsTimerRunning(false)
-            setElapsedSeconds(0)
             startTimeRef.current = null
             // Use ref to avoid calling during render - call after state reset
             setTimeout(() => {
@@ -176,7 +174,6 @@ export function SetLogger({
       // Ensure timer is reset when rest completes or is cleared
       if (restSecondsRemaining === null) {
         setIsTimerRunning(false)
-        setElapsedSeconds(0)
         startTimeRef.current = null
       }
     }
@@ -191,13 +188,7 @@ export function SetLogger({
   const handleStartTimer = () => {
     setIsTimerRunning(true)
     startTimeRef.current = Date.now()
-    setElapsedSeconds(0) // Reset when starting
     onTimerStart?.() // This will show the overlay
-  }
-
-  const handleStopTimer = () => {
-    setIsTimerRunning(false)
-    onTimerStop?.()
   }
 
   // Sync local timer state with parent when timer updates
@@ -207,12 +198,6 @@ export function SetLogger({
       // Parent will call onTimerUpdate with the current seconds
     }
   }, [isTimerRunning, onTimerUpdate])
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
 
   const handleCompleteSet = async () => {
     if (!weight || !reps) return
@@ -236,7 +221,6 @@ export function SetLogger({
 
       // Reset timer state FIRST (before starting rest)
       setIsTimerRunning(false)
-      setElapsedSeconds(0)
       startTimeRef.current = null
       // Call reset callback to sync parent state
       onTimerReset?.()
@@ -288,17 +272,22 @@ export function SetLogger({
             <div className="mt-1 space-y-0.5">
               {suggestedWeight.suggestion === 'increase' && (
                 <p className="text-xs text-green-600 font-medium">
-                  ↑ Suggested: {suggestedWeight.suggestedWeight}kg (last: {suggestedWeight.lastReps} reps @ {suggestedWeight.lastWeight}kg)
+                  ↑ Suggested: {suggestedWeight.suggestedWeight}kg (last:{' '}
+                  {suggestedWeight.lastReps} reps @ {suggestedWeight.lastWeight}
+                  kg)
                 </p>
               )}
               {suggestedWeight.suggestion === 'decrease' && (
                 <p className="text-xs text-orange-600 font-medium">
-                  ↓ Suggested: {suggestedWeight.suggestedWeight}kg (last: {suggestedWeight.lastReps} reps @ {suggestedWeight.lastWeight}kg)
+                  ↓ Suggested: {suggestedWeight.suggestedWeight}kg (last:{' '}
+                  {suggestedWeight.lastReps} reps @ {suggestedWeight.lastWeight}
+                  kg)
                 </p>
               )}
               {suggestedWeight.suggestion === 'maintain' && (
                 <p className="text-xs text-blue-600 font-medium">
-                  → Maintain: {suggestedWeight.suggestedWeight}kg (in 8-12 rep zone)
+                  → Maintain: {suggestedWeight.suggestedWeight}kg (in 8-12 rep
+                  zone)
                 </p>
               )}
             </div>
@@ -326,7 +315,6 @@ export function SetLogger({
           )}
         </div>
       </div>
-
 
       {/* Complete Set Button */}
       <Button

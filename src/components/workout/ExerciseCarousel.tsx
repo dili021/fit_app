@@ -1,15 +1,14 @@
-import { useState, useEffect } from 'react'
-import { Id } from '../../../convex/_generated/dataModel'
+import { useEffect, useState } from 'react'
 import { useQuery } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
-import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { api } from '../../../convex/_generated/api'
+import type { Id } from '../../../convex/_generated/dataModel'
 import { Card, CardContent } from '@/components/ui/card'
 
 interface ExerciseCarouselProps {
-  patternId: Id<"patterns">
-  selectedExerciseId: Id<"exercises"> | null
-  onSelectExercise: (exerciseId: Id<"exercises">) => void
+  patternId: Id<'patterns'>
+  selectedExerciseId: Id<'exercises'> | null
+  onSelectExercise: (exerciseId: Id<'exercises'>) => void
 }
 
 export function ExerciseCarousel({
@@ -41,16 +40,19 @@ export function ExerciseCarousel({
     ? exercises.findIndex((e) => e._id === selectedExerciseId)
     : currentIndex
 
-  const currentExercise = exercises[selectedIndex >= 0 ? selectedIndex : currentIndex]
+  const currentExercise =
+    exercises[selectedIndex >= 0 ? selectedIndex : currentIndex]
 
   const handlePrevious = () => {
-    const newIndex = selectedIndex > 0 ? selectedIndex - 1 : exercises.length - 1
+    const newIndex =
+      selectedIndex > 0 ? selectedIndex - 1 : exercises.length - 1
     setCurrentIndex(newIndex)
     onSelectExercise(exercises[newIndex]._id)
   }
 
   const handleNext = () => {
-    const newIndex = selectedIndex < exercises.length - 1 ? selectedIndex + 1 : 0
+    const newIndex =
+      selectedIndex < exercises.length - 1 ? selectedIndex + 1 : 0
     setCurrentIndex(newIndex)
     onSelectExercise(exercises[newIndex]._id)
   }
@@ -69,7 +71,7 @@ export function ExerciseCarousel({
               <ChevronLeft className="h-6 w-6" />
             </button>
           </div>
-          
+
           <div className="absolute inset-y-0 right-0 flex items-center pr-2">
             <button
               onClick={handleNext}
@@ -79,7 +81,7 @@ export function ExerciseCarousel({
               <ChevronRight className="h-6 w-6" />
             </button>
           </div>
-          
+
           {/* Exercise Name - Centered */}
           <div className="text-center px-12">
             <h3 className="text-2xl font-semibold">{currentExercise.name}</h3>

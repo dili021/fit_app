@@ -18,6 +18,7 @@ npx convex dev --once --configure=new
 ```
 
 After running the above, start the Convex dev server:
+
 ```bash
 npx convex dev
 ```
@@ -33,6 +34,7 @@ npx convex dev
 ### Environment Variables
 
 Make sure `.env.local` has:
+
 - `BETTER_AUTH_SECRET` ✅ (configured)
 - `BETTER_AUTH_URL=http://localhost:3000` ✅
 - `CONVEX_DEPLOYMENT` (will be set by `npx convex dev`)
@@ -43,6 +45,7 @@ Make sure `.env.local` has:
 The schema and seed scripts have been created:
 
 ### Schema (`convex/schema.ts`)
+
 - `patterns` - Movement patterns (Push, Pull, Squat, Hinge, Lunge, Twist)
 - `exercises` - Exercises within each pattern
 - `mesocycles` - User training blocks

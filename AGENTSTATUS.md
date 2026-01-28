@@ -1,6 +1,7 @@
 # Agent Status - Training Tracker Implementation
 
 ## Overview
+
 Tracking progress on the training tracker app implementation based on the plan.
 
 **Last Updated**: 2026-01-26 (Phase 7 complete - Mesocycle management with deload automation, completion detection, and setup prompts)
@@ -254,6 +255,7 @@ Tracking progress on the training tracker app implementation based on the plan.
 ## Technical Debt
 
 See `NOTES.md` for details on:
+
 - Demo files to clean up
 - ~~Better Auth database integration~~ ✅ **COMPLETE** - Migrated to Convex + Better Auth
 - Exercise metadata expansion
@@ -271,6 +273,7 @@ See `NOTES.md` for details on:
 ## Files Created/Modified
 
 ### Created
+
 - `convex/schema.ts` - Database schema
 - `convex/seed.ts` - Seed data scripts
 - `convex/mesocycles.ts` - Mesocycle queries/mutations
@@ -305,6 +308,7 @@ See `NOTES.md` for details on:
 - `SETUP.md` - Setup instructions
 
 ### Modified
+
 - `src/routes/__root.tsx` - Updated title
 - `src/routes/index.tsx` - Converted to protected dashboard route, mesocycle progress based on sets logged
 - `src/routes/workout/active.tsx` - Fixed hooks order, added timer/rest overlays, workout overview, navigation logic, session timer, pattern completion UI, simplified timer handlers
@@ -326,6 +330,7 @@ See `NOTES.md` for details on:
 - `package.json` - Added @convex-dev/better-auth, pinned better-auth@1.4.9, removed better-sqlite3 and @types/better-sqlite3
 
 ### Deleted
+
 - `convex/todos.ts` - Demo file
 - `src/routes/demo/convex.tsx` - Demo file
 - `src/routes/demo/api.tq-todos.ts` - Demo file

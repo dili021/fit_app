@@ -1,5 +1,5 @@
-import { authClient } from '@/lib/auth-client'
 import { Link } from '@tanstack/react-router'
+import { authClient } from '@/lib/auth-client'
 import { ThemeToggle } from '@/components/ThemeToggle'
 
 export default function BetterAuthHeader() {
@@ -13,11 +13,15 @@ export default function BetterAuthHeader() {
 
   if (session?.user) {
     const displayName = session.user.name || session.user.email || 'User'
-    
+
     return (
       <div className="flex items-center gap-2 w-full">
         {session.user.image ? (
-          <img src={session.user.image} alt="" className="h-8 w-8 rounded-full shrink-0" />
+          <img
+            src={session.user.image}
+            alt=""
+            className="h-8 w-8 rounded-full shrink-0"
+          />
         ) : null}
         <span className="text-sm font-medium text-sidebar-foreground flex-1 truncate">
           {displayName}

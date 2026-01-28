@@ -1,14 +1,27 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useMutation, useQuery } from 'convex/react'
+import {
+  AlertCircle,
+  Calendar,
+  CheckCircle2,
+  Dumbbell,
+  Play,
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { api } from '../../convex/_generated/api'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { useAuth } from '@/hooks/useAuth'
-import { useQuery, useMutation } from 'convex/react'
-import { api } from '../../convex/_generated/api'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, Dumbbell, Play, AlertCircle, CheckCircle2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
 
 export const Route = createFileRoute('/')({ component: Dashboard })
 
@@ -33,7 +46,10 @@ function Dashboard() {
 /**
  * Calculate current week number based on start date
  */
-function calculateCurrentWeek(startDate: number, durationWeeks: number): number {
+function calculateCurrentWeek(
+  startDate: number,
+  durationWeeks: number,
+): number {
   const now = Date.now()
   const elapsed = now - startDate
   const weeksElapsed = Math.floor(elapsed / (7 * 24 * 60 * 60 * 1000))
@@ -42,21 +58,26 @@ function calculateCurrentWeek(startDate: number, durationWeeks: number): number 
 
 function DashboardContent({ userId }: { userId: string }) {
   const navigate = useNavigate()
-  const activeMesocycle = useQuery(api.mesocycles.getActiveMesocycle, { userId })
+  const activeMesocycle = useQuery(api.mesocycles.getActiveMesocycle, {
+    userId,
+  })
   const activeWorkout = useQuery(api.workouts.getActiveWorkout, { userId })
-  const recentWorkouts = useQuery(api.workouts.getRecentWorkouts, { userId, limit: 3 })
+  const recentWorkouts = useQuery(api.workouts.getRecentWorkouts, {
+    userId,
+    limit: 3,
+  })
   const patterns = useQuery(api.patterns.getAll)
   const mesocycleSets = useQuery(
     api.sets.getSetsForMesocycle,
-    activeMesocycle ? { mesocycleId: activeMesocycle._id } : "skip"
+    activeMesocycle ? { mesocycleId: activeMesocycle._id } : 'skip',
   )
   const mesocycleStatusInfo = useQuery(
     api.mesocycles.getMesocycleStatusInfo,
-    activeMesocycle ? { mesocycleId: activeMesocycle._id } : "skip"
+    activeMesocycle ? { mesocycleId: activeMesocycle._id } : 'skip',
   )
   const workoutTemplate = useQuery(
     api.workouts.generateWorkoutTemplate,
-    activeMesocycle ? { mesocycleId: activeMesocycle._id } : "skip"
+    activeMesocycle ? { mesocycleId: activeMesocycle._id } : 'skip',
   )
   const checkStatus = useMutation(api.mesocycles.checkAndUpdateMesocycleStatus)
   const createWorkout = useMutation(api.workouts.createWorkout)
@@ -66,7 +87,7 @@ function DashboardContent({ userId }: { userId: string }) {
   useEffect(() => {
     if (activeMesocycle) {
       checkStatus({ mesocycleId: activeMesocycle._id }).then((result) => {
-        if (result.status === "completed" && result.action === "completed") {
+        if (result.status === 'completed' && result.action === 'completed') {
           setShowCompletionPrompt(true)
         }
       })
@@ -74,44 +95,64 @@ function DashboardContent({ userId }: { userId: string }) {
   }, [activeMesocycle?._id, checkStatus])
 
   // Calculate current week if mesocycle exists
-  const currentWeek = mesocycleStatusInfo?.currentWeek ?? (activeMesocycle
-    ? calculateCurrentWeek(activeMesocycle.startDate, activeMesocycle.durationWeeks)
-    : 0)
+  const currentWeek =
+    mesocycleStatusInfo?.currentWeek ??
+    (activeMesocycle && activeMesocycle.startDate
+      ? calculateCurrentWeek(
+          activeMesocycle.startDate,
+          activeMesocycle.durationWeeks,
+        )
+      : 0)
 
-  const isDeloadWeek = mesocycleStatusInfo?.isDeloadWeek ?? (activeMesocycle && currentWeek === activeMesocycle.durationWeeks)
-  const isCompleted = activeMesocycle?.status === "completed" || mesocycleStatusInfo?.status === "completed"
+  const isDeloadWeek =
+    mesocycleStatusInfo?.isDeloadWeek ??
+    (activeMesocycle && currentWeek === activeMesocycle.durationWeeks)
+  const isCompleted =
+    activeMesocycle?.status === 'completed' ||
+    mesocycleStatusInfo?.status === 'completed'
 
   // Calculate progress based on completed sets, not week number
-  const mesocycleProgress = activeMesocycle && mesocycleSets ? (() => {
-    // Calculate total expected sets for the entire mesocycle
-    // This is: targetSetsPerWeek * durationWeeks * sessionsPerWeek / sessionsPerWeek
-    // Simplified: targetSetsPerWeek * durationWeeks
-    const totalExpectedSets = activeMesocycle.targetSetsPerWeek * activeMesocycle.durationWeeks
-    
-    // Count completed sets
-    const completedSets = mesocycleSets.length
-    
-    // Calculate percentage
-    return totalExpectedSets > 0 ? (completedSets / totalExpectedSets) * 100 : 0
-  })() : 0
+  const mesocycleProgress =
+    activeMesocycle && mesocycleSets && activeMesocycle.targetSetsPerWeek
+      ? (() => {
+          // Calculate total expected sets for the entire mesocycle
+          // This is: targetSetsPerWeek * durationWeeks * sessionsPerWeek / sessionsPerWeek
+          // Simplified: targetSetsPerWeek * durationWeeks
+          const totalExpectedSets =
+            activeMesocycle.targetSetsPerWeek * activeMesocycle.durationWeeks
+
+          // Count completed sets
+          const completedSets = mesocycleSets.length
+
+          // Calculate percentage
+          return totalExpectedSets > 0
+            ? (completedSets / totalExpectedSets) * 100
+            : 0
+        })()
+      : 0
 
   // Get primary pattern names for title
-  const primaryPatternNames = activeMesocycle && patterns
-    ? patterns
-        .filter((p) => activeMesocycle.primaryPatterns.includes(p._id))
-        .map((p) => p.displayName)
-    : []
-  
-  const mesocycleTitle = primaryPatternNames.length > 0
-    ? `${primaryPatternNames.join(' and ')} mesocycle`
-    : 'Active Mesocycle'
+  const primaryPatternNames =
+    activeMesocycle && patterns
+      ? patterns
+          .filter((p) => activeMesocycle.primaryPatterns.includes(p._id))
+          .map((p) => p.displayName)
+      : []
+
+  const mesocycleTitle =
+    primaryPatternNames.length > 0
+      ? `${primaryPatternNames.join(' and ')} mesocycle`
+      : 'Active Mesocycle'
 
   const handleStartWorkout = async () => {
     if (!activeMesocycle) return
 
     // If there's an active workout, navigate to it
     if (activeWorkout && !activeWorkout.completed) {
-      navigate({ to: '/workout/active', search: { workoutId: activeWorkout._id } })
+      navigate({
+        to: '/workout/active',
+        search: { workoutId: activeWorkout._id },
+      })
       return
     }
 
@@ -145,7 +186,10 @@ function DashboardContent({ userId }: { userId: string }) {
     } else if (date.toDateString() === yesterday.toDateString()) {
       return 'Yesterday'
     } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      })
     }
   }
 
@@ -165,7 +209,9 @@ function DashboardContent({ userId }: { userId: string }) {
                 <CardTitle>
                   <h2 className="text-2xl font-semibold">Loading...</h2>
                 </CardTitle>
-                <CardDescription className="mt-2">Loading mesocycle data</CardDescription>
+                <CardDescription className="mt-2">
+                  Loading mesocycle data
+                </CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -189,10 +235,10 @@ function DashboardContent({ userId }: { userId: string }) {
             <Dumbbell className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <h2 className="text-xl font-semibold mb-2">No Active Mesocycle</h2>
             <p className="text-muted-foreground mb-6">
-              Create a mesocycle to start tracking your workouts
+              Start a mesocycle to start tracking your workouts
             </p>
             <Button asChild>
-              <Link to="/mesocycle/setup">Set Up Mesocycle</Link>
+              <Link to="/mesocycles">Mesocycles</Link>
             </Button>
           </CardContent>
         </Card>
@@ -204,22 +250,26 @@ function DashboardContent({ userId }: { userId: string }) {
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle>
-                    <h2 className="text-2xl font-semibold">
-                      {mesocycleTitle}
-                    </h2>
+                    <h2 className="text-2xl font-semibold">{mesocycleTitle}</h2>
                   </CardTitle>
                   <CardDescription className="mt-2">
                     Week {currentWeek} of {activeMesocycle.durationWeeks}
                   </CardDescription>
                 </div>
                 {isDeloadWeek && !isCompleted && (
-                  <Badge variant="destructive" className="flex items-center gap-1">
+                  <Badge
+                    variant="destructive"
+                    className="flex items-center gap-1"
+                  >
                     <AlertCircle className="h-3 w-3" />
                     Deload Week
                   </Badge>
                 )}
                 {isCompleted && (
-                  <Badge variant="default" className="flex items-center gap-1 bg-green-600">
+                  <Badge
+                    variant="default"
+                    className="flex items-center gap-1 bg-green-600"
+                  >
                     <CheckCircle2 className="h-3 w-3" />
                     Completed
                   </Badge>
@@ -231,7 +281,9 @@ function DashboardContent({ userId }: { userId: string }) {
               <div>
                 <div className="flex justify-between text-sm mb-2">
                   <span className="text-muted-foreground">Progress</span>
-                  <span className="font-medium">{Math.round(mesocycleProgress)}%</span>
+                  <span className="font-medium">
+                    {Math.round(mesocycleProgress)}%
+                  </span>
                 </div>
                 <Progress value={mesocycleProgress} className="h-2" />
               </div>
@@ -240,8 +292,12 @@ function DashboardContent({ userId }: { userId: string }) {
               {workoutTemplate && (
                 <div className="pt-2 border-t space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Today's Workout</span>
-                    <span className="font-semibold">{workoutTemplate.totalSetsPerSession} sets</span>
+                    <span className="text-muted-foreground">
+                      Today's Workout
+                    </span>
+                    <span className="font-semibold">
+                      {workoutTemplate.totalSetsPerSession} sets
+                    </span>
                   </div>
                   {workoutTemplate.isDeloadWeek && (
                     <p className="text-xs text-orange-600 dark:text-orange-400">
@@ -257,7 +313,12 @@ function DashboardContent({ userId }: { userId: string }) {
                         <span className="text-muted-foreground">
                           {item.patternName}
                           {item.isPrimary && (
-                            <Badge variant="secondary" className="ml-1.5 text-xs">Primary</Badge>
+                            <Badge
+                              variant="secondary"
+                              className="ml-1.5 text-xs"
+                            >
+                              Primary
+                            </Badge>
                           )}
                         </span>
                         <span className="font-medium">{item.sets} sets</span>
@@ -271,17 +332,23 @@ function DashboardContent({ userId }: { userId: string }) {
               <div className="grid grid-cols-2 gap-4 pt-2 border-t">
                 <div>
                   <div className="text-sm text-muted-foreground">Sets/Week</div>
-                  <div className="text-lg font-semibold">{activeMesocycle.targetSetsPerWeek}</div>
+                  <div className="text-lg font-semibold">
+                    {activeMesocycle.targetSetsPerWeek}
+                  </div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Sessions/Week</div>
-                  <div className="text-lg font-semibold">{activeMesocycle.sessionsPerWeek}</div>
+                  <div className="text-sm text-muted-foreground">
+                    Sessions/Week
+                  </div>
+                  <div className="text-lg font-semibold">
+                    {activeMesocycle.sessionsPerWeek}
+                  </div>
                 </div>
               </div>
             </CardContent>
             <CardFooter>
               {!isCompleted ? (
-                <Button 
+                <Button
                   onClick={handleStartWorkout}
                   className="w-full"
                   disabled={!activeMesocycle}
@@ -291,9 +358,7 @@ function DashboardContent({ userId }: { userId: string }) {
                 </Button>
               ) : (
                 <Button asChild className="w-full" variant="outline">
-                  <Link to="/mesocycle/setup">
-                    Set Up New Mesocycle
-                  </Link>
+                  <Link to="/mesocycles">Mesocycles</Link>
                 </Button>
               )}
             </CardFooter>
@@ -310,7 +375,8 @@ function DashboardContent({ userId }: { userId: string }) {
                       Deload Week
                     </h3>
                     <p className="text-sm text-blue-800 dark:text-blue-200">
-                      This is your final week. Volume has been automatically reduced by 50% for recovery.
+                      This is your final week. Volume has been automatically
+                      reduced by 50% for recovery.
                     </p>
                   </div>
                 </div>
@@ -329,11 +395,15 @@ function DashboardContent({ userId }: { userId: string }) {
                       Mesocycle Completed!
                     </h3>
                     <p className="text-sm text-green-800 dark:text-green-200 mb-4">
-                      Congratulations on completing your mesocycle! Set up a new mesocycle to continue your training.
+                      Congratulations on completing your mesocycle! Set up a new
+                      mesocycle to continue your training.
                     </p>
                     <Button asChild className="bg-green-600 hover:bg-green-700">
-                      <Link to="/mesocycle/setup" onClick={() => setShowCompletionPrompt(false)}>
-                        Set Up New Mesocycle
+                      <Link
+                        to="/mesocycles"
+                        onClick={() => setShowCompletionPrompt(false)}
+                      >
+                        Mesocycles
                       </Link>
                     </Button>
                   </div>
@@ -355,7 +425,9 @@ function DashboardContent({ userId }: { userId: string }) {
                 <div className="text-center py-8 text-muted-foreground">
                   <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p>No workouts yet</p>
-                  <p className="text-sm mt-1">Start your first workout to see it here</p>
+                  <p className="text-sm mt-1">
+                    Start your first workout to see it here
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -370,13 +442,18 @@ function DashboardContent({ userId }: { userId: string }) {
                         </div>
                         <div>
                           <div className="font-medium">
-                            Week {workout.weekNumber} - {formatWorkoutDate(workout.date)}
+                            Week {workout.weekNumber} -{' '}
+                            {formatWorkoutDate(workout.date)}
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {workout.completed ? (
-                              <span className="text-green-600 dark:text-green-400">Completed</span>
+                              <span className="text-green-600 dark:text-green-400">
+                                Completed
+                              </span>
                             ) : (
-                              <span className="text-orange-600 dark:text-orange-400">In Progress</span>
+                              <span className="text-orange-600 dark:text-orange-400">
+                                In Progress
+                              </span>
                             )}
                           </div>
                         </div>
