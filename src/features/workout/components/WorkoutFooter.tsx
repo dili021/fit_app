@@ -32,6 +32,7 @@ export function WorkoutFooter({
         </Button>
         {!isLastPattern ? (
           <Button
+            variant="outline"
             onClick={onNextPattern}
             className="flex-1"
             disabled={isNextPatternDisabled}

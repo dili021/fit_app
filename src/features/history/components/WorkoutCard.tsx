@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 
 interface WorkoutCardProps {
   workout: Doc<'workouts'>
@@ -65,16 +66,17 @@ export function WorkoutCard({
                 {duration}
               </Badge>
             )}
-            <button
+            <Button
               onClick={onToggleExpand}
-              className="p-2 active:bg-muted rounded-md transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
+              variant="ghost"
+              size="icon"
             >
               {isExpanded ? (
                 <ChevronUp className="w-5 h-5" />
               ) : (
                 <ChevronDown className="w-5 h-5" />
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </CardHeader>

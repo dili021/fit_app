@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Home, Menu, SquareFunction, StickyNote, X } from 'lucide-react'
 import BetterAuthHeader from '../integrations/better-auth/header-user.tsx'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
@@ -11,16 +12,18 @@ export default function Header() {
   return (
     <>
       {/* Bottom Header - Menu and Logo */}
-      <header className="fixed bottom-0 left-0 right-0 z-40 border-t bg-sidebar-accent/95 backdrop-blur supports-[backdrop-filter]:bg-sidebar-accent/60">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t bg-sidebar-accent/95 backdrop-blur supports-[backdrop-filter]:bg-sidebar-accent/60">
         <div className="container grid h-16 grid-cols-3 items-center px-4">
-          <button
+          <Button
             onClick={() => setIsOpen(true)}
-            className="min-h-[48px] min-w-[48px] text-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80 transition-colors rounded-md flex items-center justify-center justify-self-start"
+            variant="ghost"
+            size="icon"
+            className="justify-self-start"
             aria-label="Open menu"
           >
             <Menu className="h-6 w-6" />
-          </button>
-          <Link to="/" className="flex items-center gap-2 justify-self-center">
+          </Button>
+          <Link to="/" className="justify-self-center text-center">
             <span
               className="text-2xl font-bold"
               style={{ fontFamily: "'Bungee', cursive" }}
@@ -30,7 +33,7 @@ export default function Header() {
           </Link>
           <div className="w-12" />
         </div>
-      </header>
+      </nav>
 
       {/* Backdrop */}
       {isOpen && (
@@ -52,13 +55,15 @@ export default function Header() {
         {/* Sidebar Header */}
         <div className="flex h-14 items-center justify-between border-b border-sidebar-border px-4">
           <h2 className="text-lg font-semibold">Navigation</h2>
-          <button
+          <Button
             onClick={() => setIsOpen(false)}
-            className="min-h-[48px] min-w-[48px] text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80 transition-colors rounded-md flex items-center justify-center"
+            variant="ghost"
+            size="icon"
+            className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Navigation */}

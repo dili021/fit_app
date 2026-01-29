@@ -23,9 +23,9 @@ The app controls for scientifically-backed training variables, leaving only exer
 - Still maintains pattern focus for balanced development
 - Example: Push pattern with 5 sets → could be 3 sets bench, 1 set pushups, 1 set dips
 
-## 3. Auto-Progression is CORE (Not Optional)
+## 3. Auto-Progression
 
-**This is a fundamental feature, not an enhancement.**
+- **Know when to progress**
 
 - Automatically suggests weight changes based on 8-12 rep range
 - If reps ≥ 12 → suggest weight increase (+2.5kg)
@@ -33,7 +33,6 @@ The app controls for scientifically-backed training variables, leaving only exer
 - If 8-12 → maintain weight (sweet spot)
 - Removes decision fatigue
 - Keeps users progressing and in optimal training zone
-- System automatically adjusts suggested weight for that specific exercise
 
 ## 4. "Biggest Rocks First" - Primary Patterns Come First
 

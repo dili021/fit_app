@@ -55,10 +55,10 @@ export function ExerciseProgressChart({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center gap-4">
+          <div className="min-w-0 flex-1">
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
+              <TrendingUp className="w-5 h-5 shrink-0" />
               Exercise Progress
             </CardTitle>
             <CardDescription>
@@ -71,10 +71,10 @@ export function ExerciseProgressChart({
               value={selectedExerciseId || ''}
               onValueChange={onExerciseChange}
             >
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="!min-w-[120px] shrink-0">
                 <SelectValue placeholder="Select exercise" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent align="end" side="top" sideOffset={4}>
                 {performedExercises.map((exercise: Doc<'exercises'>) => (
                   <SelectItem key={exercise._id} value={exercise._id}>
                     {exercise.name}

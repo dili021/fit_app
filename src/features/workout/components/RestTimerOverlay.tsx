@@ -53,16 +53,18 @@ export function RestTimerOverlay({
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-primary/50 backdrop-blur-sm">
       <Card className="w-full max-w-md mx-4">
         <CardContent className="p-6">
-          <div className="flex items-start justify-between mb-4">
-            <h3 className="text-lg font-semibold">Rest Timer</h3>
+          <div className="flex items-center justify-between mb-4 relative">
+            <h3 className="text-lg font-semibold flex-1 text-center">
+              Rest Timer
+            </h3>
             <Button
               variant="ghost"
               size="icon"
               onClick={onDismiss}
-              className="h-8 w-8"
+              className="h-8 w-8 absolute right-0"
             >
               <X className="h-4 w-4" />
             </Button>

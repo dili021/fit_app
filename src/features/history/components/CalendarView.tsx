@@ -82,7 +82,7 @@ export function CalendarView({
             </div>
           ))}
           {calendarDates.map((item, index) => (
-            <button
+            <Button
               key={index}
               onClick={(e) => {
                 if (item.hasWorkout) {
@@ -90,19 +90,16 @@ export function CalendarView({
                   onDateClick(item.date)
                 }
               }}
-              className={`aspect-square p-1 ${
-                item.hasWorkout
-                  ? 'bg-primary/20 rounded-md flex items-center justify-center cursor-pointer hover:bg-primary/30 transition-colors'
-                  : ''
-              }`}
+              variant={item.hasWorkout ? 'secondary' : 'ghost'}
               disabled={!item.hasWorkout}
+              className="aspect-square p-1 h-auto"
             >
               <div
                 className={`text-sm ${item.hasWorkout ? 'font-semibold' : 'text-muted-foreground'}`}
               >
                 {item.date.getDate()}
               </div>
-            </button>
+            </Button>
           ))}
         </div>
         <div className="mt-4 pt-4 border-t">

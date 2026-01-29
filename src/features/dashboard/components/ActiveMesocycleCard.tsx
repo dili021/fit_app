@@ -86,7 +86,7 @@ export function ActiveMesocycleCard({
               {Math.round(mesocycleProgress)}%
             </span>
           </div>
-          <Progress value={mesocycleProgress} className="h-2" />
+          <Progress value={Math.min(mesocycleProgress, 100)} className="h-2" />
         </div>
 
         {workoutTemplate && (

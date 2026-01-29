@@ -1,3 +1,5 @@
+import { Button } from '@/components/ui/button'
+
 type ViewType = 'list' | 'calendar' | 'charts'
 
 interface ViewToggleProps {
@@ -5,45 +7,30 @@ interface ViewToggleProps {
   onViewChange: (view: ViewType) => void
 }
 
-const BASE_BUTTON_CLASSES =
-  'px-4 py-2 rounded-md text-sm font-medium transition-colors min-h-[48px]'
-const ACTIVE_BUTTON_CLASSES = 'bg-primary text-primary-foreground'
-const INACTIVE_BUTTON_CLASSES =
-  'bg-muted text-muted-foreground active:bg-muted/80'
-
 export function ViewToggle({ selectedView, onViewChange }: ViewToggleProps) {
   return (
-    <div className="flex gap-2 mb-6">
-      <button
+    <div className="flex mb-6">
+      <Button
         onClick={() => onViewChange('list')}
-        className={`${BASE_BUTTON_CLASSES} ${
-          selectedView === 'list'
-            ? ACTIVE_BUTTON_CLASSES
-            : INACTIVE_BUTTON_CLASSES
-        }`}
+        variant={selectedView === 'list' ? 'default' : 'secondary'}
+        className="flex-1"
       >
-        Workout History
-      </button>
-      <button
+        History
+      </Button>
+      <Button
         onClick={() => onViewChange('calendar')}
-        className={`${BASE_BUTTON_CLASSES} ${
-          selectedView === 'calendar'
-            ? ACTIVE_BUTTON_CLASSES
-            : INACTIVE_BUTTON_CLASSES
-        }`}
+        variant={selectedView === 'calendar' ? 'default' : 'secondary'}
+        className="flex-1"
       >
-        Workout Calendar
-      </button>
-      <button
+        Calendar
+      </Button>
+      <Button
         onClick={() => onViewChange('charts')}
-        className={`${BASE_BUTTON_CLASSES} text-center ${
-          selectedView === 'charts'
-            ? ACTIVE_BUTTON_CLASSES
-            : INACTIVE_BUTTON_CLASSES
-        }`}
+        variant={selectedView === 'charts' ? 'default' : 'secondary'}
+        className="flex-1"
       >
         Progress
-      </button>
+      </Button>
     </div>
   )
 }

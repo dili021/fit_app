@@ -47,10 +47,10 @@ export function PatternVolumeChart({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center gap-4">
+          <div className="min-w-0 flex-1">
             <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5" />
+              <BarChart3 className="w-5 h-5 shrink-0" />
               Pattern Volume Tracking
             </CardTitle>
             <CardDescription>
@@ -62,10 +62,10 @@ export function PatternVolumeChart({
               value={selectedPatternId || ''}
               onValueChange={onPatternChange}
             >
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="!min-w-[120px] shrink-0">
                 <SelectValue placeholder="Select pattern" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent align="end" side="top" sideOffset={4}>
                 {patterns.map((pattern: Doc<'patterns'>) => (
                   <SelectItem key={pattern._id} value={pattern._id}>
                     {pattern.displayName}

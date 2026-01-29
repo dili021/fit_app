@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { authClient } from '@/lib/auth-client'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { Button } from '@/components/ui/button'
 
 export default function BetterAuthHeader() {
   const { data: session, isPending } = authClient.useSession()
@@ -27,14 +28,15 @@ export default function BetterAuthHeader() {
           {displayName}
         </span>
         <ThemeToggle />
-        <button
+        <Button
           onClick={() => {
             void authClient.signOut()
           }}
-          className="h-9 px-4 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent/80 transition-colors rounded-md min-h-[48px] shrink-0 whitespace-nowrap"
+          variant="ghost"
+          className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground shrink-0 whitespace-nowrap"
         >
           Sign out
-        </button>
+        </Button>
       </div>
     )
   }

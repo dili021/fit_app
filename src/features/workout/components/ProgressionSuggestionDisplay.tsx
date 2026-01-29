@@ -22,7 +22,7 @@ export function ProgressionSuggestionDisplay({
   fallbackValue,
 }: ProgressionSuggestionDisplayProps) {
   return (
-    <div className="mt-1 min-h-8 space-y-0.5">
+    <div className="mt-1 h-6">
       {suggestion?.suggestion ? (
         <>
           {suggestion.suggestion === 'increase' && (

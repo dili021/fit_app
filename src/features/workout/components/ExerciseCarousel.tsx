@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { api } from '@db/_generated/api'
 import type { Id } from '@db/_generated/dataModel'
 import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 interface ExerciseCarouselProps {
   patternId: Id<'patterns'>
@@ -63,23 +64,27 @@ export function ExerciseCarousel({
         <CardContent className="p-6">
           {/* Navigation Arrows - Inside Card */}
           <div className="absolute inset-y-0 left-0 flex items-center pl-2">
-            <button
+            <Button
               onClick={handlePrevious}
-              className="p-2 rounded-full hover:bg-muted hover:text-muted-foreground active:bg-muted/80 transition-colors"
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
               aria-label="Previous exercise"
             >
               <ChevronLeft className="h-6 w-6" />
-            </button>
+            </Button>
           </div>
 
           <div className="absolute inset-y-0 right-0 flex items-center pr-2">
-            <button
+            <Button
               onClick={handleNext}
-              className="p-2 rounded-full hover:bg-muted hover:text-muted-foreground active:bg-muted/80 transition-colors"
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
               aria-label="Next exercise"
             >
               <ChevronRight className="h-6 w-6" />
-            </button>
+            </Button>
           </div>
 
           {/* Exercise Name - Centered */}
@@ -92,18 +97,27 @@ export function ExerciseCarousel({
       {/* Exercise dots indicator */}
       <div className="flex justify-center gap-1.5 mt-4">
         {exercises.map((exercise, index) => (
-          <button
+          <div
             key={exercise._id}
             onClick={() => {
               setCurrentIndex(index)
               onSelectExercise(exercise._id)
             }}
-            className={`h-1.5 rounded-full transition-all min-w-[6px] min-h-[6px] ${
+            className={`h-1.5 rounded-full transition-all min-w-[6px] min-h-[6px] cursor-pointer ${
               index === selectedIndex
                 ? 'w-6 bg-primary'
                 : 'w-1.5 bg-muted active:bg-muted-foreground/50'
             }`}
             aria-label={`Select ${exercise.name}`}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setCurrentIndex(index)
+                onSelectExercise(exercise._id)
+              }
+            }}
           />
         ))}
       </div>
