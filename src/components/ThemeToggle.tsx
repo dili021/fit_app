@@ -41,7 +41,7 @@ export function ThemeToggle() {
       <Button
         variant="ghost"
         size="icon"
-        className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        className="text-sidebar-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground"
         aria-label="Toggle theme"
         disabled
       >
@@ -55,7 +55,7 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       variant="ghost"
       size="icon"
-      className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-sidebar-ring"
+      className="text-sidebar-foreground hover:!bg-sidebar-primary hover:!text-sidebar-primary-foreground shrink-0 whitespace-nowrap focus-visible:ring-sidebar-ring"
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >
       {theme === 'light' ? (

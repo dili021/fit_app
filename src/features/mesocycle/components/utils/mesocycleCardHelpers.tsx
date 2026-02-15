@@ -43,3 +43,18 @@ export function getPrimaryPatternNames(
     .filter(Boolean)
     .join(' and ')
 }
+
+export function calculateCurrentWeek(
+  currentWeek: number | undefined,
+  statusInfoCurrentWeek: number | undefined,
+  startDate: number | undefined,
+): number {
+  if (currentWeek !== undefined) return currentWeek
+  if (statusInfoCurrentWeek !== undefined) return statusInfoCurrentWeek
+  if (startDate) {
+    return (
+      Math.floor((Date.now() - startDate) / (7 * 24 * 60 * 60 * 1000)) + 1
+    )
+  }
+  return 1
+}

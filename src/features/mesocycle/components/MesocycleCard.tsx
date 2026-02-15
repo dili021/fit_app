@@ -1,12 +1,14 @@
 import { useMutation, useQuery } from 'convex/react'
 import { useNavigate } from '@tanstack/react-router'
-import { Calendar, CheckCircle2, Play, Target } from 'lucide-react'
 import { api } from '@db/_generated/api'
 import {
-  formatMesocycleDate,
+  calculateCurrentWeek,
   getPrimaryPatternNames,
   getStatusBadge,
 } from './utils/mesocycleCardHelpers'
+import { ActiveMesocycleContent } from './ActiveMesocycleContent'
+import { PlannedMesocycleContent } from './PlannedMesocycleContent'
+import { CompletedMesocycleContent } from './CompletedMesocycleContent'
 import type { Doc } from '@db/_generated/dataModel'
 import {
   Card,
@@ -15,7 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 
 interface MesocycleCardProps {
   mesocycle: Doc<'mesocycles'>
@@ -49,21 +50,18 @@ export function MesocycleCard({
       : 'skip',
   )
 
-  const calculatedCurrentWeek =
-    currentWeek ??
-    mesocycleStatusInfo?.currentWeek ??
-    (mesocycle.startDate
-      ? Math.floor(
-          (Date.now() - mesocycle.startDate) / (7 * 24 * 60 * 60 * 1000),
-        ) + 1
-      : 1)
+  const calculatedCurrentWeek = calculateCurrentWeek(
+    currentWeek,
+    mesocycleStatusInfo?.currentWeek,
+    mesocycle.startDate,
+  )
 
   const primaryPatternNames = getPrimaryPatternNames(mesocycle, patternsData)
+  const hasActiveWorkout = activeWorkout && !activeWorkout.completed
 
   const handleStartWorkout = async () => {
     if (!userId || mesocycle.status !== 'active') return
 
-    // If there's an active workout, navigate to it
     if (activeWorkout && !activeWorkout.completed) {
       void navigate({
         to: '/workout/active',
@@ -72,22 +70,17 @@ export function MesocycleCard({
       return
     }
 
-    // Otherwise, create a new workout
     try {
       const workoutId = await createWorkout({
         userId,
         mesocycleId: mesocycle._id,
         weekNumber: calculatedCurrentWeek,
       })
-
-      // Navigate directly to active workout page
       void navigate({ to: '/workout/active', search: { workoutId } })
     } catch {
       alert('Failed to start workout. Please try again.')
     }
   }
-
-  const hasActiveWorkout = activeWorkout && !activeWorkout.completed
 
   return (
     <Card className={mesocycle.status === 'active' ? 'border-primary' : ''}>
@@ -105,86 +98,23 @@ export function MesocycleCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Active mesocycle details */}
-        {mesocycle.status === 'active' && mesocycle.startDate && (
-          <div className="space-y-3">
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                <span>Started: {formatMesocycleDate(mesocycle.startDate)}</span>
-              </div>
-              {mesocycle.currentWeek && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Target className="h-4 w-4" />
-                  <span>
-                    Week {mesocycle.currentWeek} of {mesocycle.durationWeeks}
-                  </span>
-                </div>
-              )}
-              {mesocycle.sessionsPerWeek && mesocycle.targetSetsPerWeek && (
-                <div className="text-muted-foreground">
-                  {mesocycle.sessionsPerWeek} sessions/week •{' '}
-                  {mesocycle.targetSetsPerWeek} sets/week
-                </div>
-              )}
-            </div>
-            <div className="space-y-2">
-              {userId && (
-                <Button
-                  onClick={handleStartWorkout}
-                  className="w-full"
-                  disabled={!mesocycle}
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  {hasActiveWorkout ? 'Continue Workout' : 'Start Workout'}
-                </Button>
-              )}
-              {onConclude && (
-                <Button
-                  onClick={onConclude}
-                  variant="outline"
-                  className="w-full"
-                >
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Conclude Mesocycle
-                </Button>
-              )}
-            </div>
-          </div>
+        {mesocycle.status === 'active' && (
+          <ActiveMesocycleContent
+            mesocycle={mesocycle}
+            userId={userId}
+            hasActiveWorkout={!!hasActiveWorkout}
+            onStartWorkout={handleStartWorkout}
+            onConclude={onConclude}
+          />
         )}
-
-        {/* Planned mesocycle - show activate button only if no active mesocycle */}
         {mesocycle.status === 'planned' && (
-          <div className="space-y-3">
-            {hasActiveMesocycle ? (
-              <p className="text-sm text-muted-foreground">
-                Conclude your active mesocycle to activate this one.
-              </p>
-            ) : (
-              <>
-                <p className="text-sm text-muted-foreground">
-                  Ready to activate. Configure training parameters to start.
-                </p>
-                {onActivate && (
-                  <Button onClick={onActivate} className="w-full">
-                    <Play className="h-4 w-4 mr-2" />
-                    Activate Mesocycle
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
+          <PlannedMesocycleContent
+            hasActiveMesocycle={hasActiveMesocycle}
+            onActivate={onActivate}
+          />
         )}
-
-        {/* Completed mesocycle details */}
-        {mesocycle.status === 'completed' && mesocycle.startDate && (
-          <div className="text-sm text-muted-foreground">
-            Completed{' '}
-            {formatMesocycleDate(
-              mesocycle.startDate +
-                mesocycle.durationWeeks * 7 * 24 * 60 * 60 * 1000,
-            )}
-          </div>
+        {mesocycle.status === 'completed' && (
+          <CompletedMesocycleContent mesocycle={mesocycle} />
         )}
       </CardContent>
     </Card>

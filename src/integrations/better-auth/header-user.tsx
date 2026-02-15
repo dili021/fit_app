@@ -16,7 +16,7 @@ export default function BetterAuthHeader() {
     const displayName = session.user.name || session.user.email || 'User'
 
     return (
-      <div className="flex items-center gap-2 w-full">
+      <div className="flex h-8 items-center">
         {session.user.image ? (
           <img
             src={session.user.image}
@@ -27,13 +27,15 @@ export default function BetterAuthHeader() {
         <span className="text-sm font-medium text-sidebar-foreground flex-1 truncate">
           {displayName}
         </span>
-        <ThemeToggle />
+        <div>
+          <ThemeToggle />
+        </div>
         <Button
           onClick={() => {
             void authClient.signOut()
           }}
           variant="ghost"
-          className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground shrink-0 whitespace-nowrap"
+          className="text-sidebar-foreground hover:!bg-sidebar-primary hover:!text-sidebar-primary-foreground active:!bg-sidebar-primary active:!text-sidebar-primary-foreground shrink-0 whitespace-nowrap"
         >
           Sign out
         </Button>

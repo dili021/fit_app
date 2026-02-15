@@ -106,6 +106,7 @@ export function PatternVolumeChart({
                 name="volume"
                 type="linear"
                 stroke="var(--color-volume)"
+                className="stroke-chart-1"
                 strokeWidth={2}
                 dot={false}
                 connectNulls={false}

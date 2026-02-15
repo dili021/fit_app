@@ -1,5 +1,5 @@
 import type { Doc, Id } from '@db/_generated/dataModel'
-import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 interface PatternSelectionStepProps {
   patterns: Array<Doc<'patterns'>> | undefined
@@ -24,13 +24,13 @@ export function PatternSelectionStep({
           Choose 1-2 movement patterns to focus on (you can select up to 2)
         </p>
       </div>
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         {patterns.map((pattern) => {
           const isSelected = primaryPatterns.includes(pattern._id)
           const isDisabled = !isSelected && primaryPatterns.length >= 2
 
           return (
-            <button
+            <Button
               key={pattern._id}
               onClick={() => onTogglePattern(pattern._id)}
               disabled={isDisabled}
@@ -38,25 +38,15 @@ export function PatternSelectionStep({
                 isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
               }`}
             >
-              <Card
-                className={`${
-                  isSelected
-                    ? 'border-primary bg-primary/5'
-                    : 'hover:bg-muted/50'
-                }`}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium">{pattern.displayName}</div>
-                    {isSelected && (
-                      <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                        <div className="h-2 w-2 rounded-full bg-primary-foreground" />
-                      </div>
-                    )}
+              <div className="flex items-center justify-between">
+                <div className="font-medium">{pattern.displayName}</div>
+                {isSelected && (
+                  <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                    <div className="h-2 w-2 rounded-full bg-primary-foreground" />
                   </div>
-                </CardContent>
-              </Card>
-            </button>
+                )}
+              </div>
+            </Button>
           )
         })}
       </div>

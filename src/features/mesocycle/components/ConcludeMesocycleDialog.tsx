@@ -29,7 +29,7 @@ export function ConcludeMesocycleDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogHeader>
+        <DialogHeader className="mt-6">
           <DialogTitle>
             {isMesocycleFinished
               ? 'Conclude Mesocycle?'
@@ -50,10 +50,16 @@ export function ConcludeMesocycleDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button variant="destructive" onClick={onConfirm}>
+          <div>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+          <Button variant="destructive" className="mb-2" onClick={onConfirm}>
             Conclude Mesocycle
           </Button>
         </DialogFooter>

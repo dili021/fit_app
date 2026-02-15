@@ -47,7 +47,7 @@ export default function Header() {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed top-0 left-0 z-50 h-full w-80 border-r bg-sidebar text-sidebar-foreground shadow-lg transition-transform duration-300 ease-in-out',
+          'fixed top-0 left-0 z-50 h-full w-70 border-r bg-sidebar text-sidebar-foreground shadow-lg transition-transform duration-300 ease-in-out',
           'flex flex-col',
           isOpen ? 'translate-x-0' : '-translate-x-full',
         )}
@@ -120,25 +120,27 @@ function NavLink({
   onClick: () => void
 }) {
   return (
-    <Link
-      to={to}
-      onClick={onClick}
-      className={cn(
-        'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-        'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring',
-      )}
-      activeProps={{
-        className: cn(
-          'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-          'bg-sidebar-primary text-sidebar-primary-foreground',
-          'hover:bg-sidebar-primary/90',
+    <div>
+      <Link
+        to={to}
+        onClick={onClick}
+        className={cn(
+          'flex min-w-0 items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+          'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring',
-        ),
-      }}
-    >
-      <Icon className="h-4 w-4 shrink-0" />
-      <span>{label}</span>
-    </Link>
+        )}
+        activeProps={{
+          className: cn(
+            'flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors',
+            'text-primary',
+            'hover:bg-sidebar-primary/90',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring',
+          ),
+        }}
+      >
+        <Icon className="h-4 w-4 shrink-0" />
+        <span>{label}</span>
+      </Link>
+    </div>
   )
 }

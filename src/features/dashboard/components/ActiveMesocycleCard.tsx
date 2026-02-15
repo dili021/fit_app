@@ -138,22 +138,30 @@ export function ActiveMesocycleCard({
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex flex-col gap-2">
+      <CardFooter className="flex flex-col gap-1">
         {!isCompleted ? (
           <>
-            <Button
-              onClick={onStartWorkout}
-              className="w-full"
-              disabled={!mesocycle}
-            >
-              <Play className="h-4 w-4 mr-2" />
-              {hasActiveWorkout ? 'Continue Workout' : 'Start Workout'}
-            </Button>
-            {onConclude && (
-              <Button onClick={onConclude} variant="outline" className="w-full">
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-                Conclude Mesocycle
+            <div className="w-full">
+              <Button
+                onClick={onStartWorkout}
+                className="w-full"
+                disabled={!mesocycle}
+              >
+                <Play className="h-4 w-4 mr-2" />
+                {hasActiveWorkout ? 'Continue Workout' : 'Start Workout'}
               </Button>
+            </div>
+            {onConclude && (
+              <div className="w-full">
+                <Button
+                  onClick={onConclude}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Conclude Mesocycle
+                </Button>
+              </div>
             )}
           </>
         ) : (

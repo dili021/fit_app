@@ -1,6 +1,5 @@
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface DurationStepProps {
   durationWeeks: number | null
@@ -11,6 +10,8 @@ export function DurationStep({
   durationWeeks,
   onDurationChange,
 }: DurationStepProps) {
+  const durations = [4, 6, 8, 12]
+
   return (
     <div className="space-y-4">
       <div>
@@ -19,26 +20,25 @@ export function DurationStep({
           How many weeks should this mesocycle last?
         </p>
       </div>
-      <RadioGroup
-        value={durationWeeks?.toString() || ''}
-        onValueChange={(value) => onDurationChange(parseInt(value, 10))}
-      >
-        {[4, 6, 8, 12].map((weeks) => (
-          <div key={weeks} className="flex items-center space-x-2">
-            <RadioGroupItem value={weeks.toString()} id={`weeks-${weeks}`} />
-            <Label
-              htmlFor={`weeks-${weeks}`}
-              className="flex-1 cursor-pointer p-3 rounded-md border hover:bg-muted/50"
+      <div className="grid grid-cols-4 p-1 gap-3">
+        {durations.map((weeks) => {
+          const isSelected = durationWeeks === weeks
+          return (
+            <Button
+              key={weeks}
+              type="button"
+              variant="outline"
+              className={cn(
+                'text-base font-medium hover:text-white active:text-primary',
+                isSelected && 'ring-2 ring-primary ',
+              )}
+              onClick={() => onDurationChange(weeks)}
             >
-              <Card>
-                <CardContent className="p-3">
-                  <div className="font-medium">{weeks} weeks</div>
-                </CardContent>
-              </Card>
-            </Label>
-          </div>
-        ))}
-      </RadioGroup>
+              {weeks} weeks
+            </Button>
+          )
+        })}
+      </div>
     </div>
   )
 }
