@@ -107,3 +107,7 @@ src/routes/        Pages
 src/features/      Components and hooks per feature: auth, dashboard, mesocycle, workout, history
 src/components/ui  shadcn/ui components
 ```
+
+## Author
+
+Built by Stefan Dili. More of my work is at https://dili021.github.io/
