@@ -60,11 +60,8 @@ export function WorkoutOverview({
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col">
       <div className="flex-1 overflow-y-auto">
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold mb-2">Workout Complete!</h1>
-            <p className="text-muted-foreground">Review your workout summary</p>
-          </div>
+        <div className="container mx-auto px-4 py-4 max-w-2xl">
+          <h1 className="text-xl font-semibold mb-3">Workout Complete</h1>
 
           {/* Summary Stats */}
           <WorkoutSummaryStats
@@ -75,13 +72,12 @@ export function WorkoutOverview({
           />
 
           {/* Exercise Breakdown - Grouped by Pattern */}
-          <div className="space-y-6">
+          <div className="divide-y">
             {Object.values(groupedByPattern).map((patternGroup) => (
               <PatternGroupSection
                 key={patternGroup.patternId}
                 patternName={patternGroup.patternName}
                 exercises={patternGroup.exercises}
-                formatTime={formatTime}
               />
             ))}
           </div>
@@ -89,8 +85,8 @@ export function WorkoutOverview({
       </div>
 
       {/* Footer */}
-      <div className="border-t p-4">
-        <div className="max-w-4xl mx-auto">
+      <div className="border-t px-4 py-3">
+        <div className="max-w-2xl mx-auto">
           <Button onClick={onComplete} className="w-full">
             <Check className="h-4 w-4 mr-2" />
             Complete Workout

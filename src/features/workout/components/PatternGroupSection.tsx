@@ -1,4 +1,4 @@
-import { ExerciseGroupCard } from './ExerciseGroupCard'
+import { ExerciseGroupRow } from './ExerciseGroupRow'
 import type { Id } from '@db/_generated/dataModel'
 
 interface Set {
@@ -6,7 +6,6 @@ interface Set {
   exerciseId: Id<'exercises'>
   weight: number
   reps: number
-  duration: number
   orderInWorkout: number
 }
 
@@ -20,38 +19,30 @@ interface PatternGroupSectionProps {
       sets: Array<Set>
     }
   >
-  formatTime: (seconds: number) => string
 }
 
 export function PatternGroupSection({
   patternName,
   exercises,
-  formatTime,
 }: PatternGroupSectionProps) {
-  const patternSets = Object.values(exercises).flatMap((e) => e.sets)
-  const patternTotalSets = patternSets.length
+  const exerciseGroups = Object.values(exercises)
+  const patternTotalSets = exerciseGroups.flatMap((e) => e.sets).length
 
   return (
-    <div className="space-y-3">
-      {/* Pattern Header */}
-      <div className="flex items-center justify-between pb-2 border-b">
-        <h2 className="text-xl font-semibold">{patternName}</h2>
-        <div className="text-sm text-muted-foreground">
+    <div className="py-2">
+      <div className="flex items-baseline justify-between">
+        <h2 className="text-sm font-semibold">{patternName}</h2>
+        <div className="text-xs text-muted-foreground">
           {patternTotalSets} {patternTotalSets === 1 ? 'set' : 'sets'}
         </div>
       </div>
-
-      {/* Exercises in this pattern */}
-      <div className="space-y-3">
-        {Object.values(exercises).map((exerciseGroup) => (
-          <ExerciseGroupCard
-            key={exerciseGroup.exerciseId}
-            exerciseName={exerciseGroup.exerciseName}
-            sets={exerciseGroup.sets}
-            formatTime={formatTime}
-          />
-        ))}
-      </div>
+      {exerciseGroups.map((exerciseGroup) => (
+        <ExerciseGroupRow
+          key={exerciseGroup.exerciseId}
+          exerciseName={exerciseGroup.exerciseName}
+          sets={exerciseGroup.sets}
+        />
+      ))}
     </div>
   )
 }

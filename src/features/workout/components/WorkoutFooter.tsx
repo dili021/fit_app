@@ -20,7 +20,7 @@ export function WorkoutFooter({
   onConcludeSession,
 }: WorkoutFooterProps) {
   return (
-    <div className="border-t p-4 space-y-2">
+    <div className="border-t px-4 py-3 space-y-2">
       <div className="flex gap-2">
         <Button
           variant="outline"

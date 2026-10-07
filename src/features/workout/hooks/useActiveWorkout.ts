@@ -6,6 +6,7 @@ import { useSessionTimer } from './useSessionTimer'
 import { usePatternProgress } from './usePatternProgress'
 import { useWorkoutCompletion } from './useWorkoutCompletion'
 import { usePatternNavigation } from './usePatternNavigation'
+import { getLatestSet } from './utils/getLatestSet'
 import type { Id } from '@db/_generated/dataModel'
 
 interface UseActiveWorkoutProps {
@@ -73,6 +74,22 @@ export function useActiveWorkout({ userId, workoutId }: UseActiveWorkoutProps) {
     workoutTemplate: queries.workoutTemplate,
     currentPatternIndex,
   })
+
+  // The set being logged is the last one the workout needs
+  const isFinalSet =
+    completion.remainingSets === 1 &&
+    currentSetNumber <= (patternNav.currentPattern?.sets ?? 0)
+
+  // Shown after the last set, until the user asks for the summary
+  const lastLoggedSet = getLatestSet(queries.workoutSets)
+  const lastSetOverlay = {
+    isVisible: completion.awaitingSummary,
+    lastSet: lastLoggedSet,
+    exerciseName: queries.exercises?.find(
+      (e) => e._id === lastLoggedSet?.exerciseId,
+    )?.name,
+    onViewSummary: completion.viewSummary,
+  }
 
   // Reset timer state when pattern or exercise changes
   useEffect(() => {
@@ -159,6 +176,8 @@ export function useActiveWorkout({ userId, workoutId }: UseActiveWorkoutProps) {
     setSelectedExerciseId,
     completedSets,
     currentSetNumber,
+    isFinalSet,
+    lastSetOverlay,
     isTimerRunning,
     timerSeconds,
     setTimerSeconds,

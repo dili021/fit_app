@@ -21,6 +21,7 @@ interface SetLoggerSectionProps {
   onRestTimerUpdate: (seconds: number) => void
   onRestTimerComplete: () => void
   restTimerStopped: boolean
+  isFinalSet: boolean
   getDotClassName: (isCurrent: boolean, isCompleted: boolean) => string
 }
 
@@ -41,10 +42,11 @@ export function SetLoggerSection({
   onRestTimerUpdate,
   onRestTimerComplete,
   restTimerStopped,
+  isFinalSet,
   getDotClassName,
 }: SetLoggerSectionProps) {
   return (
-    <div className="border-t p-6 space-y-4">
+    <div className="border-t px-4 py-3 space-y-3">
       {/* Set Counter */}
       <div className="flex justify-center items-center gap-1.5">
         <span className="text-xs text-muted-foreground">Set</span>
@@ -88,6 +90,7 @@ export function SetLoggerSection({
         onRestTimerUpdate={onRestTimerUpdate}
         onRestTimerComplete={onRestTimerComplete}
         restTimerStopped={restTimerStopped}
+        isFinalSet={isFinalSet}
       />
     </div>
   )

@@ -1,5 +1,3 @@
-import { Card, CardContent } from '@/components/ui/card'
-
 interface WorkoutSummaryStatsProps {
   totalSets: number
   totalVolume: number
@@ -13,36 +11,20 @@ export function WorkoutSummaryStats({
   totalSessionTime,
   formatTime,
 }: WorkoutSummaryStatsProps) {
+  const stats = [
+    { label: 'Sets', value: totalSets },
+    { label: 'Volume', value: `${totalVolume.toFixed(0)} kg` },
+    { label: 'Time', value: formatTime(totalSessionTime) },
+  ]
+
   return (
-    <div className="space-y-4 mb-6">
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">Total Sets</div>
-            <div className="text-2xl font-bold">{totalSets}</div>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">Total Volume</div>
-            <div className="text-2xl font-bold">
-              {totalVolume.toFixed(0)} kg
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">Total Time</div>
-            <div className="text-2xl font-bold">
-              {formatTime(totalSessionTime)}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="mb-3 grid grid-cols-3 gap-2">
+      {stats.map((stat) => (
+        <div key={stat.label} className="rounded-lg border bg-card px-3 py-2">
+          <div className="text-xs text-muted-foreground">{stat.label}</div>
+          <div className="text-lg font-semibold">{stat.value}</div>
+        </div>
+      ))}
     </div>
   )
 }

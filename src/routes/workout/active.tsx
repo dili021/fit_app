@@ -102,7 +102,6 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
   // Use consolidated hook for all workout logic
   const workout = useActiveWorkout({ userId, workoutId })
 
-  // Destructure hook values
   const {
     currentWorkout,
     activeWorkout,
@@ -128,6 +127,8 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
     isLastPattern,
     isNextPatternDisabled,
     allSetsCompleted,
+    isFinalSet,
+    lastSetOverlay,
     showWorkoutOverview,
     showConfirmDialog,
     setShowConfirmDialog,
@@ -223,6 +224,8 @@ function ActiveWorkoutContent({ userId }: { userId: string }) {
       isLastPattern={isLastPattern}
       isNextPatternDisabled={isNextPatternDisabled}
       allSetsCompleted={allSetsCompleted}
+      isFinalSet={isFinalSet}
+      lastSetOverlay={lastSetOverlay}
       showConfirmDialog={showConfirmDialog}
       setShowConfirmDialog={setShowConfirmDialog}
       onSetComplete={handleSetComplete}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useMutation } from 'convex/react'
 import { useNavigate } from '@tanstack/react-router'
 import { api } from '@db/_generated/api'
+import { countRemainingSets } from './utils/countRemainingSets'
 import type { Doc, Id } from '@db/_generated/dataModel'
 
 interface UseWorkoutCompletionProps {
@@ -22,51 +23,43 @@ export function useWorkoutCompletion({
   workoutTemplate,
 }: UseWorkoutCompletionProps) {
   const navigate = useNavigate()
-  const [showWorkoutOverview, setShowWorkoutOverview] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  // null until the workout data has loaded
+  const [openedWithSetsLeft, setOpenedWithSetsLeft] = useState<boolean | null>(
+    null,
+  )
+  const [summaryRequested, setSummaryRequested] = useState(false)
 
   const completeWorkout = useMutation(api.workouts.completeWorkout)
   const deleteWorkout = useMutation(api.workouts.deleteWorkout)
 
-  // Calculate if all sets are completed for the workout
-  const allSetsCompleted =
+  const remainingSets =
     workoutSets && workoutTemplate
-      ? (() => {
-          for (const pattern of workoutTemplate.template) {
-            const patternSets = workoutSets.filter(
-              (s) => s.patternId === pattern.patternId,
-            )
-            if (patternSets.length < pattern.sets) {
-              return false
-            }
-          }
-          return true
-        })()
-      : false
+      ? countRemainingSets(workoutTemplate.template, workoutSets)
+      : null
+  const allSetsCompleted = remainingSets === 0
+  const hasSets = !!workoutSets && workoutSets.length > 0
 
-  // Show overview when all sets are completed (only once)
   useEffect(() => {
-    if (
-      allSetsCompleted &&
-      workoutSets &&
-      workoutSets.length > 0 &&
-      !showWorkoutOverview
-    ) {
-      // Small delay to ensure all data is loaded
-      const timer = setTimeout(() => {
-        setShowWorkoutOverview(true)
-      }, 100)
-      return () => clearTimeout(timer)
+    if (openedWithSetsLeft === null && remainingSets !== null) {
+      setOpenedWithSetsLeft(remainingSets > 0)
     }
-  }, [allSetsCompleted, workoutSets, showWorkoutOverview])
+  }, [openedWithSetsLeft, remainingSets])
+
+  // A workout reopened with every set logged goes straight to the summary.
+  // One finished on this screen waits for the user to ask for it.
+  const finishedThisSession = openedWithSetsLeft === true
+  const awaitingSummary =
+    allSetsCompleted && hasSets && finishedThisSession && !summaryRequested
+  const showWorkoutOverview =
+    allSetsCompleted &&
+    hasSets &&
+    (openedWithSetsLeft === false || summaryRequested)
 
   const concludeWorkout = async () => {
     if (!currentWorkout) return
 
     try {
-      // Check if there are any sets completed
-      const hasSets = workoutSets && workoutSets.length > 0
-
       if (!hasSets) {
         // Delete the workout if no sets were completed
         await deleteWorkout({ workoutId: currentWorkout._id })
@@ -105,6 +98,9 @@ export function useWorkoutCompletion({
 
   return {
     allSetsCompleted,
+    remainingSets,
+    awaitingSummary,
+    viewSummary: () => setSummaryRequested(true),
     showWorkoutOverview,
     showConfirmDialog,
     setShowConfirmDialog,

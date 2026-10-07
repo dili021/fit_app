@@ -1,10 +1,12 @@
 import { ActiveWorkoutHeader } from './ActiveWorkoutHeader'
 import { ConcludeSessionDialog } from './ConcludeSessionDialog'
 import { ExerciseSelectionSection } from './ExerciseSelectionSection'
+import { LastSetOverlay } from './LastSetOverlay'
 import { RestTimerOverlay } from './RestTimerOverlay'
 import { SetLoggerSection } from './SetLoggerSection'
 import { TimerOverlay } from './TimerOverlay'
 import { WorkoutFooter } from './WorkoutFooter'
+import type { LastSetOverlayProps } from './LastSetOverlay'
 import type { Doc, Id } from '@db/_generated/dataModel'
 
 interface ActiveWorkoutViewProps {
@@ -50,6 +52,8 @@ interface ActiveWorkoutViewProps {
   isLastPattern: boolean
   isNextPatternDisabled: boolean
   allSetsCompleted: boolean
+  isFinalSet: boolean
+  lastSetOverlay: LastSetOverlayProps
   showConfirmDialog: boolean
   setShowConfirmDialog: (open: boolean) => void
   onSetComplete: () => void
@@ -89,6 +93,8 @@ export function ActiveWorkoutView({
   isLastPattern,
   isNextPatternDisabled,
   allSetsCompleted,
+  isFinalSet,
+  lastSetOverlay,
   showConfirmDialog,
   setShowConfirmDialog,
   onSetComplete,
@@ -132,6 +138,8 @@ export function ActiveWorkoutView({
         progressionSuggestion={progressionSuggestion || null}
       />
 
+      <LastSetOverlay {...lastSetOverlay} />
+
       <div className="fixed inset-0 bg-background z-10 flex flex-col">
         <ActiveWorkoutHeader
           currentPattern={currentPattern}
@@ -165,6 +173,7 @@ export function ActiveWorkoutView({
               onRestTimerUpdate={onRestTimerUpdate}
               onRestTimerComplete={onRestTimerComplete}
               restTimerStopped={restTimerStopped}
+              isFinalSet={isFinalSet}
               getDotClassName={getDotClassName}
             />
           )}

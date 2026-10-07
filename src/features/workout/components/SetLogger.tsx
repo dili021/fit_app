@@ -24,6 +24,7 @@ interface SetLoggerProps {
   onRestTimerUpdate?: (seconds: number) => void
   onRestTimerComplete?: () => void
   restTimerStopped?: boolean // Signal from parent to stop rest timer
+  isFinalSet?: boolean // No rest timer after the last set of the workout
 }
 
 export function SetLogger({
@@ -42,6 +43,7 @@ export function SetLogger({
   onRestTimerUpdate,
   onRestTimerComplete,
   restTimerStopped = false,
+  isFinalSet = false,
 }: SetLoggerProps) {
   const {
     weight,
@@ -71,10 +73,11 @@ export function SetLogger({
     onRestTimerUpdate,
     onRestTimerComplete,
     restTimerStopped,
+    isFinalSet,
   })
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-3">
       {/* Timer Button - Opens overlay when clicked */}
       <Button
         onClick={handleStartTimer}

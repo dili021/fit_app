@@ -16,7 +16,7 @@ export function ExerciseSelectionSection({
   onSelectExercise,
 }: ExerciseSelectionSectionProps) {
   return (
-    <div className="flex-1 flex items-center justify-center p-6">
+    <div className="flex-1 flex items-center justify-center px-4 py-3">
       {selectedExerciseId ? (
         <ExerciseCarousel
           patternId={currentPattern.patternId}

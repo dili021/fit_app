@@ -26,6 +26,7 @@ interface UseSetLoggerOptions {
   onRestTimerUpdate?: (seconds: number) => void
   onRestTimerComplete?: () => void
   restTimerStopped?: boolean
+  isFinalSet?: boolean
 }
 
 export function useSetLogger({
@@ -44,6 +45,7 @@ export function useSetLogger({
   onRestTimerUpdate,
   onRestTimerComplete,
   restTimerStopped = false,
+  isFinalSet = false,
 }: UseSetLoggerOptions) {
   const [weight, setWeight] = useState<string>('')
   const [reps, setReps] = useState<string>('')
@@ -172,8 +174,10 @@ export function useSetLogger({
       // Reset timer state FIRST (before starting rest)
       timer.resetTimer()
 
-      // Start rest timer
-      restTimer.startRest()
+      // Start rest timer, unless the workout is done
+      if (!isFinalSet) {
+        restTimer.startRest()
+      }
 
       // Call completion callback
       onSetComplete()

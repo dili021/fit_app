@@ -60,8 +60,8 @@ export function ExerciseCarousel({
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <Card className="relative w-full">
-        <CardContent className="p-6">
+      <Card className="relative w-full py-0">
+        <CardContent className="px-6 py-5">
           {/* Navigation Arrows - Inside Card */}
           <div className="absolute inset-y-0 left-0 flex items-center pl-2">
             <Button
@@ -95,7 +95,7 @@ export function ExerciseCarousel({
       </Card>
 
       {/* Exercise dots indicator */}
-      <div className="flex justify-center gap-1.5 mt-4">
+      <div className="flex justify-center gap-1.5 mt-3">
         {exercises.map((exercise, index) => (
           <div
             key={exercise._id}
@@ -103,7 +103,7 @@ export function ExerciseCarousel({
               setCurrentIndex(index)
               onSelectExercise(exercise._id)
             }}
-            className={`h-1.5 rounded-full transition-all min-w-[6px] min-h-[6px] cursor-pointer ${
+            className={`h-1.5 rounded-full transition-all !min-w-1.5 !min-h-1.5 cursor-pointer ${
               index === selectedIndex
                 ? 'w-6 bg-primary'
                 : 'w-1.5 bg-muted active:bg-muted-foreground/50'
