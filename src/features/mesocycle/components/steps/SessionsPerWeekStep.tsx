@@ -18,7 +18,7 @@ export function SessionsPerWeekStep({
 
   return (
     <div>
-      <Label className="text-base font-semibold mb-3 block">
+      <Label className="text-base font-semibold mb-2 block">
         Training Sessions Per Week
       </Label>
       <div className="inline-flex rounded-lg border border-input bg-background p-1">

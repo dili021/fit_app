@@ -63,12 +63,14 @@ export function ActivateMesocycleDialog({
     setsPerPrimaryPatternPerSession,
     numSecondaryPatterns,
     totalSetsPerSessionWithSecondary,
+    estimatedSessionMinutes,
     isValidDistribution,
   } = useActivateMesocycleCalculations({
     mesocycle,
     patterns,
     setsPerPrimaryPatternPerWeek,
     sessionsPerWeek,
+    restTimeMinutes,
   })
 
   const canSubmit =
@@ -137,7 +139,7 @@ export function ActivateMesocycleDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 overflow-y-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="space-y-4 overflow-y-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <SessionsPerWeekStep
             sessionsPerWeek={sessionsPerWeek}
             onSessionsChange={setSessionsPerWeek}
@@ -149,6 +151,7 @@ export function ActivateMesocycleDialog({
               sessionsPerWeek={sessionsPerWeek}
               setsPerPrimaryPatternPerWeek={setsPerPrimaryPatternPerWeek}
               onSetsChange={setSetsPerPrimaryPatternPerWeek}
+              estimatedSessionMinutes={estimatedSessionMinutes}
               isValidDistribution={isValidDistribution}
             />
           )}
@@ -172,17 +175,17 @@ export function ActivateMesocycleDialog({
               totalSetsPerSessionWithSecondary={
                 totalSetsPerSessionWithSecondary
               }
-              restTimeMinutes={restTimeMinutes}
             />
           )}
         </div>
 
-        {/* Submit Button */}
-        <div className="flex justify-end pt-4 border-t mt-4">
+        <div className="flex justify-end border-t pt-3">
           <Button
             onClick={() => {
               void handleSubmit()
             }}
+            size="sm"
+            className="min-h-9"
             disabled={!canSubmit}
           >
             Activate Mesocycle

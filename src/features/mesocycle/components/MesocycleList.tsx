@@ -58,21 +58,22 @@ function SortableMesocycleCard({
   }
 
   return (
-    <div ref={setNodeRef} style={style} className="relative">
-      {mesocycle.status !== 'active' && (
-        <div
-          {...attributes}
-          {...listeners}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-8 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
-        >
-          <GripVertical className="h-5 w-5" />
-        </div>
-      )}
+    <div ref={setNodeRef} style={style}>
       <MesocycleCard
         mesocycle={mesocycle}
         patterns={patterns}
         onActivate={onActivate}
         hasActiveMesocycle={hasActiveMesocycle}
+        dragHandle={
+          <div
+            {...attributes}
+            {...listeners}
+            aria-label="Reorder mesocycle"
+            className="-ml-3 flex cursor-grab touch-none items-center justify-center self-center text-muted-foreground hover:text-foreground active:cursor-grabbing"
+          >
+            <GripVertical className="h-5 w-5" />
+          </div>
+        }
       />
     </div>
   )
@@ -160,7 +161,7 @@ export function MesocycleList({
             items={inactiveMesocycles.map((m) => m._id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="space-y-4 pl-8">
+            <div className="space-y-4">
               {inactiveMesocycles.map((mesocycle) => (
                 <SortableMesocycleCard
                   key={mesocycle._id}

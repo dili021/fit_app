@@ -1,3 +1,5 @@
+const MINUTES_PER_SET = 2
+
 /**
  * Hook for calculating mesocycle activation values
  */
@@ -6,9 +8,15 @@ export function useActivateMesocycleCalculations(params: {
   patterns: Array<unknown> | undefined
   setsPerPrimaryPatternPerWeek: number | null
   sessionsPerWeek: number | null
+  restTimeMinutes: number
 }) {
-  const { mesocycle, patterns, setsPerPrimaryPatternPerWeek, sessionsPerWeek } =
-    params
+  const {
+    mesocycle,
+    patterns,
+    setsPerPrimaryPatternPerWeek,
+    sessionsPerWeek,
+    restTimeMinutes,
+  } = params
 
   const numPrimaryPatterns = mesocycle?.primaryPatterns.length || 1
   const totalSetsPerWeek =
@@ -36,6 +44,14 @@ export function useActivateMesocycleCalculations(params: {
       ? totalSetsPerSession + numSecondaryPatterns
       : null
 
+  const estimatedSessionMinutes =
+    totalSetsPerSessionWithSecondary !== null
+      ? Math.round(
+          totalSetsPerSessionWithSecondary *
+            (MINUTES_PER_SET + restTimeMinutes),
+        )
+      : null
+
   const isValidDistribution =
     setsPerPrimaryPatternPerWeek && sessionsPerWeek
       ? setsPerPrimaryPatternPerWeek % sessionsPerWeek === 0
@@ -48,6 +64,7 @@ export function useActivateMesocycleCalculations(params: {
     totalSetsPerSession,
     numSecondaryPatterns,
     totalSetsPerSessionWithSecondary,
+    estimatedSessionMinutes,
     isValidDistribution,
   }
 }

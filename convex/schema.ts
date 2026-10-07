@@ -8,6 +8,7 @@ export default defineSchema({
     displayName: v.string(), // "Push", "Pull", etc.
     order: v.number(), // Used for workout template ordering - primary patterns come first
     description: v.optional(v.string()),
+    muscleGroups: v.optional(v.array(v.string())), // "Chest", "Shoulders", etc.
   }).index('name', ['name']),
 
   // Exercises within each pattern

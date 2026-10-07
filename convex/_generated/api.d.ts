@@ -24,6 +24,7 @@ import type * as seedHelpers from "../seedHelpers.js";
 import type * as seedManyWorkoutsHelpers from "../seedManyWorkoutsHelpers.js";
 import type * as seedManyWorkoutsSetupHelpers from "../seedManyWorkoutsSetupHelpers.js";
 import type * as seedMesocycleHelpers from "../seedMesocycleHelpers.js";
+import type * as seedRecentWorkoutsHelpers from "../seedRecentWorkoutsHelpers.js";
 import type * as seedWorkoutCreationHelpers from "../seedWorkoutCreationHelpers.js";
 import type * as seedWorkoutHelpers from "../seedWorkoutHelpers.js";
 import type * as sets from "../sets.js";
@@ -53,6 +54,7 @@ declare const fullApi: ApiFromModules<{
   seedManyWorkoutsHelpers: typeof seedManyWorkoutsHelpers;
   seedManyWorkoutsSetupHelpers: typeof seedManyWorkoutsSetupHelpers;
   seedMesocycleHelpers: typeof seedMesocycleHelpers;
+  seedRecentWorkoutsHelpers: typeof seedRecentWorkoutsHelpers;
   seedWorkoutCreationHelpers: typeof seedWorkoutCreationHelpers;
   seedWorkoutHelpers: typeof seedWorkoutHelpers;
   sets: typeof sets;

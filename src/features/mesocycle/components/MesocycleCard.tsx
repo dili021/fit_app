@@ -10,6 +10,7 @@ import { ActiveMesocycleContent } from './ActiveMesocycleContent'
 import { PlannedMesocycleContent } from './PlannedMesocycleContent'
 import { CompletedMesocycleContent } from './CompletedMesocycleContent'
 import type { Doc } from '@db/_generated/dataModel'
+import type { ReactNode } from 'react'
 import {
   Card,
   CardContent,
@@ -27,6 +28,7 @@ interface MesocycleCardProps {
   userId?: string
   activeWorkout?: Doc<'workouts'> | null
   currentWeek?: number
+  dragHandle?: ReactNode
 }
 
 export function MesocycleCard({
@@ -38,6 +40,7 @@ export function MesocycleCard({
   userId,
   activeWorkout,
   currentWeek,
+  dragHandle,
 }: MesocycleCardProps) {
   const navigate = useNavigate()
   const createWorkout = useMutation(api.workouts.createWorkout)
@@ -85,7 +88,8 @@ export function MesocycleCard({
   return (
     <Card className={mesocycle.status === 'active' ? 'border-primary' : ''}>
       <CardHeader>
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-2">
+          {dragHandle}
           <div className="flex-1">
             <CardTitle className="text-lg">
               {primaryPatternNames} mesocycle

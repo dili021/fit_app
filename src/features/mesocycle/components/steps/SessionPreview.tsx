@@ -6,7 +6,6 @@ interface SessionPreviewProps {
   setsPerPrimaryPatternPerSession: number | null
   numSecondaryPatterns: number
   totalSetsPerSessionWithSecondary: number | null
-  restTimeMinutes: number
 }
 
 export function SessionPreview({
@@ -15,7 +14,6 @@ export function SessionPreview({
   setsPerPrimaryPatternPerSession,
   numSecondaryPatterns,
   totalSetsPerSessionWithSecondary,
-  restTimeMinutes,
 }: SessionPreviewProps) {
   if (
     totalSetsPerSessionWithSecondary === null ||
@@ -26,9 +24,9 @@ export function SessionPreview({
   }
 
   return (
-    <div className="space-y-3 pt-2 border-t">
+    <div className="space-y-2 pt-3 border-t">
       <h4 className="font-semibold text-sm">Session Preview</h4>
-      <div className="space-y-2 text-sm">
+      <div className="space-y-1 text-sm">
         {/* Primary patterns */}
         {mesocycle.primaryPatterns.map((patternId: Id<'patterns'>) => {
           const pattern = patterns.find((p) => p._id === patternId)
@@ -52,17 +50,10 @@ export function SessionPreview({
             <span className="font-medium">1 set each</span>
           </div>
         )}
-        <div className="pt-2 border-t">
+        <div className="pt-1 border-t">
           <div className="flex justify-between font-medium">
             <span>Total sets per session:</span>
             <span>{totalSetsPerSessionWithSecondary}</span>
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            Estimated duration: ~
-            {Math.round(
-              totalSetsPerSessionWithSecondary * (2 + restTimeMinutes),
-            )}{' '}
-            minutes (assuming 2 min per set + {restTimeMinutes} min rest)
           </div>
         </div>
       </div>

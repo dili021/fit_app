@@ -13,7 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Progress } from '@/components/ui/progress'
 
 interface CreateMesocycleDialogProps {
   open: boolean
@@ -40,7 +39,6 @@ export function CreateMesocycleDialog({
   const createMesocycle = useMutation(api.mesocycles.createMesocycle)
 
   const totalSteps = 2
-  const progress = (currentStep / totalSteps) * 100
 
   const canProceed = () => {
     switch (currentStep) {
@@ -117,7 +115,6 @@ export function CreateMesocycleDialog({
           <DialogDescription>
             Step {currentStep} of {totalSteps}
           </DialogDescription>
-          <Progress value={progress} className="h-2 mt-2" />
         </DialogHeader>
 
         <div className="space-y-6 overflow-y-auto flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">

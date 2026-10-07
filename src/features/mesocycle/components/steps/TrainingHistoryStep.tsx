@@ -12,7 +12,7 @@ export function TrainingHistoryStep({
 }: TrainingHistoryStepProps) {
   return (
     <div>
-      <Label className="text-base font-semibold mb-3 block">
+      <Label className="text-base font-semibold mb-2 block">
         Were you previously training?
       </Label>
       <RadioGroup
@@ -21,7 +21,7 @@ export function TrainingHistoryStep({
         }
         onValueChange={(value) => onTrainingHistoryChange(value === 'true')}
       >
-        <div className="space-y-3">
+        <div className="space-y-2">
           <div className="flex items-center space-x-3">
             <RadioGroupItem value="true" id="training-yes" />
             <Label htmlFor="training-yes" className="cursor-pointer">
@@ -37,13 +37,10 @@ export function TrainingHistoryStep({
         </div>
       </RadioGroup>
       {wasPreviouslyTraining === false && (
-        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-          <p className="text-sm">
-            <strong>Build-up logic:</strong> Your first 2 weeks will use 50%
-            volume, weeks 3-4 will use 75% volume, and weeks 5+ will use full
-            volume.
-          </p>
-        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Volume builds up: 50% in weeks 1-2, 75% in weeks 3-4, full from week
+          5.
+        </p>
       )}
     </div>
   )

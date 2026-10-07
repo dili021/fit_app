@@ -12,7 +12,7 @@ export function RestTimeStep({
 }: RestTimeStepProps) {
   return (
     <div>
-      <Label htmlFor="restTime" className="text-base font-semibold mb-3 block">
+      <Label htmlFor="restTime" className="text-base font-semibold mb-2 block">
         Rest Time Between Sets (minutes)
       </Label>
       <Input
@@ -26,7 +26,7 @@ export function RestTimeStep({
         className="max-w-[200px]"
       />
       <p className="text-sm text-muted-foreground mt-1">
-        Recommended: 2-5 minutes for strength training
+        Recommended: 3+ minutes for quality reps
       </p>
     </div>
   )

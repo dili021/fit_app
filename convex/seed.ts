@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import { v } from 'convex/values'
 import { mutation, query } from './_generated/server'
 import {
@@ -15,7 +14,53 @@ import {
 } from './seedWorkoutCreationHelpers'
 import { setupSeedManyWorkoutsData } from './seedManyWorkoutsSetupHelpers'
 import { createManyWorkouts } from './seedManyWorkoutsHelpers'
+import { createRecentWorkouts } from './seedRecentWorkoutsHelpers'
 import type { Id } from './_generated/dataModel'
+
+const PATTERN_SEEDS = [
+  {
+    name: 'push',
+    displayName: 'Push',
+    order: 1,
+    description: 'Chest, shoulders, triceps',
+    muscleGroups: ['Chest', 'Shoulders', 'Triceps'],
+  },
+  {
+    name: 'pull',
+    displayName: 'Pull',
+    order: 2,
+    description: 'Back, biceps, rear delts',
+    muscleGroups: ['Back', 'Biceps', 'Rear delts'],
+  },
+  {
+    name: 'squat',
+    displayName: 'Squat',
+    order: 3,
+    description: 'Quad-dominant leg movements',
+    muscleGroups: ['Quads', 'Glutes'],
+  },
+  {
+    name: 'hinge',
+    displayName: 'Hinge',
+    order: 4,
+    description: 'Hip-dominant posterior chain',
+    muscleGroups: ['Hamstrings', 'Glutes', 'Lower back'],
+  },
+  {
+    name: 'lunge',
+    displayName: 'Lunge',
+    order: 5,
+    description: 'Unilateral leg movements',
+    muscleGroups: ['Quads', 'Glutes', 'Adductors'],
+  },
+  {
+    name: 'twist',
+    displayName: 'Twist',
+    order: 6,
+    description: 'Rotational core movements',
+    muscleGroups: ['Obliques', 'Abs'],
+  },
+]
 
 /**
  * Get all user IDs (for seeding purposes)
@@ -34,48 +79,9 @@ export const getUserIds = query({
  */
 export const seedPatterns = mutation({
   handler: async (ctx) => {
-    const patterns = [
-      {
-        name: 'push',
-        displayName: 'Push',
-        order: 1,
-        description: 'Chest, shoulders, triceps',
-      },
-      {
-        name: 'pull',
-        displayName: 'Pull',
-        order: 2,
-        description: 'Back, biceps, rear delts',
-      },
-      {
-        name: 'squat',
-        displayName: 'Squat',
-        order: 3,
-        description: 'Quad-dominant leg movements',
-      },
-      {
-        name: 'hinge',
-        displayName: 'Hinge',
-        order: 4,
-        description: 'Hip-dominant posterior chain',
-      },
-      {
-        name: 'lunge',
-        displayName: 'Lunge',
-        order: 5,
-        description: 'Unilateral leg movements',
-      },
-      {
-        name: 'twist',
-        displayName: 'Twist',
-        order: 6,
-        description: 'Rotational core movements',
-      },
-    ]
-
     const patternIds: Record<string, string> = {}
 
-    for (const pattern of patterns) {
+    for (const pattern of PATTERN_SEEDS) {
       // Check if pattern already exists
       const existing = await ctx.db
         .query('patterns')
@@ -87,6 +93,8 @@ export const seedPatterns = mutation({
         patternIds[pattern.name] = id
         console.log(`Created pattern: ${pattern.displayName}`)
       } else {
+        // Backfill muscle groups on patterns seeded before the field existed
+        await ctx.db.patch(existing._id, { muscleGroups: pattern.muscleGroups })
         patternIds[pattern.name] = existing._id
         console.log(`Pattern already exists: ${pattern.displayName}`)
       }
@@ -189,49 +197,10 @@ export const seedAll = mutation({
     console.log('Seeding patterns...')
 
     // Seed patterns
-    const patterns = [
-      {
-        name: 'push',
-        displayName: 'Push',
-        order: 1,
-        description: 'Chest, shoulders, triceps',
-      },
-      {
-        name: 'pull',
-        displayName: 'Pull',
-        order: 2,
-        description: 'Back, biceps, rear delts',
-      },
-      {
-        name: 'squat',
-        displayName: 'Squat',
-        order: 3,
-        description: 'Quad-dominant leg movements',
-      },
-      {
-        name: 'hinge',
-        displayName: 'Hinge',
-        order: 4,
-        description: 'Hip-dominant posterior chain',
-      },
-      {
-        name: 'lunge',
-        displayName: 'Lunge',
-        order: 5,
-        description: 'Unilateral leg movements',
-      },
-      {
-        name: 'twist',
-        displayName: 'Twist',
-        order: 6,
-        description: 'Rotational core movements',
-      },
-    ]
-
     const patternIds: Record<string, Id<'patterns'>> = {}
     let patternsCreated = 0
 
-    for (const pattern of patterns) {
+    for (const pattern of PATTERN_SEEDS) {
       const existing = await ctx.db
         .query('patterns')
         .withIndex('name', (q) => q.eq('name', pattern.name))
@@ -243,6 +212,7 @@ export const seedAll = mutation({
         patternsCreated++
         console.log(`Created pattern: ${pattern.displayName}`)
       } else {
+        await ctx.db.patch(existing._id, { muscleGroups: pattern.muscleGroups })
         patternIds[pattern.name] = existing._id
         console.log(`Pattern already exists: ${pattern.displayName}`)
       }
@@ -314,7 +284,7 @@ export const seedAll = mutation({
     }
 
     return {
-      patterns: { created: patternsCreated, total: patterns.length },
+      patterns: { created: patternsCreated, total: PATTERN_SEEDS.length },
       exercises: {
         created: exercisesCreated,
         skipped: exercisesSkipped,
@@ -512,5 +482,24 @@ export const seedManyWorkouts = mutation({
       mesocycleId: setupData.mesoId,
       workoutsCreated,
     }
+  },
+})
+
+/**
+ * Seed a handful of completed workouts spread over the last weeks
+ * Run with: npx convex run seed:seedRecentWorkouts '{"userId": "your-user-id"}'
+ */
+export const seedRecentWorkouts = mutation({
+  args: {
+    userId: v.string(),
+    count: v.optional(v.number()),
+    weeks: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    return await createRecentWorkouts(ctx, {
+      userId: args.userId,
+      count: args.count ?? 10,
+      weeks: args.weeks ?? 8,
+    })
   },
 })
